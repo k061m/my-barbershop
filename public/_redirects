@@ -1,0 +1,4 @@
+# Allow Firebase domains
+/google.firestore.* https://firestore.googleapis.com/:splat 200
+/firebase.* https://firebase.googleapis.com/:splat 200
+/* /index.html 200 

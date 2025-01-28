@@ -37,19 +37,13 @@ export default function HomePage() {
 
       {/* Quick Actions */}
       <div className="p-4 -mt-8 relative z-10 max-w-4xl mx-auto">
-        <div className="grid grid-cols-2 gap-4">
-            <button 
-            className="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-200"
+        <div className="flex justify-center">
+          <button 
+            className="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-200 w-full max-w-xs"
             onClick={() => navigate('/booking')}
-            >
+          >
             Book Now
-            </button>
-            <button 
-            className="btn bg-accent hover:bg-accent/90 text-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-200"
-            onClick={() => handleAuthRedirect('/login')}
-            >
-            {currentUser ? 'Dashboard' : 'Sign In'}
-            </button>
+          </button>
         </div>
       </div>
 

@@ -11,7 +11,7 @@ import ServicesPage from './pages/ServicesPage';
 import GalleryPage from './pages/GalleryPage';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense, useState } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import LoadingSpinner from './components/LoadingSpinner';
 
@@ -21,12 +21,41 @@ const BookingPage = lazy(() => import('./pages/BookingPage'));
 
 export default function App() {
   const { currentUser } = useAuth();
+  const [firebaseBlocked, setFirebaseBlocked] = useState(false);
 
   useEffect(() => {
     if (currentUser) {
       console.log('Auth state changed:', currentUser.email);
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    // Test Firebase connection
+    const testConnection = async () => {
+      try {
+        await fetch('https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel');
+      } catch (error: any) {
+        if (error?.name === 'TypeError' || error?.message?.includes('ERR_BLOCKED_BY_CLIENT')) {
+          setFirebaseBlocked(true);
+        }
+      }
+    };
+    testConnection();
+  }, []);
+
+  if (firebaseBlocked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full space-y-4 text-center">
+          <h2 className="text-2xl font-bold text-gray-900">Connection Blocked</h2>
+          <p className="text-gray-600">
+            It seems your ad blocker is preventing the app from connecting to our services. 
+            Please whitelist this site or disable your ad blocker to continue.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Router>

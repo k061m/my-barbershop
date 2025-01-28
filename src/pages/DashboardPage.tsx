@@ -1,14 +1,44 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useUserAppointments, Appointment } from '../hooks/useAppointments';
+import { useAppointments } from '../hooks/useAppointments';
 import { useBarbers } from '../hooks/useBarbers';
 import { useServices } from '../hooks/useServices';
 import { appointmentService } from '../services/appointment.service';
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { appointments, loading: loadingAppointments } = useUserAppointments(currentUser?.uid || null);
+  const { appointments: allAppointments, loading } = useAppointments();
   const { barbers } = useBarbers();
   const { services } = useServices();
+  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
+
+  // Filter appointments for current user
+  const appointments = allAppointments.filter(appointment => appointment.userId === currentUser?.uid);
+
+  // Calculate user statistics based on filtered appointments
+  const stats = {
+    totalAppointments: appointments.length,
+    pendingAppointments: appointments.filter(a => a.status === 'pending').length,
+    confirmedAppointments: appointments.filter(a => a.status === 'confirmed').length,
+    cancelledAppointments: appointments.filter(a => a.status === 'cancelled').length,
+    totalSpent: appointments
+      .filter(a => a.status === 'confirmed')
+      .reduce((total, appointment) => {
+        const service = services.find(s => s.id === appointment.serviceId);
+        return total + (service?.price || 0);
+      }, 0),
+    favoriteBarber: (() => {
+      const barberCounts = appointments.reduce((acc, app) => {
+        acc[app.barberId] = (acc[app.barberId] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      const mostFrequentBarberId = Object.entries(barberCounts)
+        .sort(([,a], [,b]) => b - a)[0]?.[0];
+      return barbers.find(b => b.id === mostFrequentBarberId)?.name || 'None yet';
+    })()
+  };
 
   const getBarberName = (barberId: string) => {
     const barber = barbers.find(b => b.id === barberId);
@@ -33,98 +63,179 @@ export default function DashboardPage() {
     }).format(date);
   };
 
-  const getStatusColor = (status: 'pending' | 'confirmed' | 'cancelled') => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'confirmed':
-        return 'bg-green-100 text-green-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const handleCancelAppointment = async (appointmentId: string) => {
     if (window.confirm('Are you sure you want to cancel this appointment?')) {
       try {
         await appointmentService.updateAppointment(appointmentId, { status: 'cancelled' });
       } catch (error) {
         console.error('Error cancelling appointment:', error);
+        alert('Failed to cancel appointment. Please try again.');
       }
     }
   };
 
-  if (loadingAppointments) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-[100dvh] flex items-center justify-center p-4">
+        <div className="loading loading-spinner loading-lg"></div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">My Appointments</h1>
+    <div className="min-h-[100dvh] bg-base-100 flex flex-col">
+      <div className="flex-1 container mx-auto px-4 py-6 space-y-6 max-w-7xl">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-primary">My Dashboard</h1>
+            <p className="text-base-content/60 text-sm sm:text-base">Welcome back, {currentUser?.email}</p>
+          </div>
           <button
-            onClick={() => window.location.href = '/booking'}
-            className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark"
+            onClick={() => navigate('/booking')}
+            className="btn btn-primary w-full sm:w-auto"
           >
             Book New Appointment
           </button>
         </div>
 
-        {appointments.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <h2 className="text-2xl font-semibold text-gray-600">No Appointments Yet</h2>
-            <p className="text-gray-500 mt-2">Book your first appointment today!</p>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="stat bg-base-200 rounded-box shadow-lg p-4">
+            <div className="stat-figure text-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-8 h-8 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <div className="stat-title">Total Visits</div>
+            <div className="stat-value text-primary">{stats.totalAppointments}</div>
+            <div className="stat-desc">Your appointments</div>
           </div>
-        ) : (
-          <div className="grid gap-6">
-            {appointments.map((appointment: Appointment) => (
-              <div key={appointment.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h2 className="text-xl font-bold mb-2">
-                        {getServiceName(appointment.serviceId)}
-                      </h2>
-                      <p className="text-gray-600">
-                        with {getBarberName(appointment.barberId)}
-                      </p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(appointment.status)}`}>
-                      {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                    </span>
-                  </div>
-                  
-                  <div className="mt-4 text-gray-600">
-                    <p className="flex items-center">
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      {formatDate(appointment.date)}
-                    </p>
-                  </div>
+          
+          <div className="stat bg-base-200 rounded-box shadow-lg p-4">
+            <div className="stat-figure text-warning">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-8 h-8 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            </div>
+            <div className="stat-title">Upcoming</div>
+            <div className="stat-value text-warning">{stats.pendingAppointments}</div>
+            <div className="stat-desc">Pending appointments</div>
+          </div>
+          
+          <div className="stat bg-base-200 rounded-box shadow-lg p-4">
+            <div className="stat-figure text-success">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-8 h-8 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <div className="stat-title">Completed</div>
+            <div className="stat-value text-success">{stats.confirmedAppointments}</div>
+            <div className="stat-desc">Successful visits</div>
+          </div>
+          
+          <div className="stat bg-base-200 rounded-box shadow-lg p-4">
+            <div className="stat-figure text-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-8 h-8 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+            </div>
+            <div className="stat-title">Total Spent</div>
+            <div className="stat-value text-secondary">${stats.totalSpent}</div>
+            <div className="stat-desc">On confirmed appointments</div>
+          </div>
+        </div>
 
-                  {appointment.status === 'pending' && (
-                    <div className="mt-6 flex justify-end">
-                      <button
-                        onClick={() => handleCancelAppointment(appointment.id)}
-                        className="text-red-600 hover:text-red-800 font-medium"
-                      >
-                        Cancel Appointment
-                      </button>
-                    </div>
-                  )}
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Appointments Section */}
+          <div className="lg:col-span-2">
+            <div className="bg-base-200 rounded-box shadow-lg p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h2 className="text-lg sm:text-xl font-bold">My Appointments</h2>
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value as any)}
+                  className="select select-bordered w-full sm:w-auto"
+                >
+                  <option value="all">All</option>
+                  <option value="pending">Pending</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <div className="inline-block min-w-full align-middle">
+                  <table className="table table-zebra w-full">
+                    <thead>
+                      <tr>
+                        <th className="text-sm">Service</th>
+                        <th className="text-sm">Barber</th>
+                        <th className="text-sm">Date</th>
+                        <th className="text-sm">Status</th>
+                        <th className="text-sm">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm">
+                      {appointments
+                        .filter(appointment => filter === 'all' ? true : appointment.status === filter)
+                        .map((appointment) => (
+                          <tr key={appointment.id}>
+                            <td>{getServiceName(appointment.serviceId)}</td>
+                            <td>{getBarberName(appointment.barberId)}</td>
+                            <td className="whitespace-normal">{formatDate(appointment.date)}</td>
+                            <td>
+                              <div className={`badge badge-sm sm:badge-md ${
+                                appointment.status === 'pending' ? 'badge-warning' :
+                                appointment.status === 'confirmed' ? 'badge-success' :
+                                'badge-error'
+                              }`}>
+                                {appointment.status}
+                              </div>
+                            </td>
+                            <td>
+                              {appointment.status === 'pending' && (
+                                <button
+                                  onClick={() => handleCancelAppointment(appointment.id)}
+                                  className="btn btn-error btn-sm w-full sm:w-auto"
+                                >
+                                  Cancel
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        )}
+
+          {/* Profile Overview */}
+          <div className="bg-base-200 rounded-box shadow-lg p-4 sm:p-6 h-fit">
+            <h2 className="text-lg sm:text-xl font-bold mb-6">Profile Overview</h2>
+            <div className="space-y-4">
+              <div className="p-3 bg-base-100 rounded-lg">
+                <div className="text-xs sm:text-sm text-base-content/60">Email</div>
+                <div className="font-medium text-sm sm:text-base">{currentUser?.email}</div>
+              </div>
+              <div className="p-3 bg-base-100 rounded-lg">
+                <div className="text-xs sm:text-sm text-base-content/60">Favorite Barber</div>
+                <div className="font-medium text-sm sm:text-base">{stats.favoriteBarber}</div>
+              </div>
+              <div className="p-3 bg-base-100 rounded-lg">
+                <div className="text-xs sm:text-sm text-base-content/60">Member Since</div>
+                <div className="font-medium text-sm sm:text-base">
+                  {currentUser?.metadata.creationTime
+                    ? new Date(currentUser.metadata.creationTime).toLocaleDateString()
+                    : 'Unknown'}
+                </div>
+              </div>
+              <div className="p-3 bg-base-100 rounded-lg">
+                <div className="text-xs sm:text-sm text-base-content/60">Last Sign In</div>
+                <div className="font-medium text-sm sm:text-base">
+                  {currentUser?.metadata.lastSignInTime
+                    ? new Date(currentUser.metadata.lastSignInTime).toLocaleDateString()
+                    : 'Unknown'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
