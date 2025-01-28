@@ -1,4 +1,3 @@
-import React from 'react';
 import { type Service } from '../data/siteData';
 
 interface ServiceCardProps {

@@ -8,14 +8,16 @@ import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import BarbersPage from './pages/BarbersPage';
 import ServicesPage from './pages/ServicesPage';
-import BookingPage from './pages/BookingPage';
 import GalleryPage from './pages/GalleryPage';
-import AdminPage from './pages/AdminPage';
-import AdminDashboard from './pages/AdminDashboard';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { useAuth } from './contexts/AuthContext';
+import LoadingSpinner from './components/LoadingSpinner';
+
+// Lazy load routes
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const BookingPage = lazy(() => import('./pages/BookingPage'));
 
 export default function App() {
   const { currentUser } = useAuth();
@@ -27,9 +29,9 @@ export default function App() {
   }, [currentUser]);
 
   return (
-    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <Router>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
@@ -51,7 +53,9 @@ export default function App() {
             path="profile" 
             element={
               <PrivateRoute>
-                <ProfilePage />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ProfilePage />
+                </Suspense>
               </PrivateRoute>
             } 
           />
@@ -59,7 +63,9 @@ export default function App() {
             path="booking" 
             element={
               <PrivateRoute>
-                <BookingPage />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <BookingPage />
+                </Suspense>
               </PrivateRoute>
             } 
           />
@@ -69,10 +75,9 @@ export default function App() {
             path="admin/*" 
             element={
               <AdminRoute>
-                <Routes>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                </Routes>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <AdminDashboard />
+                </Suspense>
               </AdminRoute>
             }
           />

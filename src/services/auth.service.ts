@@ -4,7 +4,9 @@ import {
   signOut,
   sendPasswordResetEmail,
   updateProfile,
-  User
+  User,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../config/firebase';
@@ -21,6 +23,7 @@ export interface UserProfile {
 }
 
 const ADMIN_EMAIL = 'admin@admin.admin';
+const googleProvider = new GoogleAuthProvider();
 
 export const authService = {
   async register({ email, password }: UserCredentials): Promise<User> {
@@ -44,6 +47,39 @@ export const authService = {
     }
     
     return user;
+  },
+
+  async signInWithGoogle(): Promise<User> {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      
+      // Create or update user profile in Firestore
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+      
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          role: 'user',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      } else {
+        await setDoc(userRef, {
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+      
+      return user;
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+      throw error;
+    }
   },
 
   async logout(): Promise<void> {

@@ -1,18 +1,20 @@
-import React from 'react';
-import { reviews } from '../data/siteData';
+import { type Review } from '../data/siteData';
 import ReviewCard from './ReviewCard';
 
-export default function ReviewsSection() {
+interface ReviewsSectionProps {
+  reviews: Review[];
+}
+
+export default function ReviewsSection({ reviews }: ReviewsSectionProps) {
   return (
-    <section className="py-16 bg-base-200">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-12">Customer Reviews</h2>
-        <div className="flex flex-wrap gap-8 justify-center">
+    <div className="py-12 bg-base-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {reviews.map((review) => (
             <ReviewCard key={review.id} review={review} />
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 } 

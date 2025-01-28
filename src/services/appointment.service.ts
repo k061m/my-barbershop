@@ -13,28 +13,37 @@ import {
   DocumentData
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { Appointment } from './database.service';
 
-// Helper function to convert Firestore data to Appointment
-function convertToAppointment(id: string, data: DocumentData): Appointment {
-  const timestamp = data.date as Timestamp;
-  return {
-    id,
-    userId: data.userId,
-    barberId: data.barberId,
-    serviceId: data.serviceId,
-    date: timestamp.toDate(),
-    status: data.status,
-    notes: data.notes
-  };
+interface Appointment {
+  id?: string;
+  userId: string;
+  barberId: string;
+  serviceId: string;
+  date: Timestamp;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  notes?: string;
 }
 
-interface AppointmentData {
+interface AppointmentInput {
   userId: string;
   barberId: string;
   serviceId: string;
   date: Date;
   status: 'pending' | 'confirmed' | 'cancelled';
+  notes?: string;
+}
+
+// Helper function to convert Firestore data to Appointment
+function convertToAppointment(id: string, data: DocumentData): Appointment {
+  return {
+    id,
+    userId: data.userId,
+    barberId: data.barberId,
+    serviceId: data.serviceId,
+    date: data.date,
+    status: data.status,
+    notes: data.notes
+  };
 }
 
 export const appointmentService = {
@@ -101,7 +110,7 @@ export const appointmentService = {
     }
   },
 
-  async createAppointment(data: AppointmentData) {
+  async createAppointment(data: AppointmentInput): Promise<string> {
     try {
       const appointmentsRef = collection(db, 'appointments');
       const appointmentData = {
@@ -117,10 +126,10 @@ export const appointmentService = {
     }
   },
 
-  async updateAppointment(appointmentId: string, updates: Partial<AppointmentData>) {
+  async updateAppointment(appointmentId: string, updates: Partial<AppointmentInput>): Promise<void> {
     try {
       const appointmentRef = doc(db, 'appointments', appointmentId);
-      const updateData = { ...updates };
+      const updateData = { ...updates } as any;
       if (updates.date) {
         updateData.date = Timestamp.fromDate(updates.date);
       }
@@ -144,8 +153,8 @@ export const appointmentService = {
     try {
       const q = query(
         collection(db, 'appointments'),
-        where('date', '>=', Timestamp.fromMillis(startDate.getTime())),
-        where('date', '<=', Timestamp.fromMillis(endDate.getTime())),
+        where('date', '>=', Timestamp.fromDate(startDate)),
+        where('date', '<=', Timestamp.fromDate(endDate)),
         orderBy('date', 'asc')
       );
       const querySnapshot = await getDocs(q);

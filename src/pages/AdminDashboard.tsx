@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { useAppointments } from '../hooks/useAppointments';
 import { useBarbers } from '../hooks/useBarbers';
 import { useServices } from '../hooks/useServices';
@@ -10,8 +8,6 @@ import { serviceService } from '../services/service.service';
 import { galleryService } from '../services/gallery.service';
 
 export default function AdminDashboard() {
-  const navigate = useNavigate();
-  const { currentUser } = useAuth();
   const { appointments, loading } = useAppointments();
   const { barbers } = useBarbers();
   const { services } = useServices();

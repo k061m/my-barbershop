@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useBarbers } from '../hooks/useBarbers';
 import { useServices } from '../hooks/useServices';
 import { appointmentService } from '../services/appointment.service';
-import { Timestamp } from 'firebase/firestore';
 
 interface LocationState {
   from?: string;

@@ -1,18 +1,20 @@
-import React from 'react';
-import { services } from '../data/siteData';
+import { type Service } from '../data/siteData';
 import ServiceCard from './ServiceCard';
 
-export default function ServicesSection() {
+interface ServicesSectionProps {
+  services: Service[];
+}
+
+export default function ServicesSection({ services }: ServicesSectionProps) {
   return (
-    <section className="py-16">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-12">Our Services</h2>
-        <div className="flex flex-wrap gap-8 justify-center">
+    <div className="py-12 bg-base-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service) => (
             <ServiceCard key={service.id} service={service} />
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 } 

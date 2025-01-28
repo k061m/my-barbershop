@@ -1,17 +1,14 @@
 import { collection, doc, setDoc, getDocs, getDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from './firebase';
-import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
-import { auth } from './firebase';
-import { barberService } from '../services/barber.service';
+import { db, auth } from './firebase';
 import { initialBarbers } from '../services/barber.service';
 import { ensureUserIsAdmin } from '../services/auth.service';
 
 // Admin credentials
-const ADMIN_EMAIL = 'admin@admin.admin';
-const ADMIN_PASSWORD = 'adminpassword';
+export const ADMIN_EMAIL = 'admin@admin.admin';
+export const ADMIN_PASSWORD = 'adminpassword';
 
 // Sample data
-const services = [
+export const services = [
   {
     id: 'haircut',
     name: 'Classic Haircut',
@@ -46,58 +43,8 @@ const services = [
   }
 ];
 
-// Function to ensure admin user exists
-async function ensureAdminExists() {
-  try {
-    // Check if admin user document exists
-    const adminDoc = await getDoc(doc(db, 'users', 'admin'));
-    if (!adminDoc.exists()) {
-      // Create admin user in Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-      
-      // Create admin user document in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        email: ADMIN_EMAIL,
-        role: 'admin',
-        createdAt: new Date().toISOString()
-      });
-      console.log('Admin user created successfully');
-    } else {
-      console.log('Admin user already exists');
-    }
-    return true;
-  } catch (error) {
-    console.error('Error ensuring admin exists:', error);
-    return false;
-  }
-}
-
-// Function to clear the database
-async function clearDatabase() {
-  console.log('Clearing database...');
-  try {
-    // Clear services
-    const servicesSnapshot = await getDocs(collection(db, 'services'));
-    for (const doc of servicesSnapshot.docs) {
-      await deleteDoc(doc.ref);
-    }
-
-    // Clear barbers
-    const barbersSnapshot = await getDocs(collection(db, 'barbers'));
-    for (const doc of barbersSnapshot.docs) {
-      await deleteDoc(doc.ref);
-    }
-
-    console.log('Database cleared successfully');
-  } catch (error) {
-    console.error('Error clearing database:', error);
-    throw error;
-  }
-}
-
 // Function to initialize the database
 export async function initializeDatabase() {
-  const auth = getAuth();
   const user = auth.currentUser;
 
   if (!user) {

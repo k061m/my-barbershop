@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { dbService, Appointment, Barber, Service } from '../services/database.service';
 import { Timestamp } from 'firebase/firestore';
+import { appointmentService } from '../services/appointment.service';
 
 export default function ProfilePage() {
   const { currentUser } = useAuth();
@@ -10,6 +11,24 @@ export default function ProfilePage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const loadAppointments = async () => {
+      try {
+        const userAppointments = await appointmentService.getUserAppointments(currentUser.uid);
+        setAppointments(userAppointments);
+      } catch (err) {
+        console.error('Error loading appointments:', err);
+        setError('Failed to load appointments');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAppointments();
+  }, [currentUser]);
 
   useEffect(() => {
     if (currentUser) {
@@ -21,14 +40,13 @@ export default function ProfilePage() {
     try {
       if (!currentUser) return null;
 
-      const [appointmentsData, barbersData, servicesData] = await Promise.all([
-        dbService.getAppointments(currentUser.uid),
+      const [barbersData, servicesData] = await Promise.all([
         dbService.getBarbers(),
         dbService.getServices()
       ]);
       
       // Sort appointments by date
-      const sortedAppointments = appointmentsData.sort((a, b) => 
+      const sortedAppointments = appointments.sort((a, b) => 
         b.date.toMillis() - a.date.toMillis()
       );
       
