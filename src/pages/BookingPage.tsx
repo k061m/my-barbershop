@@ -1,356 +1,291 @@
-import { useState, useEffect, FormEvent } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { dbService, Barber, Service, Appointment } from '../services/database.service';
+import { useBarbers } from '../hooks/useBarbers';
+import { useServices } from '../hooks/useServices';
+import { appointmentService } from '../services/appointment.service';
 import { Timestamp } from 'firebase/firestore';
 
-export default function BookingPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { currentUser } = useAuth();
-  
-  const [barbers, setBarbers] = useState<Barber[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+interface LocationState {
+  from?: string;
+  selectedBarberId?: string;
+  selectedServiceId?: string;
+}
 
-  const [selectedBarber, setSelectedBarber] = useState<string | null>(null);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
+export default function BookingPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const { barbers, loading: loadingBarbers } = useBarbers();
+  const { services, loading: loadingServices } = useServices();
+  
+  const state = location.state as LocationState;
+
+  const [selectedBarberId, setSelectedBarberId] = useState<string>(state?.selectedBarberId || '');
+  const [selectedServiceId, setSelectedServiceId] = useState<string>(state?.selectedServiceId || '');
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [notes, setNotes] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(1);
 
-  const [isBarberModalOpen, setIsBarberModalOpen] = useState(false);
-  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-
-  // Load barbers and services data
   useEffect(() => {
-    loadData();
-  }, []);
-
-  // Parse URL parameters on component mount
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const barberId = params.get('barber');
-    const serviceId = params.get('service');
-
-    if (barberId) setSelectedBarber(barberId);
-    if (serviceId) setSelectedService(serviceId);
-  }, [location]);
-
-  const loadData = async () => {
-    try {
-      const [barbersData, servicesData] = await Promise.all([
-        dbService.getBarbers(),
-        dbService.getServices()
-      ]);
-      setBarbers(barbersData);
-      setServices(servicesData);
-    } catch (err) {
-      setError('Failed to load booking data');
-    } finally {
-      setLoading(false);
+    // Set initial selections based on navigation source
+    if (state?.from === 'barbers' && state.selectedBarberId) {
+      setSelectedBarberId(state.selectedBarberId);
+      setStep(2); // Move to service selection
+    } else if (state?.from === 'services' && state.selectedServiceId) {
+      setSelectedServiceId(state.selectedServiceId);
+      setStep(1); // Stay on barber selection
     }
-  };
+  }, [state]);
 
-  const selectedBarberData = barbers.find(b => b.id === selectedBarber);
-  const selectedServiceData = services.find(s => s.id === selectedService);
-
-  const handleBooking = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser) {
-      navigate('/login');
+    if (!selectedBarberId || !selectedServiceId || !selectedDate || !selectedTime) {
+      setError('Please fill in all fields');
       return;
     }
 
-    if (!selectedBarber || !selectedService || !selectedDate || !selectedTime) {
-      setError('Please fill in all required fields');
-      return;
-    }
+    setLoading(true);
+    setError('');
 
     try {
-      setLoading(true);
-      setError('');
-      setSuccess('');
-
       // Combine date and time
-      const [year, month, day] = selectedDate.split('-').map(Number);
-      const [hours, minutes] = selectedTime.split(':').map(Number);
-      const appointmentDate = new Date(year, month - 1, day, hours, minutes);
-
-      // Check if the appointment date is in the future
-      if (appointmentDate <= new Date()) {
-        setError('Please select a future date and time');
-        return;
-      }
-
-      const appointment: Omit<Appointment, 'id'> = {
-        userId: currentUser.uid,
-        barberId: selectedBarber,
-        serviceId: selectedService,
-        date: Timestamp.fromDate(appointmentDate),
-        status: 'pending',
-        notes: notes.trim()
-      };
-
-      await dbService.addAppointment(appointment);
-      setSuccess('Appointment booked successfully!');
+      const dateTime = new Date(`${selectedDate}T${selectedTime}`);
       
-      // Reset form
-      setSelectedBarber(null);
-      setSelectedService(null);
-      setSelectedDate('');
-      setSelectedTime('');
-      setNotes('');
+      // Create appointment
+      await appointmentService.createAppointment({
+        userId: currentUser!.uid,
+        barberId: selectedBarberId,
+        serviceId: selectedServiceId,
+        date: dateTime,
+        status: 'pending'
+      });
 
-      // Navigate to profile page after short delay
-      setTimeout(() => {
-        navigate('/profile');
-      }, 2000);
-    } catch (err) {
-      setError('Failed to book appointment');
+      navigate('/dashboard');
+    } catch (error) {
+      setError('Failed to create appointment');
+      console.error('Booking error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-base-100 flex items-center justify-center">
-        <div className="loading loading-spinner loading-lg"></div>
-      </div>
-    );
-  }
+  const nextStep = () => {
+    if ((step === 1 && !selectedBarberId) || 
+        (step === 2 && !selectedServiceId) || 
+        (step === 3 && (!selectedDate || !selectedTime))) {
+      setError('Please make a selection before continuing');
+      return;
+    }
+    setError('');
+    setStep(step + 1);
+  };
+
+  const prevStep = () => {
+    setError('');
+    setStep(step - 1);
+  };
+
+  if (loadingBarbers || loadingServices) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+    </div>
+  );
+
+  const selectedBarber = barbers.find(b => b.id === selectedBarberId);
+  const selectedService = services.find(s => s.id === selectedServiceId);
 
   return (
-    <div className="min-h-screen bg-base-100 p-8">
+    <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center text-primary">Book an Appointment</h1>
-        
-        {error && (
-          <div className="alert alert-error mb-6">
-            <span>{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div className="alert alert-success mb-6">
-            <span>{success}</span>
-          </div>
-        )}
-
-        <div className="grid gap-8">
-          {/* Barber Selection Card */}
-          <div className="card bg-base-200 shadow-xl">
-            <div className="card-body">
-              <div className="flex justify-between items-center">
-                <h2 className="card-title text-primary">Your Barber</h2>
-                <button 
-                  className="btn btn-primary btn-sm"
-                  onClick={() => setIsBarberModalOpen(true)}
-                >
-                  {selectedBarber ? 'Change Barber' : 'Select Barber'}
-                </button>
-              </div>
-              
-              {selectedBarberData ? (
-                <div className="flex items-center gap-4 mt-4">
-                  <div className="avatar">
-                    <div className="w-20 h-20 rounded-full">
-                      <img src={selectedBarberData.image} alt={selectedBarberData.name} />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-primary">{selectedBarberData.name}</h3>
-                    <p className="text-sm text-neutral">{selectedBarberData.speciality}</p>
-                  </div>
+        {/* Progress Steps */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center">
+            {['Select Barber', 'Choose Service', 'Pick Date & Time'].map((title, index) => (
+              <div key={title} className="flex-1 text-center">
+                <div className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center border-2 
+                  ${step > index + 1 ? 'bg-primary text-white border-primary' : 
+                    step === index + 1 ? 'border-primary text-primary' : 
+                    'border-gray-300 text-gray-300'}`}>
+                  {index + 1}
                 </div>
-              ) : (
-                <div className="text-center py-8 text-neutral">
-                  Please select a barber
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Service Selection Card */}
-          <div className="card bg-base-200 shadow-xl">
-            <div className="card-body">
-              <div className="flex justify-between items-center">
-                <h2 className="card-title text-primary">Selected Service</h2>
-                <button 
-                  className="btn btn-primary btn-sm"
-                  onClick={() => setIsServiceModalOpen(true)}
-                >
-                  {selectedService ? 'Change Service' : 'Select Service'}
-                </button>
-              </div>
-              
-              {selectedServiceData ? (
-                <div className="flex items-center gap-4 mt-4">
-                  <div className="avatar">
-                    <div className="w-20 h-20 rounded-lg">
-                      <img src={selectedServiceData.image} alt={selectedServiceData.name} />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-primary">{selectedServiceData.name}</h3>
-                    <div className="flex justify-between items-center mt-1">
-                      <p className="text-sm text-neutral">{selectedServiceData.duration}</p>
-                      <p className="text-sm font-semibold text-accent">${selectedServiceData.price}</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-neutral">
-                  Please select a service
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Date and Time Selection */}
-          <form onSubmit={handleBooking}>
-            <div className="card bg-base-200 shadow-xl">
-              <div className="card-body">
-                <h2 className="card-title text-primary">Choose Date and Time</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text text-neutral">Date</span>
-                    </label>
-                    <input 
-                      type="date" 
-                      className="input input-bordered" 
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      required
-                    />
-                  </div>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text text-neutral">Time</span>
-                    </label>
-                    <input 
-                      type="time" 
-                      className="input input-bordered" 
-                      value={selectedTime}
-                      onChange={(e) => setSelectedTime(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="form-control md:col-span-2">
-                    <label className="label">
-                      <span className="label-text text-neutral">Notes (Optional)</span>
-                    </label>
-                    <textarea 
-                      className="textarea textarea-bordered" 
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Any special requests or notes for your appointment?"
-                      rows={3}
-                    />
-                  </div>
+                <div className={`mt-2 ${step >= index + 1 ? 'text-primary' : 'text-gray-300'}`}>
+                  {title}
                 </div>
               </div>
-            </div>
-
-            {/* Confirm Booking */}
-            <button 
-              type="submit"
-              className={`btn btn-primary btn-lg w-full mt-6 ${loading ? 'loading' : ''}`}
-              disabled={!selectedBarber || !selectedService || !selectedDate || !selectedTime || loading}
-            >
-              {loading ? 'Booking...' : 'Confirm Booking'}
-            </button>
-          </form>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Barber Selection Modal */}
-      <dialog className={`modal ${isBarberModalOpen ? 'modal-open' : ''}`}>
-        <div className="modal-box max-w-4xl">
-          <h3 className="font-bold text-lg mb-4">Choose your Barber</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {barbers.map(barber => (
-              <div 
-                key={barber.id}
-                className={`card bg-base-100 cursor-pointer hover:shadow-lg transition-all duration-200
-                  ${selectedBarber === barber.id ? 'ring-2 ring-primary shadow-lg' : ''}`}
-                onClick={() => {
-                  setSelectedBarber(barber.id || null);
-                  setIsBarberModalOpen(false);
-                }}
-              >
-                <div className="card-body p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="avatar">
-                      <div className="w-16 h-16 rounded-full">
-                        <img src={barber.image} alt={barber.name} />
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          {step === 1 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Choose Your Barber</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {barbers.map((barber) => (
+                  <div
+                    key={barber.id}
+                    className={`p-4 rounded-lg cursor-pointer transition-all ${
+                      selectedBarberId === barber.id
+                        ? 'bg-primary text-white shadow-lg scale-105'
+                        : 'bg-gray-50 hover:bg-gray-100'
+                    }`}
+                    onClick={() => setSelectedBarberId(barber.id || '')}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={barber.image}
+                        alt={barber.name}
+                        className="w-20 h-20 rounded-full object-cover"
+                      />
+                      <div>
+                        <h3 className="font-bold text-lg">{barber.name}</h3>
+                        <p className={selectedBarberId === barber.id ? 'text-white' : 'text-gray-600'}>
+                          {barber.speciality}
+                        </p>
+                        <div className="flex items-center mt-1">
+                          <span className="text-yellow-400">★</span>
+                          <span className="ml-1">{barber.rating}</span>
+                        </div>
                       </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Select Your Service</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {services.map((service) => (
+                  <div
+                    key={service.id}
+                    className={`p-4 rounded-lg cursor-pointer transition-all ${
+                      selectedServiceId === service.id
+                        ? 'bg-primary text-white shadow-lg scale-105'
+                        : 'bg-gray-50 hover:bg-gray-100'
+                    }`}
+                    onClick={() => setSelectedServiceId(service.id || '')}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={service.image}
+                        alt={service.name}
+                        className="w-20 h-20 rounded-lg object-cover"
+                      />
+                      <div>
+                        <h3 className="font-bold text-lg">{service.name}</h3>
+                        <p className={selectedServiceId === service.id ? 'text-white' : 'text-gray-600'}>
+                          {service.duration}
+                        </p>
+                        <p className="font-bold mt-1">${service.price}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Choose Date & Time</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Select Date
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Select Time
+                  </label>
+                  <input
+                    type="time"
+                    value={selectedTime}
+                    onChange={(e) => setSelectedTime(e.target.value)}
+                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary"
+                    required
+                  />
+                </div>
+              </div>
+
+              {selectedBarber && selectedService && (
+                <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-bold text-lg mb-4">Booking Summary</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-gray-600">Barber</p>
+                      <p className="font-semibold">{selectedBarber.name}</p>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-primary">{barber.name}</h3>
-                      <p className="text-sm text-neutral">{barber.speciality}</p>
+                      <p className="text-gray-600">Service</p>
+                      <p className="font-semibold">{selectedService.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Duration</p>
+                      <p className="font-semibold">{selectedService.duration}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Price</p>
+                      <p className="font-semibold">${selectedService.price}</p>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          <div className="modal-action">
-            <button className="btn" onClick={() => setIsBarberModalOpen(false)}>Close</button>
-          </div>
-        </div>
-        <form method="dialog" className="modal-backdrop">
-          <button onClick={() => setIsBarberModalOpen(false)}>close</button>
-        </form>
-      </dialog>
+              )}
+            </div>
+          )}
 
-      {/* Service Selection Modal */}
-      <dialog className={`modal ${isServiceModalOpen ? 'modal-open' : ''}`}>
-        <div className="modal-box max-w-4xl">
-          <h3 className="font-bold text-lg mb-4">Choose your Service</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {services.map(service => (
-              <div 
-                key={service.id}
-                className={`card bg-base-100 cursor-pointer hover:shadow-lg transition-all duration-200
-                  ${selectedService === service.id ? 'ring-2 ring-primary shadow-lg' : ''}`}
-                onClick={() => {
-                  setSelectedService(service.id || null);
-                  setIsServiceModalOpen(false);
-                }}
+          <div className="mt-8 flex justify-between">
+            {step > 1 && (
+              <button
+                type="button"
+                onClick={prevStep}
+                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
               >
-                <div className="card-body p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="avatar">
-                      <div className="w-16 h-16 rounded-lg">
-                        <img src={service.image} alt={service.name} />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-primary">{service.name}</h3>
-                      <div className="flex justify-between items-center mt-1">
-                        <p className="text-sm text-neutral">{service.duration}</p>
-                        <p className="text-sm font-semibold text-accent">${service.price}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="modal-action">
-            <button className="btn" onClick={() => setIsServiceModalOpen(false)}>Close</button>
+                Previous
+              </button>
+            )}
+            {step < 3 ? (
+              <button
+                type="button"
+                onClick={nextStep}
+                className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark ml-auto"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark ml-auto disabled:opacity-50"
+              >
+                {loading ? 'Booking...' : 'Confirm Booking'}
+              </button>
+            )}
           </div>
         </div>
-        <form method="dialog" className="modal-backdrop">
-          <button onClick={() => setIsServiceModalOpen(false)}>close</button>
-        </form>
-      </dialog>
+      </div>
     </div>
   );
 } 

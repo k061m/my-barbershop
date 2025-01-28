@@ -29,6 +29,14 @@ function convertToAppointment(id: string, data: DocumentData): Appointment {
   };
 }
 
+interface AppointmentData {
+  userId: string;
+  barberId: string;
+  serviceId: string;
+  date: Date;
+  status: 'pending' | 'confirmed' | 'cancelled';
+}
+
 export const appointmentService = {
   async getAppointments(): Promise<Appointment[]> {
     try {
@@ -93,29 +101,30 @@ export const appointmentService = {
     }
   },
 
-  async addAppointment(appointment: Omit<Appointment, 'id'>): Promise<string> {
+  async createAppointment(data: AppointmentData) {
     try {
-      // Convert Date to Timestamp
+      const appointmentsRef = collection(db, 'appointments');
       const appointmentData = {
-        ...appointment,
-        date: Timestamp.fromMillis(appointment.date.getTime())
+        ...data,
+        date: Timestamp.fromDate(data.date),
+        createdAt: Timestamp.now()
       };
-      const docRef = await addDoc(collection(db, 'appointments'), appointmentData);
+      const docRef = await addDoc(appointmentsRef, appointmentData);
       return docRef.id;
     } catch (error) {
-      console.error('Error adding appointment:', error);
+      console.error('Error creating appointment:', error);
       throw error;
     }
   },
 
-  async updateAppointment(id: string, appointment: Partial<Appointment>): Promise<void> {
+  async updateAppointment(appointmentId: string, updates: Partial<AppointmentData>) {
     try {
-      const docRef = doc(db, 'appointments', id);
-      // Convert Date to Timestamp if date is being updated
-      const updateData = appointment.date
-        ? { ...appointment, date: Timestamp.fromMillis(appointment.date.getTime()) }
-        : appointment;
-      await updateDoc(docRef, updateData);
+      const appointmentRef = doc(db, 'appointments', appointmentId);
+      const updateData = { ...updates };
+      if (updates.date) {
+        updateData.date = Timestamp.fromDate(updates.date);
+      }
+      await updateDoc(appointmentRef, updateData);
     } catch (error) {
       console.error('Error updating appointment:', error);
       throw error;

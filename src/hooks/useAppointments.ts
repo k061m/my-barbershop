@@ -12,7 +12,16 @@ import {
   FirestoreError
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { Appointment } from '../services/database.service';
+
+export interface Appointment {
+  id: string;
+  userId: string;
+  barberId: string;
+  serviceId: string;
+  date: Timestamp;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  notes?: string;
+}
 
 function convertTimestamp(doc: DocumentSnapshot): Appointment {
   const data = doc.data();

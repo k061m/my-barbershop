@@ -38,18 +38,18 @@ export default function HomePage() {
       {/* Quick Actions */}
       <div className="p-4 -mt-8 relative z-10 max-w-4xl mx-auto">
         <div className="grid grid-cols-2 gap-4">
-          <button 
+            <button 
             className="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-200"
             onClick={() => navigate('/booking')}
-          >
+            >
             Book Now
-          </button>
-          <button 
+            </button>
+            <button 
             className="btn bg-accent hover:bg-accent/90 text-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-200"
             onClick={() => handleAuthRedirect('/login')}
-          >
+            >
             {currentUser ? 'Dashboard' : 'Sign In'}
-          </button>
+            </button>
         </div>
       </div>
 
@@ -66,36 +66,36 @@ export default function HomePage() {
                   src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop" 
                   alt="Expert Barbers" 
                   className="rounded-xl h-48 w-full object-cover"
-                />
+            />
               </figure>
               <div className="card-body items-center text-center">
                 <h2 className="card-title text-primary">Expert Barbers</h2>
                 <p className="text-neutral">Meet our skilled professionals</p>
                 <div className="card-actions">
                   <button className="btn btn-ghost btn-sm">View All Barbers →</button>
-                </div>
-              </div>
-            </div>
+          </div>
+        </div>
+      </div>
 
             <div 
               className="card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
               onClick={() => navigate('/services')}
             >
               <figure className="px-4 pt-4">
-                <img 
+                  <img 
                   src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074&auto=format&fit=crop" 
                   alt="Premium Services" 
                   className="rounded-xl h-48 w-full object-cover"
-                />
-              </figure>
+                  />
+                </figure>
               <div className="card-body items-center text-center">
                 <h2 className="card-title text-primary">Premium Services</h2>
                 <p className="text-neutral">Explore our range of services</p>
                 <div className="card-actions">
                   <button className="btn btn-ghost btn-sm">View All Services →</button>
-                </div>
               </div>
             </div>
+          </div>
 
             <div 
               className="card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
@@ -113,11 +113,11 @@ export default function HomePage() {
                 <p className="text-neutral">Get inspired by trending styles</p>
                 <div className="card-actions">
                   <button className="btn btn-ghost btn-sm">View Gallery →</button>
-                </div>
-              </div>
+      </div>
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -4,13 +4,10 @@ import {
   signOut,
   sendPasswordResetEmail,
   updateProfile,
-  User,
-  browserPopupRedirectResolver,
-  signInWithPopup,
-  GoogleAuthProvider,
-  FacebookAuthProvider
+  User
 } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db, auth } from '../config/firebase';
 import { dbService } from './database.service';
 
 export interface UserCredentials {
@@ -23,126 +20,65 @@ export interface UserProfile {
   photoURL?: string;
 }
 
-// Initialize providers
-const googleProvider = new GoogleAuthProvider();
-const facebookProvider = new FacebookAuthProvider();
+const ADMIN_EMAIL = 'admin@admin.admin';
 
 export const authService = {
-  // Sign up new user
   async register({ email, password }: UserCredentials): Promise<User> {
-    try {
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // Try to create user profile in Firestore
-      try {
-        await dbService.createUserProfile(user.uid, email);
-      } catch (err) {
-        console.error('Error creating user profile:', err);
-        // Even if profile creation fails, we'll return the user
-        // The profile can be created later when needed
-      }
-      
-      return user;
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
-    }
+    const { user } = await createUserWithEmailAndPassword(auth, email, password);
+    await dbService.createUserProfile(user.uid, email);
+    return user;
   },
 
-  // Sign in existing user
   async login({ email, password }: UserCredentials): Promise<User> {
-    try {
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
-      
-      // Check if user profile exists, if not create it
-      try {
-        const profile = await dbService.getUserProfile(user.uid);
-        if (!profile) {
-          await dbService.createUserProfile(user.uid, email);
-        }
-      } catch (err) {
-        console.error('Error checking/creating user profile:', err);
-      }
-      
-      return user;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+    const { user } = await signInWithEmailAndPassword(auth, email, password);
+    
+    // If this is the admin user, ensure they have admin privileges
+    if (email === ADMIN_EMAIL) {
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, {
+        email: ADMIN_EMAIL,
+        role: 'admin',
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      console.log('Admin privileges set up successfully');
     }
+    
+    return user;
   },
 
-  // Sign in with Google
-  async signInWithGoogle(): Promise<User> {
-    try {
-      const result = await signInWithPopup(auth, googleProvider, browserPopupRedirectResolver);
-      const user = result.user;
-      
-      // Check/create profile
-      try {
-        const profile = await dbService.getUserProfile(user.uid);
-        if (!profile) {
-          await dbService.createUserProfile(user.uid, user.email!);
-        }
-      } catch (err) {
-        console.error('Error checking/creating user profile:', err);
-      }
-      
-      return user;
-    } catch (error) {
-      console.error('Google sign-in error:', error);
-      throw error;
-    }
-  },
-
-  // Sign in with Facebook
-  async signInWithFacebook(): Promise<User> {
-    try {
-      const result = await signInWithPopup(auth, facebookProvider, browserPopupRedirectResolver);
-      const user = result.user;
-      
-      // Check/create profile
-      try {
-        const profile = await dbService.getUserProfile(user.uid);
-        if (!profile) {
-          await dbService.createUserProfile(user.uid, user.email!);
-        }
-      } catch (err) {
-        console.error('Error checking/creating user profile:', err);
-      }
-      
-      return user;
-    } catch (error) {
-      console.error('Facebook sign-in error:', error);
-      throw error;
-    }
-  },
-
-  // Sign out
   async logout(): Promise<void> {
     await signOut(auth);
   },
 
-  // Reset password
   async resetPassword(email: string): Promise<void> {
     await sendPasswordResetEmail(auth, email);
   },
 
-  // Update user profile
   async updateUserProfile(user: User, profile: UserProfile): Promise<void> {
     await updateProfile(user, profile);
-    // Update profile in Firestore as well
-    try {
-      if (profile.displayName || profile.photoURL) {
-        await dbService.updateUserProfile(user.uid, profile);
-      }
-    } catch (err) {
-      console.error('Error updating user profile in Firestore:', err);
-      // Continue even if Firestore update fails
-    }
   },
 
-  // Get current user
   getCurrentUser(): User | null {
     return auth.currentUser;
+  },
+
+  async isUserAdmin(user: User | null): Promise<boolean> {
+    if (!user) return false;
+    if (user.email === ADMIN_EMAIL) {
+      const userRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userRef);
+      return userDoc.exists() && userDoc.data()?.role === 'admin';
+    }
+    return false;
   }
-}; 
+};
+
+export async function ensureUserIsAdmin() {
+  const userRef = doc(db, 'users', 'admin');
+  await setDoc(userRef, {
+    email: ADMIN_EMAIL,
+    role: 'admin',
+    updatedAt: new Date().toISOString()
+  }, { merge: true });
+  return true;
+}

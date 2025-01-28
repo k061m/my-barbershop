@@ -1,132 +1,156 @@
-import { useState, FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { FirebaseError } from 'firebase/app';
+import { useState } from 'react';
+import { authService } from '../services/auth.service';
+import { Dialog } from '@headlessui/react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const navigate = useNavigate();
-  const { login } = useAuth();
+export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
     try {
-      setError('');
-      setLoading(true);
-      await login({ email, password });
-      onClose();
-      navigate('/dashboard');
-    } catch (err) {
+      await authService.login({ email, password });
+      setEmail('');
+      setPassword('');
+      onSuccess?.(); // Call onSuccess if provided
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Failed to log in. Please check your credentials.');
+    } finally {
       setLoading(false);
-      if (err instanceof FirebaseError) {
-        switch (err.code) {
-          case 'auth/user-not-found':
-          case 'auth/wrong-password':
-            setError('Invalid email or password');
-            break;
-          case 'auth/too-many-requests':
-            setError('Too many failed attempts. Please try again later');
-            break;
-          default:
-            setError('Failed to log in');
-        }
-      } else {
-        setError('Failed to log in');
-      }
     }
   };
 
-  if (!isOpen) return null;
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      await authService.signInWithGoogle();
+      onSuccess?.(); // Call onSuccess if provided
+    } catch (error) {
+      console.error('Google login error:', error);
+      setError('Failed to log in with Google.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      await authService.signInWithFacebook();
+      onSuccess?.(); // Call onSuccess if provided
+    } catch (error) {
+      console.error('Facebook login error:', error);
+      setError('Failed to log in with Facebook.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="modal modal-open">
-        <div className="modal-box relative">
-          <button 
-            className="btn btn-sm btn-circle absolute right-2 top-2"
-            onClick={onClose}
-          >
-            ✕
-          </button>
-          <h2 className="text-2xl font-bold mb-4">Welcome Back</h2>
-          
+    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <Dialog.Panel className="mx-auto max-w-sm rounded bg-white p-6 w-full">
+          <div className="flex justify-between items-center mb-4">
+            <Dialog.Title className="text-lg font-medium">Login</Dialog.Title>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-500"
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
+          </div>
+
           {error && (
-            <div className="alert alert-error mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{error}</span>
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+              {error}
             </div>
           )}
 
-          <form onSubmit={handleLogin}>
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Email</span>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
               </label>
-              <input 
-                type="email" 
-                placeholder="your@email.com" 
-                className="input input-bordered" 
+              <input
+                type="email"
+                id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required 
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                required
               />
             </div>
-            
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Password</span>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
               </label>
-              <input 
-                type="password" 
-                placeholder="••••••••" 
-                className="input input-bordered" 
+              <input
+                type="password"
+                id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required 
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                required
               />
-              <label className="label">
-                <Link to="/forgot-password" className="label-text-alt link link-hover" onClick={onClose}>
-                  Forgot password?
-                </Link>
-              </label>
             </div>
 
-            <div className="form-control mt-6">
-              <button 
-                type="submit" 
-                className={`btn btn-primary ${loading ? 'loading' : ''}`}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+            >
+              {loading ? 'Logging in...' : 'Login'}
+            </button>
+          </form>
+
+          <div className="mt-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button
+                onClick={handleGoogleLogin}
                 disabled={loading}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
               >
-                {loading ? 'Logging in...' : 'Login'}
+                Google
+              </button>
+              <button
+                onClick={handleFacebookLogin}
+                disabled={loading}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Facebook
               </button>
             </div>
-
-            <div className="text-center mt-4">
-              <span className="text-sm">Don't have an account? </span>
-              <Link 
-                to="/register" 
-                className="text-sm link link-primary"
-                onClick={onClose}
-              >
-                Sign up
-              </Link>
-            </div>
-          </form>
-        </div>
-        <div className="modal-backdrop" onClick={onClose}>
-          <button>close</button>
-        </div>
+          </div>
+        </Dialog.Panel>
       </div>
-    </div>
+    </Dialog>
   );
 } 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { dbService } from '../services/database.service';
+import { authService } from '../services/auth.service';
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -13,12 +13,8 @@ export default function AdminRoute({ children }: AdminRouteProps) {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      if (currentUser) {
-        const adminStatus = await dbService.isUserAdmin(currentUser.uid);
-        setIsAdmin(adminStatus);
-      } else {
-        setIsAdmin(false);
-      }
+      const adminStatus = await authService.isUserAdmin(currentUser);
+      setIsAdmin(adminStatus);
     };
 
     checkAdminStatus();

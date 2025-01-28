@@ -1,5 +1,14 @@
-import { collection, doc, setDoc, getDocs } from 'firebase/firestore';
+import { collection, doc, setDoc, getDocs, getDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
+import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { auth } from './firebase';
+import { barberService } from '../services/barber.service';
+import { initialBarbers } from '../services/barber.service';
+import { ensureUserIsAdmin } from '../services/auth.service';
+
+// Admin credentials
+const ADMIN_EMAIL = 'admin@admin.admin';
+const ADMIN_PASSWORD = 'adminpassword';
 
 // Sample data
 const services = [
@@ -37,75 +46,112 @@ const services = [
   }
 ];
 
-const barbers = [
-  {
-    id: 'john-doe',
-    name: 'John Doe',
-    speciality: 'Classic Cuts',
-    bio: '10 years of experience in traditional barbering',
-    image: '/images/barbers/john.jpg',
-    rating: 4.8
-  },
-  {
-    id: 'jane-smith',
-    name: 'Jane Smith',
-    speciality: 'Modern Styles',
-    bio: 'Specialist in contemporary and trendy hairstyles',
-    image: '/images/barbers/jane.jpg',
-    rating: 4.9
-  },
-  {
-    id: 'mike-johnson',
-    name: 'Mike Johnson',
-    speciality: 'Beard Grooming',
-    bio: 'Expert in beard styling and maintenance',
-    image: '/images/barbers/mike.jpg',
-    rating: 4.7
+// Function to ensure admin user exists
+async function ensureAdminExists() {
+  try {
+    // Check if admin user document exists
+    const adminDoc = await getDoc(doc(db, 'users', 'admin'));
+    if (!adminDoc.exists()) {
+      // Create admin user in Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
+      
+      // Create admin user document in Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        email: ADMIN_EMAIL,
+        role: 'admin',
+        createdAt: new Date().toISOString()
+      });
+      console.log('Admin user created successfully');
+    } else {
+      console.log('Admin user already exists');
+    }
+    return true;
+  } catch (error) {
+    console.error('Error ensuring admin exists:', error);
+    return false;
   }
-];
+}
+
+// Function to clear the database
+async function clearDatabase() {
+  console.log('Clearing database...');
+  try {
+    // Clear services
+    const servicesSnapshot = await getDocs(collection(db, 'services'));
+    for (const doc of servicesSnapshot.docs) {
+      await deleteDoc(doc.ref);
+    }
+
+    // Clear barbers
+    const barbersSnapshot = await getDocs(collection(db, 'barbers'));
+    for (const doc of barbersSnapshot.docs) {
+      await deleteDoc(doc.ref);
+    }
+
+    console.log('Database cleared successfully');
+  } catch (error) {
+    console.error('Error clearing database:', error);
+    throw error;
+  }
+}
 
 // Function to initialize the database
 export async function initializeDatabase() {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user) {
+    console.log('No user logged in, skipping database initialization');
+    return false;
+  }
+
   try {
-    // Initialize Services
-    const servicesCollection = collection(db, 'services');
-    for (const service of services) {
-      await setDoc(doc(servicesCollection, service.id), {
-        name: service.name,
-        duration: service.duration,
-        price: service.price,
-        description: service.description,
-        image: service.image
-      });
+    console.log('Starting database initialization...');
+    console.log('Current user:', user.email);
+    
+    // First ensure the current user has admin privileges
+    await ensureUserIsAdmin();
+    console.log('Confirmed user has admin privileges');
+
+    // Initialize barbers
+    console.log('Initializing barbers...');
+    const barbersRef = collection(db, 'barbers');
+    
+    // First, delete all existing barbers
+    const existingBarbers = await getDocs(barbersRef);
+    console.log(`Found ${existingBarbers.size} existing barbers to delete`);
+    
+    for (const doc of existingBarbers.docs) {
+      await deleteDoc(doc.ref);
+      console.log(`Deleted barber: ${doc.id}`);
     }
-    console.log('Services initialized successfully');
-
-    // Initialize Barbers
-    const barbersCollection = collection(db, 'barbers');
-    for (const barber of barbers) {
-      await setDoc(doc(barbersCollection, barber.id), {
-        name: barber.name,
-        speciality: barber.speciality,
-        bio: barber.bio,
-        image: barber.image,
-        rating: barber.rating
+    
+    // Add new barbers
+    console.log('Adding new barbers...');
+    for (const [index, barber] of initialBarbers.entries()) {
+      const barberId = `barber${index + 1}`;
+      console.log(`Creating barber: ${barber.name} with ID: ${barberId}`);
+      
+      await setDoc(doc(barbersRef, barberId), {
+        ...barber,
+        createdAt: serverTimestamp(),
+        createdBy: user.uid
       });
+      console.log(`Successfully created barber: ${barberId}`);
     }
-    console.log('Barbers initialized successfully');
-
-    // Initialize Admin User
-    const adminUser = {
-      email: 'admin@barbershop.com',
-      role: 'admin',
-      createdAt: new Date().toISOString()
-    };
-    await setDoc(doc(db, 'users', 'admin'), adminUser);
-    console.log('Admin user initialized successfully');
-
+    
+    console.log('Database initialization completed successfully');
     return true;
   } catch (error) {
-    console.error('Error initializing database:', error);
-    return false;
+    console.error('Error in database initialization:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+    }
+    throw error;
   }
 }
 
@@ -113,7 +159,23 @@ export async function initializeDatabase() {
 export async function isDatabaseInitialized() {
   try {
     const servicesSnapshot = await getDocs(collection(db, 'services'));
-    return !servicesSnapshot.empty;
+    const barbersSnapshot = await getDocs(collection(db, 'barbers'));
+    const adminDoc = await getDoc(doc(db, 'users', 'admin'));
+    
+    // Check if collections are empty or admin doesn't exist
+    if (servicesSnapshot.empty || barbersSnapshot.empty || !adminDoc.exists()) {
+      console.log('Database needs initialization');
+      return false;
+    }
+    
+    // Check if we have all services
+    if (servicesSnapshot.docs.length < services.length) {
+      console.log('Database needs reinitialization');
+      return false;
+    }
+
+    console.log('Database is already initialized');
+    return true;
   } catch (error) {
     console.error('Error checking database initialization:', error);
     return false;

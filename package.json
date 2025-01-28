@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "daisyui": "^4.12.23",
     "firebase": "^11.2.0",
