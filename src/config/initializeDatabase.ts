@@ -109,13 +109,11 @@ export async function isDatabaseInitialized() {
     const barbersSnapshot = await getDocs(collection(db, 'barbers'));
     const adminDoc = await getDoc(doc(db, 'users', 'admin'));
     
-    // Check if collections are empty or admin doesn't exist
     if (servicesSnapshot.empty || barbersSnapshot.empty || !adminDoc.exists()) {
       console.log('Database needs initialization');
       return false;
     }
     
-    // Check if we have all services
     if (servicesSnapshot.docs.length < services.length) {
       console.log('Database needs reinitialization');
       return false;
