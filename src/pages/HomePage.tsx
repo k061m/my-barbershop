@@ -3,13 +3,13 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
+  const { currentUser } = useAuth();
 
   const handleAuthRedirect = (path: string) => {
-    if (isLoggedIn) {
-      navigate('/dashboard');
-    } else {
+    if (currentUser) {
       navigate(path);
+    } else {
+      navigate('/login');
     }
   };
 
@@ -48,7 +48,7 @@ export default function HomePage() {
             className="btn bg-accent hover:bg-accent/90 text-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-200"
             onClick={() => handleAuthRedirect('/login')}
           >
-            {isLoggedIn ? 'Dashboard' : 'Sign In'}
+            {currentUser ? 'Dashboard' : 'Sign In'}
           </button>
         </div>
       </div>

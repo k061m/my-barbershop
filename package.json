@@ -12,6 +12,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "daisyui": "^4.12.23",
+    "firebase": "^11.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.0.0"
   },

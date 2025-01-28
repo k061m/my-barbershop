@@ -4,13 +4,13 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { isLoggedIn, logout } = useAuth();
+  const { currentUser, logout } = useAuth();
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!currentUser) {
       navigate('/login');
     }
-  }, [isLoggedIn, navigate]);
+  }, [currentUser, navigate]);
 
   const handleLogout = () => {
     logout();

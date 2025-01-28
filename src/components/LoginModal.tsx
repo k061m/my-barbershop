@@ -3,58 +3,60 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { FirebaseError } from 'firebase/app';
 
-export default function RegisterPage() {
+interface LoginModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-
-    if (password !== confirmPassword) {
-      return setError('Passwords do not match');
-    }
-
-    if (password.length < 6) {
-      return setError('Password must be at least 6 characters');
-    }
-
     try {
       setError('');
       setLoading(true);
-      await register({ email, password });
+      await login({ email, password });
+      onClose();
       navigate('/dashboard');
     } catch (err) {
       setLoading(false);
       if (err instanceof FirebaseError) {
         switch (err.code) {
-          case 'auth/email-already-in-use':
-            setError('An account with this email already exists');
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+            setError('Invalid email or password');
             break;
-          case 'auth/invalid-email':
-            setError('Invalid email address');
-            break;
-          case 'auth/weak-password':
-            setError('Password is too weak');
+          case 'auth/too-many-requests':
+            setError('Too many failed attempts. Please try again later');
             break;
           default:
-            setError('Failed to create account');
+            setError('Failed to log in');
         }
       } else {
-        setError('Failed to create account');
+        setError('Failed to log in');
       }
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="min-h-screen bg-base-100 flex items-center justify-center px-4">
-      <div className="card w-full max-w-md bg-base-200 shadow-xl">
-        <div className="card-body">
-          <h2 className="card-title text-2xl justify-center mb-4">Create Account</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div className="modal modal-open">
+        <div className="modal-box relative">
+          <button 
+            className="btn btn-sm btn-circle absolute right-2 top-2"
+            onClick={onClose}
+          >
+            ✕
+          </button>
+          <h2 className="text-2xl font-bold mb-4">Welcome Back</h2>
           
           {error && (
             <div className="alert alert-error mb-4">
@@ -65,7 +67,7 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleLogin}>
             <div className="form-control">
               <label className="label">
                 <span className="label-text">Email</span>
@@ -93,22 +95,10 @@ export default function RegisterPage() {
                 required 
               />
               <label className="label">
-                <span className="label-text-alt text-neutral">Must be at least 6 characters</span>
+                <Link to="/forgot-password" className="label-text-alt link link-hover" onClick={onClose}>
+                  Forgot password?
+                </Link>
               </label>
-            </div>
-
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Confirm Password</span>
-              </label>
-              <input 
-                type="password" 
-                placeholder="••••••••" 
-                className="input input-bordered" 
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required 
-              />
             </div>
 
             <div className="form-control mt-6">
@@ -117,17 +107,24 @@ export default function RegisterPage() {
                 className={`btn btn-primary ${loading ? 'loading' : ''}`}
                 disabled={loading}
               >
-                {loading ? 'Creating Account...' : 'Sign Up'}
+                {loading ? 'Logging in...' : 'Login'}
               </button>
             </div>
 
             <div className="text-center mt-4">
-              <span className="text-sm">Already have an account? </span>
-              <Link to="/login" className="text-sm link link-primary">
-                Log in
+              <span className="text-sm">Don't have an account? </span>
+              <Link 
+                to="/register" 
+                className="text-sm link link-primary"
+                onClick={onClose}
+              >
+                Sign up
               </Link>
             </div>
           </form>
+        </div>
+        <div className="modal-backdrop" onClick={onClose}>
+          <button>close</button>
         </div>
       </div>
     </div>
