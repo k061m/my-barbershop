@@ -28,7 +28,7 @@ interface AppointmentInput {
   userId: string;
   barberId: string;
   serviceId: string;
-  date: Date | Timestamp;
+  date: Date;
   status: 'pending' | 'confirmed' | 'cancelled';
   notes?: string;
 }
@@ -115,7 +115,7 @@ export const appointmentService = {
       const appointmentsRef = collection(db, 'appointments');
       const appointmentData = {
         ...data,
-        date: data.date instanceof Date ? Timestamp.fromDate(data.date) : data.date,
+        date: Timestamp.fromDate(data.date),
         createdAt: Timestamp.now()
       };
       const docRef = await addDoc(appointmentsRef, appointmentData);
@@ -129,9 +129,9 @@ export const appointmentService = {
   async updateAppointment(appointmentId: string, updates: Partial<AppointmentInput>): Promise<void> {
     try {
       const appointmentRef = doc(db, 'appointments', appointmentId);
-      const updateData = { ...updates };
+      const updateData = { ...updates } as any;
       if (updates.date) {
-        updateData.date = updates.date instanceof Date ? Timestamp.fromDate(updates.date) : updates.date;
+        updateData.date = Timestamp.fromDate(updates.date);
       }
       await updateDoc(appointmentRef, updateData);
     } catch (error) {
