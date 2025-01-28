@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="400" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#553C9A"/>
+  <text x="150" y="200" font-family="Arial" font-size="24" fill="white" text-anchor="middle">
+    Barber 2
+  </text>
+  <text x="150" y="240" font-family="Arial" font-size="16" fill="white" text-anchor="middle">
+    Senior Barber
+  </text>
+</svg> 
