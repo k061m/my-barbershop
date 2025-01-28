@@ -17,12 +17,13 @@ import { Appointment } from './database.service';
 
 // Helper function to convert Firestore data to Appointment
 function convertToAppointment(id: string, data: DocumentData): Appointment {
+  const timestamp = data.date as Timestamp;
   return {
     id,
     userId: data.userId,
     barberId: data.barberId,
     serviceId: data.serviceId,
-    date: (data.date as Timestamp).toDate(),
+    date: timestamp.toDate(),
     status: data.status,
     notes: data.notes
   };
@@ -97,7 +98,7 @@ export const appointmentService = {
       // Convert Date to Timestamp
       const appointmentData = {
         ...appointment,
-        date: Timestamp.fromDate(appointment.date)
+        date: Timestamp.fromMillis(appointment.date.getTime())
       };
       const docRef = await addDoc(collection(db, 'appointments'), appointmentData);
       return docRef.id;
@@ -112,7 +113,7 @@ export const appointmentService = {
       const docRef = doc(db, 'appointments', id);
       // Convert Date to Timestamp if date is being updated
       const updateData = appointment.date
-        ? { ...appointment, date: Timestamp.fromDate(appointment.date) }
+        ? { ...appointment, date: Timestamp.fromMillis(appointment.date.getTime()) }
         : appointment;
       await updateDoc(docRef, updateData);
     } catch (error) {
@@ -134,8 +135,8 @@ export const appointmentService = {
     try {
       const q = query(
         collection(db, 'appointments'),
-        where('date', '>=', Timestamp.fromDate(startDate)),
-        where('date', '<=', Timestamp.fromDate(endDate)),
+        where('date', '>=', Timestamp.fromMillis(startDate.getTime())),
+        where('date', '<=', Timestamp.fromMillis(endDate.getTime())),
         orderBy('date', 'asc')
       );
       const querySnapshot = await getDocs(q);

@@ -2,8 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
-import PrivateRoute from './components/PrivateRoute';
-import AdminRoute from './components/AdminRoute';
 import LoginModal from './components/LoginModal';
 
 // Public Pages
