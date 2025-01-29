@@ -2,7 +2,6 @@ import { Outlet } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
-import Navbar from './Navbar';
 import { Logo } from './Logo';
 
 export default function Layout() {
