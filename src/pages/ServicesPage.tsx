@@ -1,74 +1,74 @@
 import { useNavigate } from 'react-router-dom';
+import { Card } from '../components/Card';
+import { useTheme } from '../contexts/ThemeContext';
 import { useServices } from '../hooks/useServices';
+
 
 export default function ServicesPage() {
   const navigate = useNavigate();
-  const { services, loading, error } = useServices();
-
-  const handleServiceSelect = (serviceId: string) => {
-    navigate('/booking', { 
-      state: { 
-        from: 'services',
-        selectedServiceId: serviceId 
-      }
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loading loading-spinner loading-lg"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-600">Error: {error.message}</div>
-      </div>
-    );
-  }
-
+  const { theme } = useTheme();
+  const { services } = useServices();
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Our Premium Services</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {services.map((service) => (
-          <div 
+      <h1 className="text-3xl font-bold mb-8" style={{ color: theme.colors.text.primary }}>
+        Our Services
+      </h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {services.map(service => (
+          <Card
             key={service.id}
-            className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105"
-            onClick={() => service.id && handleServiceSelect(service.id)}
+            image={service.image}
+            onClick={() => navigate(`/booking?service=${service.id}`)}
           >
-            <div className="relative">
-              <img 
-                src={service.image} 
-                alt={service.translations.en.name} 
-                className="w-full h-64 object-cover"
-              />
-              <div className="absolute top-0 right-0 mt-4 mr-4">
-                <div className="bg-white px-2 py-1 rounded-full shadow flex items-center">
-                  <span className="text-primary font-semibold">${service.price}</span>
-                </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-start">
+                <h3 className="text-xl font-semibold" style={{ color: theme.colors.text.primary }}>
+                  {service.name}
+                </h3>
+                {service.popular && (
+                  <span 
+                    className="px-2 py-1 rounded text-xs font-semibold"
+                    style={{ 
+                      backgroundColor: theme.colors.accent.primary,
+                      color: theme.colors.background.primary
+                    }}
+                  >
+                    POPULAR
+                  </span>
+                )}
               </div>
-            </div>
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-2">{service.translations.en.name}</h2>
-              <p className="text-primary font-medium mb-2">{service.translations.en.duration}</p>
-              <p className="text-gray-600 text-sm mb-4">{service.translations.en.description}</p>
-              <div className="flex justify-end">
-                <button 
-                  className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    service.id && handleServiceSelect(service.id);
-                  }}
+
+              <div className="flex items-center justify-between">
+                <span 
+                  className="text-lg font-semibold"
+                  style={{ color: theme.colors.accent.primary }}
                 >
-                  Book Now
-                </button>
+                  ${service.price}
+                </span>
+                <span style={{ color: theme.colors.text.secondary }}>
+                  {service.duration}
+                </span>
               </div>
+
+              <p 
+                className="text-sm"
+                style={{ color: theme.colors.text.secondary }}
+              >
+                {service.description}
+              </p>
+
+              <button 
+                className="w-full mt-4 py-2 rounded-md transition-colors duration-200 hover:opacity-90"
+                style={{ 
+                  backgroundColor: theme.colors.accent.primary,
+                  color: theme.colors.background.primary
+                }}
+              >
+                Book Now
+              </button>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

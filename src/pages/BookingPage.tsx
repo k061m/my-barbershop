@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useBarbers } from '../hooks/useBarbers';
 import { useServices } from '../hooks/useServices';
 import { appointmentService } from '../services/appointment.service';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface LocationState {
   from?: string;
@@ -17,6 +18,7 @@ export default function BookingPage() {
   const { currentUser } = useAuth();
   const { barbers, loading: loadingBarbers } = useBarbers();
   const { services, loading: loadingServices } = useServices();
+  const { theme } = useTheme();
   
   const state = location.state as LocationState;
 
@@ -129,8 +131,8 @@ export default function BookingPage() {
   };
 
   if (loadingBarbers || loadingServices) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.colors.background.primary }}>
+      <div className="loading loading-spinner loading-lg" style={{ color: theme.colors.accent.primary }}></div>
     </div>
   );
 
@@ -138,38 +140,52 @@ export default function BookingPage() {
   const selectedService = services.find(s => s.id === selectedServiceId);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">Book Your Appointment</h1>
+    <div className="min-h-screen p-4" style={{ backgroundColor: theme.colors.background.primary }}>
+      <div className="container mx-auto max-w-4xl">
+        <h1 className="text-3xl font-bold mb-8 text-center" style={{ color: theme.colors.text.primary }}>
+          Book Your Appointment
+        </h1>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+          <div className="p-4 rounded-lg flex items-center gap-3 mb-6" 
+            style={{ backgroundColor: theme.colors.status.error, color: theme.colors.text.primary }}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{error}</span>
           </div>
         )}
 
         {/* Booking Steps Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Barber Selection Card */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="font-medium text-gray-500 mb-2">Step 1</h3>
-            <h2 className="text-xl font-bold mb-4">Choose Barber</h2>
+          <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: theme.colors.background.card }}>
+            <h3 className="font-medium mb-2" style={{ color: theme.colors.text.secondary }}>Step 1</h3>
+            <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Choose Barber</h2>
             {selectedBarber ? (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-4">
                 <img
                   src={selectedBarber.image}
                   alt={selectedBarber.translations.en.name}
                   className="w-16 h-16 rounded-full object-cover"
                 />
                 <div>
-                  <p className="font-medium">{selectedBarber.translations.en.name}</p>
-                  <p className="text-sm text-gray-500">{selectedBarber.translations.en.specialties}</p>
+                  <p className="font-medium" style={{ color: theme.colors.text.primary }}>
+                    {selectedBarber.translations.en.name}
+                  </p>
+                  <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
+                    {selectedBarber.translations.en.specialties}
+                  </p>
                 </div>
               </div>
             ) : (
               <button
                 onClick={() => setActiveModal('barber')}
-                className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                className="w-full py-3 rounded-lg transition-colors hover:opacity-90"
+                style={{ 
+                  backgroundColor: theme.colors.accent.primary,
+                  color: theme.colors.background.primary
+                }}
               >
                 Select Barber
               </button>
@@ -177,27 +193,35 @@ export default function BookingPage() {
           </div>
 
           {/* Service Selection Card */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="font-medium text-gray-500 mb-2">Step 2</h3>
-            <h2 className="text-xl font-bold mb-4">Choose Service</h2>
+          <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: theme.colors.background.card }}>
+            <h3 className="font-medium mb-2" style={{ color: theme.colors.text.secondary }}>Step 2</h3>
+            <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Choose Service</h2>
             {selectedService ? (
               <div>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center gap-4">
                   <img
                     src={selectedService.image}
                     alt={selectedService.translations.en.name}
                     className="w-16 h-16 rounded-lg object-cover"
                   />
                   <div>
-                    <p className="font-medium">{selectedService.translations.en.name}</p>
-                    <p className="text-sm text-gray-500">${selectedService.price}</p>
+                    <p className="font-medium" style={{ color: theme.colors.text.primary }}>
+                      {selectedService.translations.en.name}
+                    </p>
+                    <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
+                      ${selectedService.price}
+                    </p>
                   </div>
                 </div>
               </div>
             ) : (
               <button
                 onClick={() => setActiveModal('service')}
-                className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                className="w-full py-3 rounded-lg transition-colors hover:opacity-90"
+                style={{ 
+                  backgroundColor: theme.colors.accent.primary,
+                  color: theme.colors.background.primary
+                }}
               >
                 Select Service
               </button>
@@ -205,24 +229,30 @@ export default function BookingPage() {
           </div>
 
           {/* Date & Time Selection Card */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="font-medium text-gray-500 mb-2">Step 3</h3>
-            <h2 className="text-xl font-bold mb-4">Choose Date & Time</h2>
+          <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: theme.colors.background.card }}>
+            <h3 className="font-medium mb-2" style={{ color: theme.colors.text.secondary }}>Step 3</h3>
+            <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Choose Date & Time</h2>
             {selectedDate && selectedTime ? (
               <div>
-                <p className="font-medium">
+                <p className="font-medium" style={{ color: theme.colors.text.primary }}>
                   {new Date(selectedDate).toLocaleDateString('en-US', {
                     weekday: 'short',
                     month: 'short',
                     day: 'numeric'
                   })}
                 </p>
-                <p className="text-sm text-gray-500">{selectedTime}</p>
+                <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
+                  {selectedTime}
+                </p>
               </div>
             ) : (
               <button
                 onClick={() => setActiveModal('datetime')}
-                className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                className="w-full py-3 rounded-lg transition-colors hover:opacity-90"
+                style={{ 
+                  backgroundColor: theme.colors.accent.primary,
+                  color: theme.colors.background.primary
+                }}
               >
                 Select Date & Time
               </button>
@@ -232,220 +262,246 @@ export default function BookingPage() {
 
         {/* Booking Summary and Submit */}
         {selectedBarber && selectedService && selectedDate && selectedTime && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mt-8">
-            <h2 className="text-xl font-bold mb-4">Booking Summary</h2>
+          <div className="rounded-lg shadow-lg p-6 mt-8" style={{ backgroundColor: theme.colors.background.card }}>
+            <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Booking Summary</h2>
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <p className="text-gray-500">Barber</p>
-                <p className="font-medium">{selectedBarber.translations.en.name}</p>
+                <p style={{ color: theme.colors.text.secondary }}>Barber</p>
+                <p className="font-medium" style={{ color: theme.colors.text.primary }}>
+                  {selectedBarber.translations.en.name}
+                </p>
               </div>
               <div>
-                <p className="text-gray-500">Service</p>
-                <p className="font-medium">{selectedService.translations.en.name}</p>
+                <p style={{ color: theme.colors.text.secondary }}>Service</p>
+                <p className="font-medium" style={{ color: theme.colors.text.primary }}>
+                  {selectedService.translations.en.name}
+                </p>
               </div>
               <div>
-                <p className="text-gray-500">Date & Time</p>
-                <p className="font-medium">
+                <p style={{ color: theme.colors.text.secondary }}>Date & Time</p>
+                <p className="font-medium" style={{ color: theme.colors.text.primary }}>
                   {new Date(selectedDate).toLocaleDateString('en-US', {
                     weekday: 'short',
                     month: 'short',
                     day: 'numeric'
-                  })}
-                  {' '}at {selectedTime}
+                  })} at {selectedTime}
                 </p>
               </div>
               <div>
-                <p className="text-gray-500">Price</p>
-                <p className="font-medium">${selectedService.price}</p>
+                <p style={{ color: theme.colors.text.secondary }}>Price</p>
+                <p className="font-medium" style={{ color: theme.colors.accent.primary }}>
+                  ${selectedService.price}
+                </p>
               </div>
             </div>
+
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50"
+              className="w-full py-3 rounded-lg font-medium transition-colors hover:opacity-90"
+              style={{ 
+                backgroundColor: theme.colors.accent.primary,
+                color: theme.colors.background.primary
+              }}
             >
-              {loading ? 'Confirming...' : 'Confirm Booking'}
+              {loading ? 'Booking...' : 'Confirm Booking'}
             </button>
           </div>
         )}
 
-        {/* Modal: Barber Selection */}
+        {/* Selection Modals */}
         {activeModal === 'barber' && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Choose Your Barber</h2>
-                  <button
-                    onClick={() => setActiveModal(null)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {barbers.map((barber) => (
-                    <div
-                      key={barber.id}
-                      onClick={() => {
-                        setSelectedBarberId(barber.id || '');
+          <div className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50">
+            <div className="w-full max-w-2xl rounded-lg shadow-lg p-6" 
+              style={{ backgroundColor: theme.colors.background.card }}>
+              <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Select Barber</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
+                {barbers.map(barber => (
+                  <div
+                    key={barber.id}
+                    onClick={() => {
+                      if (barber.id) {
+                        setSelectedBarberId(barber.id);
                         setActiveModal(null);
-                      }}
-                      className="p-4 rounded-lg cursor-pointer transition-all hover:bg-gray-50"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <img
-                          src={barber.image}
-                          alt={barber.translations.en.name}
-                          className="w-20 h-20 rounded-full object-cover"
-                        />
-                        <div>
-                          <h3 className="font-bold text-lg">{barber.translations.en.name}</h3>
-                          <p className="text-gray-600">{barber.translations.en.description}</p>
-                          <p className="text-gray-600">{barber.translations.en.specialties}</p>
-                          <div className="flex items-center mt-1">
-                            <span className="text-yellow-400">★</span>
-                            <span className="ml-1">{barber.rating?.toFixed(1)}</span>
-                          </div>
-                        </div>
+                      }
+                    }}
+                    className="rounded-lg p-4 cursor-pointer transition-colors hover:opacity-90"
+                    style={{ backgroundColor: theme.colors.background.primary }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={barber.image}
+                        alt={barber.translations.en.name}
+                        className="w-16 h-16 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="font-medium" style={{ color: theme.colors.text.primary }}>
+                          {barber.translations.en.name}
+                        </p>
+                        <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
+                          {barber.translations.en.specialties}
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
+              <button
+                onClick={() => setActiveModal(null)}
+                className="mt-4 w-full py-3 rounded-lg transition-colors hover:opacity-90"
+                style={{ 
+                  backgroundColor: theme.colors.background.primary,
+                  color: theme.colors.text.primary,
+                  border: `1px solid ${theme.colors.text.secondary}`
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         )}
 
-        {/* Modal: Service Selection */}
         {activeModal === 'service' && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Choose Your Service</h2>
-                  <button
-                    onClick={() => setActiveModal(null)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {services.map((service) => (
-                    <div
-                      key={service.id}
-                      onClick={() => {
-                        setSelectedServiceId(service.id || '');
+          <div className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50">
+            <div className="w-full max-w-2xl rounded-lg shadow-lg p-6" 
+              style={{ backgroundColor: theme.colors.background.card }}>
+              <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Select Service</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
+                {services.map(service => (
+                  <div
+                    key={service.id}
+                    onClick={() => {
+                      if (service.id) {
+                        setSelectedServiceId(service.id);
                         setActiveModal(null);
-                      }}
-                      className="p-4 rounded-lg cursor-pointer transition-all hover:bg-gray-50"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <img
-                          src={service.image}
-                          alt={service.translations.en.name}
-                          className="w-20 h-20 rounded-lg object-cover"
-                        />
-                        <div>
-                          <h3 className="font-bold text-lg">{service.translations.en.name}</h3>
-                          <p className="text-gray-600">{service.translations.en.duration}</p>
-                          <p className="text-gray-600">{service.translations.en.description}</p>
-                          <p className="font-bold mt-1">${service.price}</p>
-                        </div>
+                      }
+                    }}
+                    className="rounded-lg p-4 cursor-pointer transition-colors hover:opacity-90"
+                    style={{ backgroundColor: theme.colors.background.primary }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={service.image}
+                        alt={service.translations.en.name}
+                        className="w-16 h-16 rounded-lg object-cover"
+                      />
+                      <div>
+                        <p className="font-medium" style={{ color: theme.colors.text.primary }}>
+                          {service.translations.en.name}
+                        </p>
+                        <p className="text-sm" style={{ color: theme.colors.accent.primary }}>
+                          ${service.price}
+                        </p>
+                        <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
+                          {service.translations.en.duration}
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
+              <button
+                onClick={() => setActiveModal(null)}
+                className="mt-4 w-full py-3 rounded-lg transition-colors hover:opacity-90"
+                style={{ 
+                  backgroundColor: theme.colors.background.primary,
+                  color: theme.colors.text.primary,
+                  border: `1px solid ${theme.colors.text.secondary}`
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         )}
 
-        {/* Modal: Date & Time Selection */}
         {activeModal === 'datetime' && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Choose Date & Time</h2>
-                  <button
-                    onClick={() => setActiveModal(null)}
-                    className="text-gray-500 hover:text-gray-700"
+          <div className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50">
+            <div className="w-full max-w-2xl rounded-lg shadow-lg p-6" 
+              style={{ backgroundColor: theme.colors.background.card }}>
+              <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Select Date & Time</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: theme.colors.text.primary }}>
+                    Date
+                  </label>
+                  <select
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-full p-3 rounded-lg transition-colors"
+                    style={{ 
+                      backgroundColor: theme.colors.background.primary,
+                      color: theme.colors.text.primary,
+                      border: `1px solid ${theme.colors.text.secondary}`
+                    }}
                   >
-                    ✕
-                  </button>
+                    <option value="">Select a date</option>
+                    {getAvailableDates().map(date => (
+                      <option key={date.toISOString()} value={formatDateForValue(date)}>
+                        {date.toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <div className="flex gap-6">
-                  {/* Date Selection */}
-                  <div className="w-1/2">
-                    <label className="block text-gray-700 text-sm font-medium mb-2">
-                      Select Date
+
+                {selectedDate && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: theme.colors.text.primary }}>
+                      Time
                     </label>
-                    <div className="grid grid-cols-7 gap-1 max-h-[280px] overflow-y-auto p-2 bg-gray-50 rounded-lg">
-                      {getAvailableDates().map((date) => (
+                    <div className="grid grid-cols-4 gap-2">
+                      {availableTimes.map(time => (
                         <button
-                          key={date.toISOString()}
-                          onClick={() => {
-                            setSelectedDate(formatDateForValue(date));
-                            setSelectedTime('');
+                          key={time}
+                          onClick={() => setSelectedTime(time)}
+                          className="p-2 rounded-lg transition-colors hover:opacity-90"
+                          style={{ 
+                            backgroundColor: time === selectedTime ? theme.colors.accent.primary : theme.colors.background.primary,
+                            color: time === selectedTime ? theme.colors.background.primary : theme.colors.text.primary,
+                            border: `1px solid ${time === selectedTime ? theme.colors.accent.primary : theme.colors.text.secondary}`
                           }}
-                          className={`p-2 rounded text-center transition-all text-sm hover:bg-gray-100
-                            ${selectedDate === formatDateForValue(date)
-                              ? 'bg-primary text-white hover:bg-primary'
-                              : 'bg-white'
-                            }
-                            ${date.toDateString() === new Date().toDateString() ? 'ring-1 ring-primary' : ''}
-                          `}
                         >
-                          <div className="text-xs mb-1 font-medium">
-                            {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                          </div>
-                          <div className="font-semibold">
-                            {date.getDate()}
-                          </div>
+                          {time}
                         </button>
                       ))}
                     </div>
                   </div>
+                )}
+              </div>
 
-                  {/* Time Selection */}
-                  <div className="w-1/2">
-                    <label className="block text-gray-700 text-sm font-medium mb-2">
-                      Select Time
-                    </label>
-                    {selectedDate ? (
-                      availableTimes.length > 0 ? (
-                        <div className="grid grid-cols-4 gap-1 max-h-[280px] overflow-y-auto p-2 bg-gray-50 rounded-lg">
-                          {availableTimes.map((time) => (
-                            <button
-                              key={time}
-                              onClick={() => {
-                                setSelectedTime(time);
-                                setActiveModal(null);
-                              }}
-                              className={`p-2 rounded text-center text-sm transition-all hover:bg-gray-100
-                                ${selectedTime === time
-                                  ? 'bg-primary text-white hover:bg-primary'
-                                  : 'bg-white'
-                                }`}
-                            >
-                              {time}
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="h-[280px] flex items-center justify-center bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-500">No available times</p>
-                        </div>
-                      )
-                    ) : (
-                      <div className="h-[280px] flex items-center justify-center bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-500">Select a date first</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+              <div className="flex gap-4 mt-6">
+                <button
+                  onClick={() => {
+                    if (selectedDate && selectedTime) {
+                      setActiveModal(null);
+                    }
+                  }}
+                  disabled={!selectedDate || !selectedTime}
+                  className="flex-1 py-3 rounded-lg transition-colors hover:opacity-90"
+                  style={{ 
+                    backgroundColor: theme.colors.accent.primary,
+                    color: theme.colors.background.primary,
+                    opacity: (!selectedDate || !selectedTime) ? 0.5 : 1
+                  }}
+                >
+                  Confirm
+                </button>
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="flex-1 py-3 rounded-lg transition-colors hover:opacity-90"
+                  style={{ 
+                    backgroundColor: theme.colors.background.primary,
+                    color: theme.colors.text.primary,
+                    border: `1px solid ${theme.colors.text.secondary}`
+                  }}
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>

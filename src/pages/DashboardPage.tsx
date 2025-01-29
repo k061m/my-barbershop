@@ -5,6 +5,7 @@ import { useAppointments } from '../hooks/useAppointments';
 import { useBarbers } from '../hooks/useBarbers';
 import { useServices } from '../hooks/useServices';
 import { appointmentService } from '../services/appointment.service';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function DashboardPage() {
   const { appointments: allAppointments, loading } = useAppointments();
   const { barbers } = useBarbers();
   const { services } = useServices();
+  const { theme } = useTheme();
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
 
   // Filter appointments for current user
@@ -76,163 +78,190 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center p-4">
-        <div className="loading loading-spinner loading-lg"></div>
+      <div className="min-h-[100dvh] flex items-center justify-center p-4" style={{ backgroundColor: theme.colors.background.primary }}>
+        <div className="loading loading-spinner loading-lg" style={{ color: theme.colors.accent.primary }}></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-base-100 flex flex-col">
-      <div className="flex-1 container mx-auto px-4 py-6 space-y-6 max-w-7xl">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-primary">My Dashboard</h1>
-            <p className="text-base-content/60 text-sm sm:text-base">Welcome back, {currentUser?.email}</p>
+    <div className="min-h-[100dvh] p-4 sm:p-6" style={{ backgroundColor: theme.colors.background.primary }}>
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header Section */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: theme.colors.text.primary }}>
+                My Dashboard
+              </h1>
+              <p style={{ color: theme.colors.text.secondary }}>
+                Welcome back, {currentUser?.email}
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/booking')}
+              className="btn transition-colors hover:opacity-90 w-full sm:w-auto"
+              style={{ 
+                backgroundColor: theme.colors.accent.primary,
+                color: theme.colors.background.primary,
+                transition: 'all 0.3s ease'
+              }}
+            >
+              Book New Appointment
+            </button>
           </div>
-          <button
-            onClick={() => navigate('/booking')}
-            className="btn btn-primary w-full sm:w-auto"
-          >
-            Book New Appointment
-          </button>
-        </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="stat bg-base-200 rounded-box shadow-lg p-4">
-            <div className="stat-figure text-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-8 h-8 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-            </div>
-            <div className="stat-title">Total Visits</div>
-            <div className="stat-value text-primary">{stats.totalAppointments}</div>
-            <div className="stat-desc">Your appointments</div>
-          </div>
-          
-          <div className="stat bg-base-200 rounded-box shadow-lg p-4">
-            <div className="stat-figure text-warning">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-8 h-8 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-            </div>
-            <div className="stat-title">Upcoming</div>
-            <div className="stat-value text-warning">{stats.pendingAppointments}</div>
-            <div className="stat-desc">Pending appointments</div>
-          </div>
-          
-          <div className="stat bg-base-200 rounded-box shadow-lg p-4">
-            <div className="stat-figure text-success">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-8 h-8 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-            </div>
-            <div className="stat-title">Completed</div>
-            <div className="stat-value text-success">{stats.confirmedAppointments}</div>
-            <div className="stat-desc">Successful visits</div>
-          </div>
-          
-          <div className="stat bg-base-200 rounded-box shadow-lg p-4">
-            <div className="stat-figure text-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-8 h-8 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-            </div>
-            <div className="stat-title">Total Spent</div>
-            <div className="stat-value text-secondary">${stats.totalSpent}</div>
-            <div className="stat-desc">On confirmed appointments</div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Appointments Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-base-200 rounded-box shadow-lg p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-lg sm:text-xl font-bold">My Appointments</h2>
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value as any)}
-                  className="select select-bordered w-full sm:w-auto"
-                >
-                  <option value="all">All</option>
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </div>
-              
-              <div className="overflow-x-auto -mx-4 sm:mx-0">
-                <div className="inline-block min-w-full align-middle">
-                  <table className="table table-zebra w-full">
-                    <thead>
-                      <tr>
-                        <th className="text-sm">Service</th>
-                        <th className="text-sm">Barber</th>
-                        <th className="text-sm">Date</th>
-                        <th className="text-sm">Status</th>
-                        <th className="text-sm">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-sm">
-                      {appointments
-                        .filter(appointment => filter === 'all' ? true : appointment.status === filter)
-                        .map((appointment) => (
-                          <tr key={appointment.id}>
-                            <td>{getServiceName(appointment.serviceId)}</td>
-                            <td>{getBarberName(appointment.barberId)}</td>
-                            <td className="whitespace-normal">{formatDate(appointment.date)}</td>
-                            <td>
-                              <div className={`badge badge-sm sm:badge-md ${
-                                appointment.status === 'pending' ? 'badge-warning' :
-                                appointment.status === 'confirmed' ? 'badge-success' :
-                                'badge-error'
-                              }`}>
-                                {appointment.status}
-                              </div>
-                            </td>
-                            <td>
-                              {appointment.status === 'pending' && (
-                                <button
-                                  onClick={() => handleCancelAppointment(appointment.id)}
-                                  className="btn btn-error btn-sm w-full sm:w-auto"
-                                >
-                                  Cancel
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          {/* Profile Overview - Moved up for mobile */}
+          <div className="rounded-lg shadow-lg p-4" style={{ backgroundColor: theme.colors.background.card }}>
+            <h2 className="text-lg font-bold mb-4" style={{ color: theme.colors.text.primary }}>
+              Profile Overview
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-3 rounded-lg" style={{ backgroundColor: theme.colors.background.primary }}>
+                <div className="text-xs" style={{ color: theme.colors.text.secondary }}>Email</div>
+                <div className="font-medium text-sm truncate" style={{ color: theme.colors.text.primary }}>
+                  {currentUser?.email}
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Profile Overview */}
-          <div className="bg-base-200 rounded-box shadow-lg p-4 sm:p-6 h-fit">
-            <h2 className="text-lg sm:text-xl font-bold mb-6">Profile Overview</h2>
-            <div className="space-y-4">
-              <div className="p-3 bg-base-100 rounded-lg">
-                <div className="text-xs sm:text-sm text-base-content/60">Email</div>
-                <div className="font-medium text-sm sm:text-base">{currentUser?.email}</div>
+              <div className="p-3 rounded-lg" style={{ backgroundColor: theme.colors.background.primary }}>
+                <div className="text-xs" style={{ color: theme.colors.text.secondary }}>Favorite Barber</div>
+                <div className="font-medium text-sm truncate" style={{ color: theme.colors.text.primary }}>
+                  {stats.favoriteBarber}
+                </div>
               </div>
-              <div className="p-3 bg-base-100 rounded-lg">
-                <div className="text-xs sm:text-sm text-base-content/60">Favorite Barber</div>
-                <div className="font-medium text-sm sm:text-base">{stats.favoriteBarber}</div>
-              </div>
-              <div className="p-3 bg-base-100 rounded-lg">
-                <div className="text-xs sm:text-sm text-base-content/60">Member Since</div>
-                <div className="font-medium text-sm sm:text-base">
+              <div className="p-3 rounded-lg" style={{ backgroundColor: theme.colors.background.primary }}>
+                <div className="text-xs" style={{ color: theme.colors.text.secondary }}>Member Since</div>
+                <div className="font-medium text-sm" style={{ color: theme.colors.text.primary }}>
                   {currentUser?.metadata.creationTime
                     ? new Date(currentUser.metadata.creationTime).toLocaleDateString()
                     : 'Unknown'}
                 </div>
               </div>
-              <div className="p-3 bg-base-100 rounded-lg">
-                <div className="text-xs sm:text-sm text-base-content/60">Last Sign In</div>
-                <div className="font-medium text-sm sm:text-base">
+              <div className="p-3 rounded-lg" style={{ backgroundColor: theme.colors.background.primary }}>
+                <div className="text-xs" style={{ color: theme.colors.text.secondary }}>Last Sign In</div>
+                <div className="font-medium text-sm" style={{ color: theme.colors.text.primary }}>
                   {currentUser?.metadata.lastSignInTime
                     ? new Date(currentUser.metadata.lastSignInTime).toLocaleDateString()
                     : 'Unknown'}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="p-4 rounded-lg shadow-lg" style={{ backgroundColor: theme.colors.background.card }}>
+            <div style={{ color: theme.colors.accent.primary }}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-6 h-6 sm:w-8 sm:h-8 stroke-current">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </div>
+            <div className="text-xs sm:text-sm" style={{ color: theme.colors.text.secondary }}>Total Visits</div>
+            <div className="text-xl sm:text-2xl font-bold" style={{ color: theme.colors.accent.primary }}>{stats.totalAppointments}</div>
+          </div>
+          
+          <div className="p-4 rounded-lg shadow-lg" style={{ backgroundColor: theme.colors.background.card }}>
+            <div style={{ color: theme.colors.status.warning }}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-6 h-6 sm:w-8 sm:h-8 stroke-current">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+            </div>
+            <div className="text-xs sm:text-sm" style={{ color: theme.colors.text.secondary }}>Upcoming</div>
+            <div className="text-xl sm:text-2xl font-bold" style={{ color: theme.colors.status.warning }}>{stats.pendingAppointments}</div>
+          </div>
+          
+          <div className="p-4 rounded-lg shadow-lg" style={{ backgroundColor: theme.colors.background.card }}>
+            <div style={{ color: theme.colors.status.success }}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-6 h-6 sm:w-8 sm:h-8 stroke-current">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+            <div className="text-xs sm:text-sm" style={{ color: theme.colors.text.secondary }}>Completed</div>
+            <div className="text-xl sm:text-2xl font-bold" style={{ color: theme.colors.status.success }}>{stats.confirmedAppointments}</div>
+          </div>
+          
+          <div className="p-4 rounded-lg shadow-lg" style={{ backgroundColor: theme.colors.background.card }}>
+            <div style={{ color: theme.colors.accent.secondary }}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-6 h-6 sm:w-8 sm:h-8 stroke-current">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+              </svg>
+            </div>
+            <div className="text-xs sm:text-sm" style={{ color: theme.colors.text.secondary }}>Total Spent</div>
+            <div className="text-xl sm:text-2xl font-bold" style={{ color: theme.colors.accent.secondary }}>${stats.totalSpent}</div>
+          </div>
+        </div>
+
+        {/* Appointments Section */}
+        <div className="rounded-lg shadow-lg p-4" style={{ backgroundColor: theme.colors.background.card }}>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h2 className="text-lg font-bold" style={{ color: theme.colors.text.primary }}>
+              My Appointments
+            </h2>
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as any)}
+              className="select w-full sm:w-auto transition-colors"
+              style={{ 
+                backgroundColor: theme.colors.background.primary,
+                color: theme.colors.text.primary
+              }}
+            >
+              <option value="all">All</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="inline-block min-w-full align-middle">
+              <table className="w-full text-sm" style={{ color: theme.colors.text.primary }}>
+                <thead>
+                  <tr style={{ backgroundColor: theme.colors.background.hover }}>
+                    <th className="p-3 text-left">Service</th>
+                    <th className="p-3 text-left">Barber</th>
+                    <th className="p-3 text-left hidden sm:table-cell">Date</th>
+                    <th className="p-3 text-left">Status</th>
+                    <th className="p-3 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments
+                    .filter(appointment => filter === 'all' ? true : appointment.status === filter)
+                    .map((appointment) => (
+                      <tr key={appointment.id} className="border-t border-opacity-10" style={{ borderColor: theme.colors.text.secondary }}>
+                        <td className="p-3">{getServiceName(appointment.serviceId)}</td>
+                        <td className="p-3">{getBarberName(appointment.barberId)}</td>
+                        <td className="p-3 hidden sm:table-cell">{formatDate(appointment.date)}</td>
+                        <td className="p-3">
+                          <span className="px-2 py-1 rounded text-xs font-semibold" style={{ 
+                            backgroundColor: appointment.status === 'pending' ? theme.colors.status.warning :
+                                          appointment.status === 'confirmed' ? theme.colors.status.success :
+                                          theme.colors.status.error,
+                            color: theme.colors.text.primary
+                          }}>
+                            {appointment.status}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          {appointment.status === 'pending' && (
+                            <button
+                              onClick={() => handleCancelAppointment(appointment.id)}
+                              className="btn btn-sm transition-colors hover:opacity-90"
+                              style={{ 
+                                backgroundColor: theme.colors.status.error,
+                                color: theme.colors.text.primary
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

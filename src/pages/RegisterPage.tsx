@@ -3,10 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { FirebaseError } from 'firebase/app';
 import { Logo } from '../components/Logo';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { register, signInWithGoogle } = useAuth();
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -77,17 +79,22 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-base-100 flex items-center justify-center">
-      <div className="card w-96 bg-base-200 shadow-xl">
-        <div className="card-body">
-          <div className="flex flex-col items-center mb-6">
-            <Logo width={180} height={60} className="mb-4" />
-            <h2 className="card-title text-2xl">Create Account</h2>
+    <div className="min-h-screen flex items-center justify-center p-4" 
+      style={{ backgroundColor: theme.colors.background.primary }}>
+      <div className="w-full max-w-md rounded-lg shadow-lg" 
+        style={{ backgroundColor: theme.colors.background.card }}>
+        <div className="p-6 space-y-6">
+          <div className="flex flex-col items-center gap-4">
+            <Logo width={180} height={60} />
+            <h2 className="text-2xl font-bold" style={{ color: theme.colors.text.primary }}>
+              Create Account
+            </h2>
           </div>
           
           {error && (
-            <div className="alert alert-error mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <div className="p-4 rounded-lg flex items-center gap-3" 
+              style={{ backgroundColor: theme.colors.status.error, color: theme.colors.text.primary }}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>{error}</span>
@@ -98,7 +105,12 @@ export default function RegisterPage() {
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            className="btn btn-outline gap-2 mb-6"
+            className="w-full p-3 rounded-lg flex items-center justify-center gap-3 transition-colors hover:opacity-90"
+            style={{ 
+              backgroundColor: theme.colors.background.primary,
+              color: theme.colors.text.primary,
+              border: `1px solid ${theme.colors.text.secondary}`
+            }}
             disabled={loading}
           >
             <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
@@ -110,67 +122,92 @@ export default function RegisterPage() {
             Continue with Google
           </button>
 
-          <div className="divider">OR</div>
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px" style={{ backgroundColor: theme.colors.text.secondary }}></div>
+            <span style={{ color: theme.colors.text.secondary }}>OR</span>
+            <div className="flex-1 h-px" style={{ backgroundColor: theme.colors.text.secondary }}></div>
+          </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Email</span>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium" style={{ color: theme.colors.text.primary }}>
+                Email
               </label>
               <input 
                 type="email" 
                 placeholder="your@email.com" 
-                className="input input-bordered" 
+                className="w-full p-3 rounded-lg transition-colors"
+                style={{ 
+                  backgroundColor: theme.colors.background.primary,
+                  color: theme.colors.text.primary,
+                  border: `1px solid ${theme.colors.text.secondary}`
+                }}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required 
               />
             </div>
             
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Password</span>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium" style={{ color: theme.colors.text.primary }}>
+                Password
               </label>
               <input 
                 type="password" 
                 placeholder="••••••••" 
-                className="input input-bordered" 
+                className="w-full p-3 rounded-lg transition-colors"
+                style={{ 
+                  backgroundColor: theme.colors.background.primary,
+                  color: theme.colors.text.primary,
+                  border: `1px solid ${theme.colors.text.secondary}`
+                }}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required 
               />
-              <label className="label">
-                <span className="label-text-alt text-neutral">Must be at least 6 characters</span>
-              </label>
+              <p className="text-xs" style={{ color: theme.colors.text.secondary }}>
+                Must be at least 6 characters
+              </p>
             </div>
 
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Confirm Password</span>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium" style={{ color: theme.colors.text.primary }}>
+                Confirm Password
               </label>
               <input 
                 type="password" 
                 placeholder="••••••••" 
-                className="input input-bordered" 
+                className="w-full p-3 rounded-lg transition-colors"
+                style={{ 
+                  backgroundColor: theme.colors.background.primary,
+                  color: theme.colors.text.primary,
+                  border: `1px solid ${theme.colors.text.secondary}`
+                }}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required 
               />
             </div>
 
-            <div className="form-control mt-6">
-              <button 
-                type="submit" 
-                className={`btn btn-primary ${loading ? 'loading' : ''}`}
-                disabled={loading}
-              >
-                {loading ? 'Creating Account...' : 'Sign Up'}
-              </button>
-            </div>
+            <button 
+              type="submit" 
+              className="w-full p-3 rounded-lg font-medium transition-colors hover:opacity-90"
+              style={{ 
+                backgroundColor: theme.colors.accent.primary,
+                color: theme.colors.background.primary
+              }}
+              disabled={loading}
+            >
+              {loading ? 'Creating Account...' : 'Sign Up'}
+            </button>
 
-            <div className="text-center mt-4">
-              <span className="text-sm">Already have an account? </span>
-              <Link to="/login" className="text-sm link link-primary">
+            <div className="text-center">
+              <span style={{ color: theme.colors.text.secondary }}>Already have an account? </span>
+              <Link 
+                to="/login" 
+                className="font-medium hover:opacity-90 transition-opacity"
+                style={{ color: theme.colors.accent.primary }}
+              >
                 Log in
               </Link>
             </div>

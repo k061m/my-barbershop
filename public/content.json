@@ -1,0 +1,28 @@
+{
+    "homePage": {
+      "title": "Barbier Beirut",
+      "subtitle": "seit 2019",
+      "buttons": {
+        "bookNow": "Book Now",
+        "viewServices": "View Services",
+        "viewAll": "View All →"
+      },
+      "sections": {
+        "barbers": {
+          "title": "Our Expert Barbers"
+        },
+        "services": {
+          "title": "Popular Services"
+        },
+        "reviews": {
+          "title": "Customer Reviews"
+        }
+      },
+      "navigation": {
+        "login": "Login",
+        "dashboard": "Dashboard",
+        "adminPanel": "Admin Panel",
+        "aboutUs": "About Us"
+      }
+    }
+  }

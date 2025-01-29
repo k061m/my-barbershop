@@ -1,25 +1,52 @@
-import { type Barber } from '../data/siteData';
+import { Card } from './Card';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface BarberCardProps {
-  barber: Barber;
+  id: number;
+  name: string;
+  image: string;
+  role: string;
+  experience: string;
+  specialties: string[];
 }
 
-export default function BarberCard({ barber }: BarberCardProps) {
+export function BarberCard({ 
+  name,
+  image,
+  role,
+  experience,
+  specialties
+}: BarberCardProps) {
+  const { theme } = useTheme();
+
   return (
-    <div className="card w-96 bg-base-100 shadow-xl">
-      <figure className="px-10 pt-10">
-        <img src={barber.image} alt={barber.name} className="rounded-xl h-64 w-48 object-cover" />
-      </figure>
-      <div className="card-body items-center text-center">
-        <h2 className="card-title text-2xl font-bold">{barber.name}</h2>
-        <p className="text-lg text-primary">{barber.role}</p>
-        <p className="text-gray-600">{barber.experience} Experience</p>
-        <div className="flex flex-wrap gap-2 justify-center">
-          {barber.specialties.map((specialty, index) => (
-            <span key={index} className="badge badge-primary">{specialty}</span>
-          ))}
+    <Card
+      image={image}
+      className="h-full"
+    >
+      <div className="space-y-2">
+        <div className="flex justify-between items-start">
+          <h3 className="text-xl font-semibold" style={{ color: theme.colors.text.primary }}>
+            {name}
+          </h3>
+          <span 
+            className="px-2 py-1 rounded text-xs font-semibold"
+            style={{ 
+              backgroundColor: theme.colors.accent.primary,
+              color: theme.colors.background.primary
+            }}
+          >
+            {role}
+          </span>
+        </div>
+
+        <div style={{ color: theme.colors.text.secondary }}>
+          <p className="text-sm">Experience: {experience}</p>
+          <p className="text-sm mt-1">
+            Specialties: {specialties.join(', ')}
+          </p>
         </div>
       </div>
-    </div>
+    </Card>
   );
 } 

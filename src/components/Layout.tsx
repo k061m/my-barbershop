@@ -1,9 +1,9 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Logo } from './Logo';
-import { layout } from '../config/ui.config';
-import { logger } from '../utils/debug';
+import { theme } from '../config/theme';
+import Navbar from './Navbar';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -11,28 +11,9 @@ export default function Layout() {
   const { currentUser, logout } = useAuth();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  useEffect(() => {
-    logger.info('Layout mounted', {
-      component: 'Layout',
-      data: { path: location.pathname, user: currentUser?.email }
-    });
-  }, []);
-
-  useEffect(() => {
-    logger.debug('Route changed', {
-      component: 'Layout',
-      data: { path: location.pathname }
-    });
-  }, [location.pathname]);
-
   const isActive = (path: string) => location.pathname === path;
 
   const handleAuthRedirect = (path: string) => {
-    logger.debug('Auth redirect triggered', {
-      component: 'Layout',
-      data: { path, isAuthenticated: !!currentUser }
-    });
-
     if (currentUser) {
       navigate(path);
     } else {
@@ -43,22 +24,16 @@ export default function Layout() {
 
   const handleLogout = async () => {
     try {
-      logger.info('Logout initiated', { component: 'Layout' });
       await logout();
       navigate('/');
       setIsDrawerOpen(false);
-      logger.info('Logout successful', { component: 'Layout' });
     } catch (error) {
-      logger.error('Logout failed', {
-        component: 'Layout',
-        data: error
-      });
       console.error('Failed to log out:', error);
     }
   };
 
   return (
-    <div className="drawer">
+    <div className="drawer relative" style={{ backgroundColor: theme.colors.background.primary }}>
       <input 
         id="my-drawer" 
         type="checkbox" 
@@ -69,53 +44,18 @@ export default function Layout() {
       
       <div className="drawer-content flex flex-col">
         {/* Navbar */}
-        <div 
-          className="navbar bg-base-100 border-b border-base-200"
-          style={{ height: layout.navbar.height }}
-        >
-          <div className="flex-none">
-            <label htmlFor="my-drawer" className="btn btn-square btn-ghost drawer-button">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-5 h-5 stroke-current">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
-              </svg>
-            </label>
-          </div>
-          <div className="flex-1">
-            <a className="cursor-pointer w-full" onClick={() => navigate('/')}>
-              <Logo 
-                variant="light" 
-                height={40}
-                width="auto"
-                padding="0.5rem"
-                containerClassName="hover:opacity-80 transition-opacity"
-                fit="contain"
-              />
-            </a>
-          </div>
-          {currentUser ? (
-            <div className="flex-none">
-              <button className="btn btn-ghost btn-circle avatar placeholder" onClick={() => handleAuthRedirect('/profile')}>
-                <div className="bg-neutral-focus text-neutral-content rounded-full w-10">
-                  <span>{currentUser.email?.[0].toUpperCase()}</span>
-                </div>
-              </button>
-            </div>
-          ) : (
-            <div className="flex-none">
-              <button className="btn btn-primary btn-sm" onClick={() => navigate('/login')}>
-                Sign In
-              </button>
-            </div>
-          )}
-        </div>
+        <Navbar setIsDrawerOpen={setIsDrawerOpen} />
 
         {/* Main Content */}
-        <main className="flex-1">
+        <main className="flex-1 relative" style={{ backgroundColor: theme.colors.background.primary }}>
           <Outlet />
         </main>
 
         {/* Footer */}
-        <footer className="bg-gray-800 text-white py-8">
+        <footer 
+          className="py-8"
+          style={{ backgroundColor: theme.colors.background.secondary }}
+        >
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="mb-4 md:mb-0 w-full max-w-[200px]">
@@ -134,13 +74,23 @@ export default function Layout() {
       </div>
 
       {/* Drawer Side */}
-      <div className="drawer-side">
+      <div className="drawer-side z-50">
         <label htmlFor="my-drawer" className="drawer-overlay"></label>
-        <ul className="menu p-4 w-80 h-full bg-base-200 text-base-content">
-          <li className="menu-title">Navigation</li>
+        <ul 
+          className="menu p-4 w-80 min-h-full text-base-content"
+          style={{ 
+            backgroundColor: theme.colors.background.secondary,
+            color: theme.colors.text.primary
+          }}
+        >
+          <li className="menu-title" style={{ color: theme.colors.text.secondary }}>Navigation</li>
           <li>
             <a 
-              className={isActive('/') ? 'active' : ''} 
+              className={isActive('/') ? 'active' : ''}
+              style={{ 
+                color: theme.colors.text.primary,
+                backgroundColor: isActive('/') ? theme.colors.background.hover : 'transparent'
+              }}
               onClick={() => { navigate('/'); setIsDrawerOpen(false); }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -151,7 +101,11 @@ export default function Layout() {
           </li>
           <li>
             <a 
-              className={isActive('/services') ? 'active' : ''} 
+              className={isActive('/services') ? 'active' : ''}
+              style={{ 
+                color: theme.colors.text.primary,
+                backgroundColor: isActive('/services') ? theme.colors.background.hover : 'transparent'
+              }}
               onClick={() => { navigate('/services'); setIsDrawerOpen(false); }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -162,7 +116,11 @@ export default function Layout() {
           </li>
           <li>
             <a 
-              className={isActive('/barbers') ? 'active' : ''} 
+              className={isActive('/barbers') ? 'active' : ''}
+              style={{ 
+                color: theme.colors.text.primary,
+                backgroundColor: isActive('/barbers') ? theme.colors.background.hover : 'transparent'
+              }}
               onClick={() => { navigate('/barbers'); setIsDrawerOpen(false); }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -173,7 +131,11 @@ export default function Layout() {
           </li>
           <li>
             <a 
-              className={isActive('/gallery') ? 'active' : ''} 
+              className={isActive('/gallery') ? 'active' : ''}
+              style={{ 
+                color: theme.colors.text.primary,
+                backgroundColor: isActive('/gallery') ? theme.colors.background.hover : 'transparent'
+              }}
               onClick={() => { navigate('/gallery'); setIsDrawerOpen(false); }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -183,13 +145,14 @@ export default function Layout() {
             </a>
           </li>
 
-          <div className="divider"></div>
+          <div className="divider" style={{ borderColor: theme.colors.background.hover }}></div>
 
-          <li className="menu-title">Account</li>
+          <li className="menu-title" style={{ color: theme.colors.text.secondary }}>Account</li>
           <li>
             <a 
               onClick={() => handleAuthRedirect('/booking')}
-              className="text-primary font-semibold"
+              style={{ color: theme.colors.accent.primary }}
+              className="font-semibold"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -201,19 +164,28 @@ export default function Layout() {
             <>
               <li>
                 <a 
-                  className={isActive('/dashboard') ? 'active' : ''} 
+                  className={`transition-colors hover:opacity-90 ${isActive('/dashboard') ? 'active' : ''}`}
+                  style={{ 
+                    color: theme.colors.text.primary,
+                    backgroundColor: isActive('/dashboard') ? theme.colors.background.hover : 'transparent',
+                    transition: 'background-color 0.3s ease, color 0.3s ease'
+                  }}
                   onClick={() => handleAuthRedirect('/dashboard')}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  Dashboard
+                  Profile
                 </a>
               </li>
               {currentUser.email === 'admin@admin.admin' && (
                 <li>
                   <a 
-                    className={isActive('/admin') ? 'active' : ''} 
+                    className={isActive('/admin') ? 'active' : ''}
+                    style={{ 
+                      color: theme.colors.text.primary,
+                      backgroundColor: isActive('/admin') ? theme.colors.background.hover : 'transparent'
+                    }}
                     onClick={() => handleAuthRedirect('/admin')}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -226,8 +198,13 @@ export default function Layout() {
               )}
               <li>
                 <a 
-                  className={isActive('/profile') ? 'active' : ''} 
-                  onClick={() => handleAuthRedirect('/profile')}
+                  className={`transition-colors hover:opacity-90 ${isActive('/dashboard') ? 'active' : ''}`}
+                  style={{ 
+                    color: theme.colors.text.primary,
+                    backgroundColor: isActive('/dashboard') ? theme.colors.background.hover : 'transparent',
+                    transition: 'background-color 0.3s ease, color 0.3s ease'
+                  }}
+                  onClick={() => handleAuthRedirect('/dashboard')}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -238,7 +215,7 @@ export default function Layout() {
               <li>
                 <a 
                   onClick={handleLogout}
-                  className="text-error"
+                  style={{ color: theme.colors.status.error }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -249,7 +226,10 @@ export default function Layout() {
             </>
           ) : (
             <li>
-              <a onClick={() => { navigate('/login'); setIsDrawerOpen(false); }}>
+              <a 
+                onClick={() => { navigate('/login'); setIsDrawerOpen(false); }}
+                style={{ color: theme.colors.text.primary }}
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>

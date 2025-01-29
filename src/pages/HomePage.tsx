@@ -1,159 +1,654 @@
+import { useEffect, useState, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Map from '../components/Map';
-import { Logo } from '../components/Logo';
+import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useBarbers } from '../hooks/useBarbers';
+import { useServices } from '../hooks/useServices';
+
+interface Content {
+  homePage: {
+    title: string;
+    subtitle: string;
+    buttons: {
+      bookNow: string;
+      viewServices: string;
+      viewAll: string;
+    };
+    sections: {
+      barbers: { title: string };
+      services: { title: string };
+      reviews: { title: string };
+    };
+    navigation: {
+      login: string;
+      dashboard: string;
+      adminPanel: string;
+      aboutUs: string;
+    };
+  };
+}
+
+interface SearchResults {
+  barbers: any[];
+  services: any[];
+}
+
+// Memoized Button Component
+const StyledButton = memo(({ 
+  onClick, 
+  style, 
+  children 
+}: { 
+  onClick: () => void; 
+  style: React.CSSProperties; 
+  children: React.ReactNode;
+}) => (
+  <button 
+    onClick={onClick}
+    className="px-8 py-3 rounded-lg transition-opacity hover:opacity-90"
+    style={style}
+  >
+    {children}
+  </button>
+));
+
+// Memoized Section Title Component
+const SectionTitle = memo(({ 
+  title, 
+  onViewAll,
+  theme 
+}: { 
+  title: string; 
+  onViewAll?: () => void;
+  theme: any;
+}) => (
+  <div className="flex justify-between items-center mb-6">
+    <h2 
+      className="text-2xl font-bold"
+      style={{ color: theme.colors.text.primary }}
+    >
+      {title}
+    </h2>
+    {onViewAll && (
+      <button 
+        onClick={onViewAll}
+        className="text-sm hover:opacity-80 transition-opacity"
+        style={{ color: theme.colors.accent.primary }}
+      >
+        View All →
+      </button>
+    )}
+  </div>
+));
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const { currentUser } = useAuth();
+  const { barbers, loading: loadingBarbers } = useBarbers();
+  const { services, loading: loadingServices } = useServices();
+  const [searchInputValue, setSearchInputValue] = useState('');
+  const [content, setContent] = useState<Content | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResults>({ barbers: [], services: [] });
 
-  // Example coordinates - replace with your barbershop's actual location
-  const shopLocation: [number, number] = [51.0658369, 13.7562182]; // London coordinates
-  const shopAddress = "Louisenstraße 73, 01099 Dresden";
-  const shopName = "Barbier Beirut";
+  useEffect(() => {
+    fetch('/content.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to load content');
+        }
+        return response.json();
+      })
+      .then(data => setContent(data))
+      .catch(error => {
+        console.error('Error loading content:', error);
+        setError('Failed to load page content');
+      });
+  }, []);
 
-  return (
-    <div className="min-h-screen bg-base-100">
-      {/* Hero Section */}
-      <div 
-        className="relative h-[50vh] bg-cover bg-center" 
-        style={{ 
-          backgroundImage: 'url("/images/stock/Background.JPEG")',
-          backgroundPosition: 'center 30%'
-        }}
-      >
-        <div className="absolute inset-0 bg-primary bg-opacity-60 flex items-center justify-center">
-          <div className="text-center px-4 space-y-6">
-            <div className="flex justify-center">
-              <Logo 
-                variant="light"
-                width={300}
-                height="auto"
-                padding="1rem"
-                containerClassName="bg-primary bg-opacity-40 rounded-lg backdrop-blur-sm"
-                fit="contain"
-              />
-            </div>
-            <p className="text-xl md:text-2xl text-white opacity-90 font-light tracking-wide">
-              Where tradition meets excellence
-            </p>
-          </div>
-        </div>
+  // Real-time search effect
+  useEffect(() => {
+    const query = searchInputValue.trim();
+    
+    if (query === '') {
+      setSearchResults({ barbers: [], services: [] });
+      return;
+    }
+
+    const lowerCaseQuery = query.toLowerCase();
+
+    const filteredBarbers = barbers?.filter(barber => 
+      barber.translations?.en.name.toLowerCase().includes(lowerCaseQuery) ||
+      (barber.translations?.en.specialties?.toLowerCase().includes(lowerCaseQuery) ?? false)
+    ) || [];
+
+    const filteredServices = services?.filter(service => 
+      service.translations?.en.name.toLowerCase().includes(lowerCaseQuery) ||
+      service.translations?.en.description?.toLowerCase().includes(lowerCaseQuery)
+    ) || [];
+
+    setSearchResults({ barbers: filteredBarbers, services: filteredServices });
+  }, [searchInputValue, barbers, services]);
+
+  // Memoized reviews data
+  const reviews = useMemo(() => [
+    {
+      id: 1,
+      name: "John Doe",
+      rating: 5,
+      comment: "Best haircut I've ever had!",
+      date: "2024-02-20",
+      image: "/images/stock/avatar-1.jpg"
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      rating: 4,
+      comment: "Great service and atmosphere",
+      date: "2024-02-19",
+      image: "/images/stock/avatar-2.jpg"
+    }
+  ], []);
+
+  // Loading state
+  if (loadingBarbers || loadingServices || !content) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" 
+        style={{ backgroundColor: theme.colors.background.primary }}>
+        <div className="loading loading-spinner loading-lg" 
+          style={{ color: theme.colors.accent.primary }}></div>
       </div>
+    );
+  }
 
-      {/* Quick Actions */}
-      <div className="p-4 -mt-8 relative z-10 max-w-4xl mx-auto">
-        <div className="flex justify-center">
-          <button 
-            className="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-200 w-full max-w-xs"
-            onClick={() => navigate('/booking')}
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" 
+        style={{ backgroundColor: theme.colors.background.primary }}>
+        <div className="text-center p-4" style={{ color: theme.colors.status.error }}>
+          {error}
+          <button
+            onClick={() => window.location.reload()}
+            className="block mt-4 underline"
+            style={{ color: theme.colors.accent.primary }}
           >
-            Book Now
+            Retry
           </button>
         </div>
       </div>
+    );
+  }
 
-      {/* Featured Section */}
-      <div className="py-12 bg-base-200">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Featured Cards */}
-            <div 
-              className="card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
-              onClick={() => navigate('/barbers')}
+  return (
+    <div className="min-h-screen relative z-0" style={{ backgroundColor: theme.colors.background.primary }}>      
+      {/* Hero Section */}
+      <section className="relative h-[60vh] flex items-center justify-center text-center px-4 z-0">
+        <div className="relative space-y-6 max-w-4xl w-full">
+          <img 
+            src="/images/stock/logo.png" 
+            alt="Professional Barber Services Logo" 
+            className="h-40 md:h-64 lg:h-80 mx-auto object-contain" 
+          />
+          <h1 
+            className="text-4xl md:text-6xl font-bold"
+            style={{ color: theme.colors.text.primary }}
+          >
+            {content.homePage.title}
+          </h1>
+          <p 
+            className="text-xl md:text-2xl"
+            style={{ color: theme.colors.text.secondary }}
+          >
+            {content.homePage.subtitle}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <StyledButton 
+              onClick={() => navigate('/booking')}
+              style={{ 
+                backgroundColor: theme.colors.accent.primary,
+                color: theme.colors.background.primary
+              }}
             >
-              <figure className="px-4 pt-4">
-                <img 
-                  src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Expert Barbers" 
-                  className="rounded-xl h-48 w-full object-cover"
-                />
-              </figure>
-              <div className="card-body items-center text-center">
-                <h2 className="card-title text-primary">Expert Barbers</h2>
-                <p className="text-neutral">Meet our skilled professionals</p>
-                <div className="card-actions">
-                  <button className="btn btn-ghost btn-sm">View All Barbers →</button>
-                </div>
-              </div>
-            </div>
-
-            <div 
-              className="card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
+              {content.homePage.buttons.bookNow}
+            </StyledButton>
+            <StyledButton 
               onClick={() => navigate('/services')}
+              style={{ 
+                backgroundColor: theme.colors.background.card,
+                color: theme.colors.text.primary
+              }}
             >
-              <figure className="px-4 pt-4">
-                <img 
-                  src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074&auto=format&fit=crop" 
-                  alt="Premium Services" 
-                  className="rounded-xl h-48 w-full object-cover"
-                />
-              </figure>
-              <div className="card-body items-center text-center">
-                <h2 className="card-title text-primary">Premium Services</h2>
-                <p className="text-neutral">Explore our range of services</p>
-                <div className="card-actions">
-                  <button className="btn btn-ghost btn-sm">View All Services →</button>
-                </div>
-              </div>
-            </div>
-
-            <div 
-              className="card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
-              onClick={() => navigate('/gallery')}
-            >
-              <figure className="px-4 pt-4">
-                <img 
-                  src="https://images.unsplash.com/photo-1512690459411-b9245aed614b?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Style Gallery" 
-                  className="rounded-xl h-48 w-full object-cover"
-                />
-              </figure>
-              <div className="card-body items-center text-center">
-                <h2 className="card-title text-primary">Style Gallery</h2>
-                <p className="text-neutral">Get inspired by trending styles</p>
-                <div className="card-actions">
-                  <button className="btn btn-ghost btn-sm">View Gallery →</button>
-                </div>
-              </div>
-            </div>
+              {content.homePage.buttons.viewServices}
+            </StyledButton>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Location Section */}
-      <div className="py-12 bg-base-100">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Find Us</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div>
-              <h3 className="text-xl font-semibold mb-4">{shopName}</h3>
-              <p className="mb-4">{shopAddress}</p>
-              <div className="space-y-2">
-                <p><strong>Hours:</strong></p>
-                <p>Monday - Friday: 9:00 AM - 8:00 PM</p>
-                <p>Saturday: 10:00 AM - 6:00 PM</p>
-                <p>Sunday: Closed</p>
-              </div>
-              <div className="mt-6">
-                <a 
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${shopLocation[0]},${shopLocation[1]}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary"
-                >
-                  Get Directions
-                </a>
+      <main className="container mx-auto px-4 py-8 space-y-8 relative z-0">
+        {/* Featured Barbers */}
+        <section>
+          <SectionTitle 
+            title={content.homePage.sections.barbers.title}
+            onViewAll={() => navigate('/barbers')}
+            theme={theme}
+          />
+          <div className="relative group">
+            <div className="overflow-x-auto hide-scrollbar">
+              <div className="flex gap-4 pb-4" style={{ scrollBehavior: 'smooth' }}>
+                {barbers?.slice(0, 8).map(barber => (
+                  <div 
+                    key={barber.id}
+                    className="flex-none w-[200px]"
+                  >
+                    <div 
+                      onClick={() => navigate(`/booking?barber=${barber.id}`)}
+                      className="bg-opacity-40 rounded-lg overflow-hidden cursor-pointer hover:transform hover:scale-105 transition-all duration-300"
+                      style={{ backgroundColor: theme.colors.background.card }}
+                    >
+                      <div className="aspect-square">
+                        <img 
+                          src={barber.image} 
+                          alt={barber.translations?.en.name || barber.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="p-3 space-y-1">
+                        <h3 
+                          className="font-semibold text-sm truncate"
+                          style={{ color: theme.colors.text.primary }}
+                        >
+                          {barber.translations?.en.name || barber.name}
+                        </h3>
+                        <p 
+                          className="text-xs truncate"
+                          style={{ color: theme.colors.text.secondary }}
+                        >
+                          {barber.translations?.en.specialties || barber.specialties?.join(', ')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            <div>
-              <Map 
-                position={shopLocation}
-                address={shopAddress}
-                shopName={shopName}
+            
+            {/* Scroll Buttons */}
+            <button
+              onClick={() => {
+                const container = document.querySelector('.overflow-x-auto');
+                if (container) container.scrollLeft -= 200;
+              }}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ color: theme.colors.text.primary }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => {
+                const container = document.querySelector('.overflow-x-auto');
+                if (container) container.scrollLeft += 200;
+              }}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ color: theme.colors.text.primary }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        {/* Add this CSS to hide scrollbar */}
+        <style>
+          {`
+            .hide-scrollbar {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+            .hide-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+          `}
+        </style>
+
+        {/* Featured Services */}
+        <section>
+          <SectionTitle 
+            title={content.homePage.sections.services.title}
+            onViewAll={() => navigate('/services')}
+            theme={theme}
+          />
+          <div className="relative group">
+            <div className="overflow-x-auto hide-scrollbar">
+              <div className="flex gap-4 pb-4" style={{ scrollBehavior: 'smooth' }}>
+                {services?.slice(0, 8).map(service => (
+                  <div 
+                    key={service.id}
+                    className="flex-none w-[200px]"
+                  >
+                    <div 
+                      onClick={() => navigate(`/booking?service=${service.id}`)}
+                      className="bg-opacity-40 rounded-lg overflow-hidden cursor-pointer hover:transform hover:scale-105 transition-all duration-300"
+                      style={{ backgroundColor: theme.colors.background.card }}
+                    >
+                      <div className="aspect-square">
+                        <img 
+                          src={service.image} 
+                          alt={service.translations?.en.name || service.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="p-3 space-y-1">
+                        <h3 
+                          className="font-semibold text-sm truncate"
+                          style={{ color: theme.colors.text.primary }}
+                        >
+                          {service.translations?.en.name || service.name}
+                        </h3>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs" style={{ color: theme.colors.accent.primary }}>
+                            ${service.price}
+                          </span>
+                          <span className="text-xs" style={{ color: theme.colors.text.secondary }}>
+                            {service.translations?.en.duration || service.duration}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Scroll Buttons */}
+            <button
+              onClick={() => {
+                const container = document.querySelector('section:has(h2:contains("Services")) .overflow-x-auto');
+                if (container) container.scrollLeft -= 200;
+              }}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ color: theme.colors.text.primary }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => {
+                const container = document.querySelector('section:has(h2:contains("Services")) .overflow-x-auto');
+                if (container) container.scrollLeft += 200;
+              }}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ color: theme.colors.text.primary }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        {/* Reviews Section */}
+        <section>
+          <SectionTitle 
+            title={content.homePage.sections.reviews.title}
+            onViewAll={() => navigate('/reviews')}
+            theme={theme}
+          />
+          <div className="relative group">
+            <div className="overflow-x-auto hide-scrollbar">
+              <div className="flex gap-4 pb-4" style={{ scrollBehavior: 'smooth' }}>
+                {reviews.map(review => (
+                  <div 
+                    key={review.id}
+                    className="flex-none w-[300px]"
+                  >
+                    <div 
+                      className="bg-opacity-40 rounded-lg overflow-hidden cursor-pointer hover:transform hover:scale-105 transition-all duration-300 h-full"
+                      style={{ backgroundColor: theme.colors.background.card }}
+                    >
+                      <div className="p-4 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={review.image} 
+                            alt={review.name}
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                          <div>
+                            <h3 
+                              className="font-semibold text-sm"
+                              style={{ color: theme.colors.text.primary }}
+                            >
+                              {review.name}
+                            </h3>
+                            <div className="flex items-center gap-1">
+                              <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
+                              <span className="text-xs" style={{ color: theme.colors.text.secondary }}>
+                                {review.rating}/5
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <p 
+                          className="text-sm line-clamp-3"
+                          style={{ color: theme.colors.text.primary }}
+                        >
+                          {review.comment}
+                        </p>
+                        <div className="flex justify-end">
+                          <span className="text-xs" style={{ color: theme.colors.text.secondary }}>
+                            {new Date(review.date).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Scroll Buttons */}
+            <button
+              onClick={() => {
+                const container = document.querySelector('section:has(h2:contains("Reviews")) .overflow-x-auto');
+                if (container) container.scrollLeft -= 300;
+              }}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ color: theme.colors.text.primary }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => {
+                const container = document.querySelector('section:has(h2:contains("Reviews")) .overflow-x-auto');
+                if (container) container.scrollLeft += 300;
+              }}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ color: theme.colors.text.primary }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        {/* Search Section */}
+        <section>
+          <SectionTitle 
+            title="Search"
+            theme={theme}
+          />
+          <div className="max-w-2xl mx-auto">
+            <div className="flex gap-2 mb-6">
+              <input
+                type="text"
+                placeholder="Search barbers or services..."
+                value={searchInputValue}
+                onChange={(e) => setSearchInputValue(e.target.value)}
+                className="flex-1 px-4 py-2 rounded-lg"
+                style={{ 
+                  backgroundColor: theme.colors.background.card,
+                  color: theme.colors.text.primary,
+                  border: `1px solid ${theme.colors.text.secondary}`
+                }}
               />
+              <button
+                onClick={() => setSearchInputValue('')}
+                className="px-4 py-2 rounded-lg transition-opacity hover:opacity-90"
+                style={{ 
+                  backgroundColor: theme.colors.accent.primary,
+                  color: theme.colors.background.primary
+                }}
+              >
+                Clear
+              </button>
             </div>
+
+            {searchInputValue.trim() !== '' && (
+              <div className="space-y-6">
+                {searchResults.barbers.length === 0 && searchResults.services.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p style={{ color: theme.colors.text.secondary }}>
+                      No matches found for "{searchInputValue}"
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {searchResults.barbers.length > 0 && (
+                      <div>
+                        <h3 
+                          className="text-xl font-semibold mb-4"
+                          style={{ color: theme.colors.text.secondary }}
+                        >
+                          Barbers
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {searchResults.barbers.map(barber => (
+                            <div 
+                              key={barber.id}
+                              onClick={() => navigate(`/booking?barber=${barber.id}`)}
+                              className="bg-opacity-40 rounded-lg overflow-hidden cursor-pointer hover:transform hover:scale-105 transition-all duration-300 flex items-center gap-3 p-3"
+                              style={{ backgroundColor: theme.colors.background.card }}
+                            >
+                              <img 
+                                src={barber.image} 
+                                alt={barber.translations?.en.name || barber.name}
+                                className="w-12 h-12 rounded-full object-cover"
+                              />
+                              <div>
+                                <h4 className="font-semibold" style={{ color: theme.colors.text.primary }}>
+                                  {barber.translations?.en.name || barber.name}
+                                </h4>
+                                <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
+                                  {barber.translations?.en.specialties || barber.specialties?.join(', ')}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {searchResults.services.length > 0 && (
+                      <div>
+                        <h3 
+                          className="text-xl font-semibold mb-4"
+                          style={{ color: theme.colors.text.secondary }}
+                        >
+                          Services
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {searchResults.services.map(service => (
+                            <div 
+                              key={service.id}
+                              onClick={() => navigate(`/booking?service=${service.id}`)}
+                              className="bg-opacity-40 rounded-lg overflow-hidden cursor-pointer hover:transform hover:scale-105 transition-all duration-300 flex items-center gap-3 p-3"
+                              style={{ backgroundColor: theme.colors.background.card }}
+                            >
+                              <img 
+                                src={service.image} 
+                                alt={service.translations?.en.name || service.name}
+                                className="w-12 h-12 rounded-lg object-cover"
+                              />
+                              <div className="flex-1">
+                                <h4 className="font-semibold" style={{ color: theme.colors.text.primary }}>
+                                  {service.translations?.en.name || service.name}
+                                </h4>
+                                <div className="flex justify-between items-center">
+                                  <span style={{ color: theme.colors.accent.primary }}>
+                                    ${service.price}
+                                  </span>
+                                  <span className="text-sm" style={{ color: theme.colors.text.secondary }}>
+                                    {service.translations?.en.duration || service.duration}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-      </div>
+        </section>
+
+        {/* Navigation Buttons */}
+        <section className="flex flex-wrap justify-center gap-4">
+          {!currentUser ? (
+            <StyledButton 
+              onClick={() => navigate('/login')}
+              style={{ 
+                backgroundColor: theme.colors.accent.primary,
+                color: theme.colors.background.primary
+              }}
+            >
+              {content.homePage.navigation.login}
+            </StyledButton>
+          ) : (
+            <>
+              <StyledButton 
+                onClick={() => navigate('/dashboard')}
+                style={{ 
+                  backgroundColor: theme.colors.background.card,
+                  color: theme.colors.text.primary
+                }}
+              >
+                {content.homePage.navigation.dashboard}
+              </StyledButton>
+              {currentUser.email === 'admin@admin.admin' && (
+                <StyledButton 
+                  onClick={() => navigate('/admin')}
+                  style={{ 
+                    backgroundColor: theme.colors.accent.secondary,
+                    color: theme.colors.text.primary
+                  }}
+                >
+                  {content.homePage.navigation.adminPanel}
+                </StyledButton>
+              )}
+            </>
+          )}
+          <StyledButton 
+            onClick={() => navigate('/about')}
+            style={{ 
+              backgroundColor: theme.colors.background.card,
+              color: theme.colors.text.primary
+            }}
+          >
+            {content.homePage.navigation.aboutUs}
+          </StyledButton>
+        </section>
+      </main>
     </div>
   );
 } 

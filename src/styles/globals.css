@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply min-h-screen;
+    font-family: theme('typography.fontFamily.primary');
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: theme('typography.fontFamily.secondary');
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-all duration-150;
+  }
+
+  .btn-primary {
+    @apply bg-[#FFD700] text-black hover:bg-[#FFC000];
+  }
+
+  .btn-secondary {
+    @apply bg-[#1E1E1E] text-white hover:bg-[#2A2A2A];
+  }
+
+  .input {
+    @apply w-full px-4 py-2 rounded-md bg-[#1E1E1E] text-white border border-[#2A2A2A]
+    focus:outline-none focus:border-[#FFD700] transition-all duration-150;
+  }
+
+  .card {
+    @apply rounded-lg shadow-md overflow-hidden bg-[#242424] transition-all duration-150;
+  }
+
+  .menu-item {
+    @apply px-3 py-2 rounded-md text-[#A0A0A0] hover:text-white hover:bg-[#2A2A2A]
+    transition-all duration-150;
+  }
+
+  .active-menu-item {
+    @apply bg-[#2A2A2A] text-white;
+  }
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1E1E1E;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2A2A2A;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #303030;
+} 
