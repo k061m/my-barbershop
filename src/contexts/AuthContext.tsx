@@ -1,5 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from 'firebase/auth';
+import { 
+  GoogleAuthProvider,
+  signInWithPopup,
+  User
+} from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { authService, UserCredentials, UserProfile } from '../services/auth.service';
 
@@ -11,6 +15,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateProfile: (profile: UserProfile) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -61,6 +66,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return authService.updateUserProfile(currentUser, profile);
   };
 
+  async function signInWithGoogle() {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  }
+
   const value = {
     currentUser,
     loading,
@@ -68,7 +78,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     logout,
     resetPassword,
-    updateProfile
+    updateProfile,
+    signInWithGoogle
   };
 
   return (
