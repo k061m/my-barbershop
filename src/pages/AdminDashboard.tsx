@@ -1,36 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAppointments } from '../hooks/useAppointments';
 import { useBarbers } from '../hooks/useBarbers';
 import { useServices } from '../hooks/useServices';
 import { appointmentService } from '../services/appointment.service';
-import { barberService } from '../services/barber.service';
-import { serviceService } from '../services/service.service';
-import { galleryService } from '../services/gallery.service';
 
 export default function AdminDashboard() {
   const { appointments, loading } = useAppointments();
   const { barbers } = useBarbers();
   const { services } = useServices();
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
-  const [isAddingBarber, setIsAddingBarber] = useState(false);
-  const [isAddingService, setIsAddingService] = useState(false);
-  const [initializingGallery, setInitializingGallery] = useState(false);
-  const [selectedTimeframe, setSelectedTimeframe] = useState<'today' | 'week' | 'month'>('week');
-  const [newBarber, setNewBarber] = useState({
-    name: '',
-    speciality: '',
-    bio: '',
-    image: '',
-    rating: 5.0,
-    experience: 0
-  });
-  const [newService, setNewService] = useState({
-    name: '',
-    duration: '',
-    price: 0,
-    description: '',
-    image: ''
-  });
 
   // Calculate statistics
   const stats = {
@@ -74,94 +52,12 @@ export default function AdminDashboard() {
   const handleStatusChange = async (appointmentId: string, newStatus: 'confirmed' | 'cancelled') => {
     try {
       await appointmentService.updateAppointment(appointmentId, { status: newStatus });
+      window.location.reload();
     } catch (error) {
       console.error('Error updating appointment status:', error);
+      alert('Failed to update appointment status. Please try again.');
     }
   };
-
-  const handleAddBarber = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await barberService.addNewBarber(newBarber);
-      setIsAddingBarber(false);
-      setNewBarber({
-        name: '',
-        speciality: '',
-        bio: '',
-        image: '',
-        rating: 5.0,
-        experience: 0
-      });
-      window.location.reload();
-    } catch (error) {
-      console.error('Error adding barber:', error);
-      alert('Failed to add barber. Please try again.');
-    }
-  };
-
-  const handleDeleteBarber = async (barberId: string | undefined) => {
-    if (!barberId) return;
-    if (window.confirm('Are you sure you want to delete this barber?')) {
-      try {
-        await barberService.deleteBarber(barberId);
-        window.location.reload();
-      } catch (error) {
-        console.error('Error deleting barber:', error);
-        alert('Failed to delete barber. Please try again.');
-      }
-    }
-  };
-
-  const handleAddService = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await serviceService.addService(newService);
-      setIsAddingService(false);
-      setNewService({
-        name: '',
-        duration: '',
-        price: 0,
-        description: '',
-        image: ''
-      });
-      window.location.reload();
-    } catch (error) {
-      console.error('Error adding service:', error);
-      alert('Failed to add service. Please try again.');
-    }
-  };
-
-  const handleDeleteService = async (serviceId: string | undefined) => {
-    if (!serviceId) return;
-    if (window.confirm('Are you sure you want to delete this service?')) {
-      try {
-        await serviceService.deleteService(serviceId);
-        window.location.reload();
-      } catch (error) {
-        console.error('Error deleting service:', error);
-        alert('Failed to delete service. Please try again.');
-      }
-    }
-  };
-
-  const handleInitializeGallery = async () => {
-    if (window.confirm('Are you sure you want to initialize the gallery? This will only add images if the gallery is empty.')) {
-      setInitializingGallery(true);
-      try {
-        await galleryService.initializeGallery();
-        alert('Gallery initialized successfully!');
-      } catch (error) {
-        console.error('Error initializing gallery:', error);
-        alert('Failed to initialize gallery. Check console for details.');
-      } finally {
-        setInitializingGallery(false);
-      }
-    }
-  };
-
-  const filteredAppointments = appointments.filter(appointment => 
-    filter === 'all' ? true : appointment.status === filter
-  );
 
   if (loading) {
     return (
@@ -179,27 +75,6 @@ export default function AdminDashboard() {
           <div>
             <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
             <p className="text-base-content/60">Manage your barbershop operations</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setIsAddingBarber(true)}
-              className="btn btn-primary"
-            >
-              Add Barber
-            </button>
-            <button
-              onClick={() => setIsAddingService(true)}
-              className="btn btn-primary"
-            >
-              Add Service
-            </button>
-            <button
-              onClick={handleInitializeGallery}
-              disabled={initializingGallery}
-              className="btn btn-secondary"
-            >
-              {initializingGallery ? 'Initializing...' : 'Init Gallery'}
-            </button>
           </div>
         </div>
 
@@ -319,25 +194,45 @@ export default function AdminDashboard() {
           {/* Team Overview */}
           <div className="bg-base-200 rounded-box shadow-lg p-6">
             <h2 className="text-xl font-bold mb-6">Team Overview</h2>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {barbers.map((barber) => (
-                <div key={barber.id} className="flex items-center gap-4 p-3 bg-base-100 rounded-lg">
-                  <img
-                    src={barber.image}
-                    alt={barber.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{barber.name}</h3>
-                    <p className="text-sm text-base-content/60">{barber.speciality}</p>
+                <div key={barber.id} className="bg-base-100 rounded-lg p-4 shadow">
+                  <div className="flex items-start gap-4">
+                    <img
+                      src={barber.image}
+                      alt={barber.translations.en.name}
+                      className="w-24 h-24 rounded-lg object-cover"
+                    />
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-semibold">{barber.translations.en.name}</h3>
+                          <p className="text-sm text-base-content/60">{barber.translations.en.description}</p>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <div className="text-warning text-lg">⭐ {(barber.rating || 0).toFixed(1)}</div>
+                          <div className="badge badge-success">{barber.available ? 'Available' : 'Unavailable'}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3">
+                        <p className="text-sm"><strong>Bio:</strong> {barber.translations.en.bio}</p>
+                        <p className="text-sm mt-1"><strong>Specialties:</strong> {barber.translations.en.specialties}</p>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <div className="text-sm">
+                          <strong>Working Days:</strong>{' '}
+                          {barber.workingDays.map(day => 
+                            ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][day - 1]
+                          ).join(', ')}
+                        </div>
+                        <div className="text-sm">
+                          <strong>Hours:</strong> {barber.workingHours.start} - {barber.workingHours.end}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-warning">⭐ {barber.rating}</div>
-                  <button
-                    onClick={() => handleDeleteBarber(barber.id)}
-                    className="btn btn-ghost btn-xs text-error"
-                  >
-                    Delete
-                  </button>
                 </div>
               ))}
             </div>
@@ -353,165 +248,22 @@ export default function AdminDashboard() {
                 <figure className="px-4 pt-4">
                   <img
                     src={service.image}
-                    alt={service.name}
+                    alt={service.translations.en.name}
                     className="rounded-xl h-48 w-full object-cover"
                   />
                 </figure>
                 <div className="card-body">
-                  <h3 className="card-title">{service.name}</h3>
-                  <p className="text-base-content/60">{service.description}</p>
+                  <h3 className="card-title">{service.translations.en.name}</h3>
+                  <p className="text-base-content/60">{service.translations.en.description}</p>
                   <div className="flex justify-between items-center mt-4">
                     <span className="text-primary font-bold">${service.price}</span>
-                    <span className="text-base-content/60">{service.duration} min</span>
+                    <span className="text-base-content/60">{service.translations.en.duration}</span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Add Barber Modal */}
-        {isAddingBarber && (
-          <div className="modal modal-open">
-            <div className="modal-box">
-              <h3 className="font-bold text-lg">Add New Barber</h3>
-              <form onSubmit={handleAddBarber} className="space-y-4 mt-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <input
-                    type="text"
-                    value={newBarber.name}
-                    onChange={(e) => setNewBarber({...newBarber, name: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Speciality</label>
-                  <input
-                    type="text"
-                    value={newBarber.speciality}
-                    onChange={(e) => setNewBarber({...newBarber, speciality: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Bio</label>
-                  <textarea
-                    value={newBarber.bio}
-                    onChange={(e) => setNewBarber({...newBarber, bio: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Image URL</label>
-                  <input
-                    type="text"
-                    value={newBarber.image}
-                    onChange={(e) => setNewBarber({...newBarber, image: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Rating</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="5"
-                    step="0.1"
-                    value={newBarber.rating}
-                    onChange={(e) => setNewBarber({...newBarber, rating: parseFloat(e.target.value)})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Experience (years)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={newBarber.experience}
-                    onChange={(e) => setNewBarber({...newBarber, experience: parseInt(e.target.value)})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    required
-                  />
-                </div>
-              </form>
-              <div className="modal-action">
-                <button onClick={() => setIsAddingBarber(false)} className="btn">Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Add Service Modal */}
-        {isAddingService && (
-          <div className="modal modal-open">
-            <div className="modal-box">
-              <h3 className="font-bold text-lg">Add New Service</h3>
-              <form onSubmit={handleAddService} className="space-y-4 mt-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <input
-                    type="text"
-                    value={newService.name}
-                    onChange={(e) => setNewService({...newService, name: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Duration</label>
-                  <input
-                    type="text"
-                    value={newService.duration}
-                    onChange={(e) => setNewService({...newService, duration: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    required
-                    placeholder="e.g., 30 min"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Price ($)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={newService.price}
-                    onChange={(e) => setNewService({...newService, price: parseFloat(e.target.value)})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    value={newService.description}
-                    onChange={(e) => setNewService({...newService, description: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Image URL</label>
-                  <input
-                    type="text"
-                    value={newService.image}
-                    onChange={(e) => setNewService({...newService, image: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    required
-                  />
-                </div>
-              </form>
-              <div className="modal-action">
-                <button onClick={() => setIsAddingService(false)} className="btn">Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

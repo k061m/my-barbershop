@@ -51,7 +51,7 @@ export default function Layout() {
             </label>
           </div>
           <div className="flex-1">
-            <a className="text-xl font-semibold cursor-pointer" onClick={() => navigate('/')}>My Barbershop</a>
+            <a className="text-xl font-semibold cursor-pointer" onClick={() => navigate('/')}>Barbier Beirut</a>
           </div>
           {currentUser ? (
             <div className="flex-none">

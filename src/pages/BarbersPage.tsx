@@ -1,31 +1,13 @@
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import { useBarbers } from '../hooks/useBarbers';
 
 export default function BarbersPage() {
-  const navigate = useNavigate();
-  const { barbers, loading, error } = useBarbers();
-
-  const handleBarberSelect = (barberId: string) => {
-    navigate('/booking', { 
-      state: { 
-        from: 'barbers',
-        selectedBarberId: barberId 
-      }
-    });
-  };
+  const { barbers, loading } = useBarbers();
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-600">Error: {error.message}</div>
+        <div className="loading loading-spinner loading-lg"></div>
       </div>
     );
   }
@@ -35,39 +17,36 @@ export default function BarbersPage() {
       <h1 className="text-3xl font-bold mb-8 text-center">Meet Our Expert Barbers</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {barbers.map((barber) => (
-          <div 
-            key={barber.id}
-            className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105"
-            onClick={() => barber.id && handleBarberSelect(barber.id)}
-          >
-            <div className="relative">
-              <img 
-                src={barber.image} 
-                alt={barber.name} 
-                className="w-full h-64 object-cover"
+          <div key={barber.id} className="card bg-base-100 shadow-xl">
+            <figure className="px-4 pt-4">
+              <img
+                src={barber.image}
+                alt={barber.translations.en.name}
+                className="rounded-xl h-64 w-full object-cover"
               />
-              <div className="absolute top-0 right-0 mt-4 mr-4">
-                <div className="bg-white px-2 py-1 rounded-full shadow flex items-center">
-                  <span className="text-yellow-400 mr-1">★</span>
-                  <span className="font-semibold">{barber.rating}</span>
+            </figure>
+            <div className="card-body">
+              <h2 className="card-title">
+                {barber.translations.en.name}
+                {barber.available && (
+                  <div className="badge badge-success">Available</div>
+                )}
+              </h2>
+              <p className="text-base-content/70">{barber.translations.en.description}</p>
+              <div className="mt-2">
+                <p className="text-sm"><strong>Bio:</strong> {barber.translations.en.bio}</p>
+                <p className="text-sm mt-1"><strong>Specialties:</strong> {barber.translations.en.specialties}</p>
+              </div>
+              <div className="flex justify-between items-center mt-4">
+                <div className="text-warning text-lg">⭐ {(barber.rating || 0).toFixed(1)}</div>
+                <div className="text-sm">
+                  {barber.workingDays.map(day => 
+                    ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][day - 1]
+                  ).join(', ')}
                 </div>
               </div>
-            </div>
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-2">{barber.name}</h2>
-              <p className="text-primary font-medium mb-2">{barber.speciality}</p>
-              <p className="text-gray-600 text-sm mb-4">{barber.bio}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">{barber.experience} Years Experience</span>
-                <button 
-                  className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    barber.id && handleBarberSelect(barber.id);
-                  }}
-                >
-                  Book Now
-                </button>
+              <div className="text-sm text-center mt-2">
+                {barber.workingHours.start} - {barber.workingHours.end}
               </div>
             </div>
           </div>

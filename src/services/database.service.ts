@@ -18,10 +18,31 @@ import { UserProfile } from './auth.service';
 // Interfaces
 export interface Barber extends DocumentData {
   id?: string;
-  name: string;
-  speciality: string;
   image?: string;
-  bio?: string;
+  workingDays: number[];
+  workingHours: { start: string; end: string };
+  available: boolean;
+  translations: {
+    en: {
+      name: string;
+      bio?: string;
+      description?: string;
+      specialties?: string;
+    };
+    de: {
+      name: string;
+      bio?: string;
+      description?: string;
+      specialties?: string;
+    };
+    ar: {
+      name: string;
+      bio?: string;
+      description?: string;
+      specialties?: string;
+    };
+  };
+  
   rating?: number;
 }
 

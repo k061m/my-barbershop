@@ -43,15 +43,10 @@ service cloud.firestore {
       );
     }
     
-    // Gallery collection - Updated rules
+    // Gallery collection
     match /gallery/{imageId} {
       allow read: if true;  // Allow public read access
       allow create, update, delete: if isAuthenticated() && isAdmin();
-    }
-    
-    // Test collection (for connection testing)
-    match /test/{docId} {
-      allow read, write: if isAuthenticated();
     }
     
     // Reviews collection

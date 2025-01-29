@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { galleryService, type GalleryImage } from '../services/gallery.service';
+import { galleryService } from '../services/gallery.service';
+import type { GalleryImage } from '../data/types';
 
 const categories = ['All', 'Haircut', 'Styling', 'Grooming'];
 
@@ -79,12 +80,12 @@ export default function GalleryPage() {
           >
             <img
               src={image.url}
-              alt={image.title}
+              alt={image.translations.en.title}
               className="w-full h-64 object-cover transform transition-transform duration-300 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
               <div className="text-center">
-                <h3 className="text-white text-xl font-bold">{image.title}</h3>
+                <h3 className="text-white text-xl font-bold">{image.translations.en.title}</h3>
                 <p className="text-white text-sm mt-2">{image.category}</p>
               </div>
             </div>
@@ -101,11 +102,11 @@ export default function GalleryPage() {
           <div className="max-w-4xl w-full mx-4">
             <img
               src={selectedImage.url}
-              alt={selectedImage.title}
+              alt={selectedImage.translations.en.title}
               className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
             />
             <div className="text-center mt-4">
-              <h3 className="text-white text-2xl font-bold">{selectedImage.title}</h3>
+              <h3 className="text-white text-2xl font-bold">{selectedImage.translations.en.title}</h3>
               <p className="text-white text-lg mt-2">{selectedImage.category}</p>
             </div>
           </div>

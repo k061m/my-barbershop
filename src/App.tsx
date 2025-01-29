@@ -29,19 +29,6 @@ export default function App() {
     }
   }, [currentUser]);
 
-  useEffect(() => {
-    // Test Firebase connection
-    const testConnection = async () => {
-      try {
-        await fetch('https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel');
-      } catch (error: any) {
-        if (error?.name === 'TypeError' || error?.message?.includes('ERR_BLOCKED_BY_CLIENT')) {
-          setFirebaseBlocked(true);
-        }
-      }
-    };
-    testConnection();
-  }, []);
 
   if (firebaseBlocked) {
     return (

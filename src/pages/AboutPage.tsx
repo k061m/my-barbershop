@@ -5,9 +5,9 @@ export default function AboutPage() {
       <div className="hero min-h-[50vh] bg-base-200">
         <div className="hero-content text-center">
           <div className="max-w-2xl">
-            <h1 className="text-5xl font-bold mb-8">About My Barbershop</h1>
+            <h1 className="text-5xl font-bold mb-8">About Barbier Beirut</h1>
             <p className="text-xl mb-6">
-              Welcome to My Barbershop, where traditional craftsmanship meets modern style. 
+              Welcome to Barbier Beirut, where traditional craftsmanship meets modern style. 
               Established in 2024, we've been dedicated to providing exceptional grooming 
               services to our community.
             </p>

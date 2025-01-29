@@ -17,7 +17,7 @@ export default function ServicesPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="loading loading-spinner loading-lg"></div>
       </div>
     );
   }
@@ -43,7 +43,7 @@ export default function ServicesPage() {
             <div className="relative">
               <img 
                 src={service.image} 
-                alt={service.name} 
+                alt={service.translations.en.name} 
                 className="w-full h-64 object-cover"
               />
               <div className="absolute top-0 right-0 mt-4 mr-4">
@@ -53,9 +53,9 @@ export default function ServicesPage() {
               </div>
             </div>
             <div className="p-6">
-              <h2 className="text-xl font-bold mb-2">{service.name}</h2>
-              <p className="text-primary font-medium mb-2">{service.duration}</p>
-              <p className="text-gray-600 text-sm mb-4">{service.description}</p>
+              <h2 className="text-xl font-bold mb-2">{service.translations.en.name}</h2>
+              <p className="text-primary font-medium mb-2">{service.translations.en.duration}</p>
+              <p className="text-gray-600 text-sm mb-4">{service.translations.en.description}</p>
               <div className="flex justify-end">
                 <button 
                   className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
