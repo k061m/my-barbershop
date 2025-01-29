@@ -1,8 +1,9 @@
-import { Outlet } from 'react-router-dom';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Logo } from './Logo';
+import { layout } from '../config/ui.config';
+import { logger } from '../utils/debug';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -10,9 +11,28 @@ export default function Layout() {
   const { currentUser, logout } = useAuth();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  useEffect(() => {
+    logger.info('Layout mounted', {
+      component: 'Layout',
+      data: { path: location.pathname, user: currentUser?.email }
+    });
+  }, []);
+
+  useEffect(() => {
+    logger.debug('Route changed', {
+      component: 'Layout',
+      data: { path: location.pathname }
+    });
+  }, [location.pathname]);
+
   const isActive = (path: string) => location.pathname === path;
 
   const handleAuthRedirect = (path: string) => {
+    logger.debug('Auth redirect triggered', {
+      component: 'Layout',
+      data: { path, isAuthenticated: !!currentUser }
+    });
+
     if (currentUser) {
       navigate(path);
     } else {
@@ -23,10 +43,16 @@ export default function Layout() {
 
   const handleLogout = async () => {
     try {
+      logger.info('Logout initiated', { component: 'Layout' });
       await logout();
       navigate('/');
       setIsDrawerOpen(false);
+      logger.info('Logout successful', { component: 'Layout' });
     } catch (error) {
+      logger.error('Logout failed', {
+        component: 'Layout',
+        data: error
+      });
       console.error('Failed to log out:', error);
     }
   };
@@ -43,7 +69,10 @@ export default function Layout() {
       
       <div className="drawer-content flex flex-col">
         {/* Navbar */}
-        <div className="navbar bg-base-100 border-b border-base-200">
+        <div 
+          className="navbar bg-base-100 border-b border-base-200"
+          style={{ height: layout.navbar.height }}
+        >
           <div className="flex-none">
             <label htmlFor="my-drawer" className="btn btn-square btn-ghost drawer-button">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-5 h-5 stroke-current">
@@ -52,8 +81,15 @@ export default function Layout() {
             </label>
           </div>
           <div className="flex-1">
-            <a className="cursor-pointer" onClick={() => navigate('/')}>
-              <Logo variant="light" height={40} className="mb-2" />
+            <a className="cursor-pointer w-full" onClick={() => navigate('/')}>
+              <Logo 
+                variant="light" 
+                height={40}
+                width="auto"
+                padding="0.5rem"
+                containerClassName="hover:opacity-80 transition-opacity"
+                fit="contain"
+              />
             </a>
           </div>
           {currentUser ? (
@@ -82,8 +118,15 @@ export default function Layout() {
         <footer className="bg-gray-800 text-white py-8">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="mb-4 md:mb-0">
-                <Logo variant="light" height={40} className="mb-2" />
+              <div className="mb-4 md:mb-0 w-full max-w-[200px]">
+                <Logo 
+                  variant="light" 
+                  width="full"
+                  height={50}
+                  padding="0.5rem"
+                  containerClassName="hover:opacity-90 transition-opacity"
+                  fit="contain"
+                />
               </div>
             </div>
           </div>

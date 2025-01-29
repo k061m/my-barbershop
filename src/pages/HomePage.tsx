@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import Map from '../components/Map';
+import { Logo } from '../components/Logo';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -15,16 +16,23 @@ export default function HomePage() {
       <div 
         className="relative h-[50vh] bg-cover bg-center" 
         style={{ 
-          backgroundImage: 'url("https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=2070&auto=format&fit=crop")',
+          backgroundImage: 'url("/images/stock/Background.JPEG")',
           backgroundPosition: 'center 30%'
         }}
       >
         <div className="absolute inset-0 bg-primary bg-opacity-60 flex items-center justify-center">
-          <div className="text-center px-4">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Barbier Beirut
-            </h1>
-            <p className="text-lg text-white opacity-90">
+          <div className="text-center px-4 space-y-6">
+            <div className="flex justify-center">
+              <Logo 
+                variant="light"
+                width={300}
+                height="auto"
+                padding="1rem"
+                containerClassName="bg-primary bg-opacity-40 rounded-lg backdrop-blur-sm"
+                fit="contain"
+              />
+            </div>
+            <p className="text-xl md:text-2xl text-white opacity-90 font-light tracking-wide">
               Where tradition meets excellence
             </p>
           </div>
