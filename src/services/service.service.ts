@@ -1,4 +1,4 @@
-import { query, orderBy } from 'firebase/firestore';
+import { orderBy } from 'firebase/firestore';
 import { FirestoreService } from './firestore.service';
 import { Service } from '../data/types';
 

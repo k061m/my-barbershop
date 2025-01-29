@@ -1,13 +1,4 @@
-import {
-  collection,
-  doc,
-  getDocs,
-  getDoc,
-  query,
-  where,
-  orderBy
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { where, orderBy } from 'firebase/firestore';
 import { FirestoreService } from './firestore.service';
 import { Barber } from '../data/types';
 

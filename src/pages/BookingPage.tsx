@@ -93,15 +93,6 @@ export default function BookingPage() {
     return dates;
   };
 
-  // Format date for display
-  const formatDateForDisplay = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    }).format(date);
-  };
-
   // Format date for input value
   const formatDateForValue = (date: Date) => {
     return date.toISOString().split('T')[0];

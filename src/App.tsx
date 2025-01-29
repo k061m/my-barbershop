@@ -21,7 +21,7 @@ const BookingPage = lazy(() => import('./pages/BookingPage'));
 
 export default function App() {
   const { currentUser } = useAuth();
-  const [firebaseBlocked, setFirebaseBlocked] = useState(false);
+  const [firebaseBlocked, _] = useState(false);
 
   useEffect(() => {
     if (currentUser) {

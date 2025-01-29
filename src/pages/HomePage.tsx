@@ -1,23 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import Map from '../components/Map';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
 
   // Example coordinates - replace with your barbershop's actual location
   const shopLocation: [number, number] = [51.0658369, 13.7562182]; // London coordinates
   const shopAddress = "Louisenstraße 73, 01099 Dresden";
   const shopName = "Barbier Beirut";
-  
-  const handleAuthRedirect = (path: string) => {
-    if (currentUser) {
-      navigate(path);
-    } else {
-      navigate('/login');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-base-100">

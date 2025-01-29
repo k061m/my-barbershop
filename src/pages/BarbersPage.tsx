@@ -1,4 +1,3 @@
-import React from 'react';
 import { useBarbers } from '../hooks/useBarbers';
 
 export default function BarbersPage() {

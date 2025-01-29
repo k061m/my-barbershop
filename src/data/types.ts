@@ -1,5 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
-
 export type Language = 'en' | 'de' | 'ar';
 export type UserRole = 'user' | 'admin' | 'barber';
 export type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';

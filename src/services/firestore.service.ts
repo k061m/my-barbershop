@@ -3,12 +3,10 @@ import {
   doc,
   getDocs,
   getDoc,
+  query,
   addDoc,
   updateDoc,
   deleteDoc,
-  query,
-  where,
-  orderBy,
   QueryConstraint,
   DocumentData,
   Timestamp

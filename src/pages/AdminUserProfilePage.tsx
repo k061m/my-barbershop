@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, where } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAppointments } from '../hooks/useAppointments';
 import { useBarbers } from '../hooks/useBarbers';

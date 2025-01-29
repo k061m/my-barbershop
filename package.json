@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev:vite": "vite",
     "dev": "netlify dev",
@@ -17,9 +20,11 @@
     "daisyui": "^4.12.23",
     "dotenv": "^16.4.7",
     "firebase": "^11.2.0",
+    "i18next": "^24.2.2",
     "leaflet": "^1.9.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-i18next": "^15.4.0",
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.0.0"
   },
