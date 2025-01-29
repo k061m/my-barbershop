@@ -1,11 +1,11 @@
-import { initializeApp, cert, getApps, deleteApp } from 'firebase-admin/app';
+import { initializeApp, cert, getApps, deleteApp, App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
 async function syncAuth() {
   try {
     // Clean up any existing apps
     console.log('Cleaning up existing Firebase apps...');
-    getApps().forEach(app => {
+    getApps().forEach((app: App) => {
       deleteApp(app);
     });
 

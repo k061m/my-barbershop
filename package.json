@@ -20,6 +20,7 @@
     "daisyui": "^4.12.23",
     "dotenv": "^16.4.7",
     "firebase": "^11.2.0",
+    "firebase-admin": "13.0.2",
     "i18next": "^24.2.2",
     "leaflet": "^1.9.4",
     "react": "^18.2.0",

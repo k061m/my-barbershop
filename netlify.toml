@@ -1,5 +1,5 @@
 [build]
-  command = "CI= npm run build"
+  command = "CI= tsc --skipLibCheck && vite build"
   publish = "dist"
   functions = "netlify/functions"
 
