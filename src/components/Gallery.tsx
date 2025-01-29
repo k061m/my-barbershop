@@ -1,30 +1,16 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { useTranslation } from 'react-i18next';
-
-interface GalleryTranslation {
-  title: string;
-  description: string;
-}
-
-interface GalleryItem {
-  id: string;
-  url: string;
-  category: string;
-  translations: {
-    [key: string]: GalleryTranslation;
-  };
-}
+import { galleryService } from '../services/gallery.service';
+import { GalleryImage, Language } from '../data/types';
 
 export default function Gallery() {
-  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [galleryItems, setGalleryItems] = useState<GalleryImage[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { i18n } = useTranslation();
-  const currentLang = i18n.language;
+  const currentLang = i18n.language as Language;
 
   useEffect(() => {
     const fetchGallery = async () => {
@@ -32,18 +18,8 @@ export default function Gallery() {
       setError(null);
       try {
         console.log('Fetching gallery data...');
-        const galleryRef = collection(db, 'gallery');
-        const snapshot = await getDocs(galleryRef);
-        console.log('Fetched documents:', snapshot.size);
-        
-        const galleryData = snapshot.docs.map(doc => {
-          const data = doc.data();
-          console.log('Document data:', doc.id, data);
-          return {
-            ...data,
-            id: doc.id
-          };
-        }) as GalleryItem[];
+        const galleryData = await galleryService.getImages();
+        console.log('Fetched images:', galleryData.length);
         
         // Extract unique categories
         const uniqueCategories = ['all', ...new Set(galleryData.map(item => item.category))];

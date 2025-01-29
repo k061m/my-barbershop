@@ -9,7 +9,7 @@ class BarberService extends FirestoreService<Barber> {
 
   async getAvailableBarbers() {
     try {
-      return this.query([
+      return await this.query([
         where('available', '==', true),
         orderBy('createdAt', 'desc')
       ]);
@@ -30,15 +30,15 @@ class BarberService extends FirestoreService<Barber> {
   }
 
   // Override parent methods to remove modification abilities
-  async create(): Promise<string> {
+  async create(_data: Omit<Barber, 'id'>): Promise<string> {
     throw new Error('Access denied: Barbers can only be added through the admin backend');
   }
 
-  async update(): Promise<void> {
+  async update(_id: string, _data: Partial<Barber>): Promise<void> {
     throw new Error('Access denied: Barber information can only be updated through the admin backend');
   }
 
-  async delete(): Promise<void> {
+  async delete(_id: string): Promise<void> {
     throw new Error('Access denied: Barbers can only be removed through the admin backend');
   }
 }

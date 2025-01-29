@@ -9,7 +9,7 @@ class GalleryService extends FirestoreService<GalleryImage> {
 
   async getImages() {
     try {
-      return this.query([orderBy('createdAt', 'desc')]);
+      return await this.query([orderBy('createdAt', 'desc')]);
     } catch (error) {
       console.error('Error getting gallery images:', error);
       throw new Error('Failed to fetch gallery images. Please try again later.');
@@ -17,15 +17,15 @@ class GalleryService extends FirestoreService<GalleryImage> {
   }
 
   // Override parent methods to remove modification abilities
-  async create(): Promise<string> {
+  async create(_data: Omit<GalleryImage, 'id'>): Promise<string> {
     throw new Error('Access denied: Gallery images can only be added through the admin backend');
   }
 
-  async update(): Promise<void> {
+  async update(_id: string, _data: Partial<GalleryImage>): Promise<void> {
     throw new Error('Access denied: Gallery images can only be updated through the admin backend');
   }
 
-  async delete(): Promise<void> {
+  async delete(_id: string): Promise<void> {
     throw new Error('Access denied: Gallery images can only be removed through the admin backend');
   }
 }
