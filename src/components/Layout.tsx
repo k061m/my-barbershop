@@ -2,6 +2,8 @@ import { Outlet } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
+import Navbar from './Navbar';
+import { Logo } from './Logo';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -51,7 +53,9 @@ export default function Layout() {
             </label>
           </div>
           <div className="flex-1">
-            <a className="text-xl font-semibold cursor-pointer" onClick={() => navigate('/')}>Barbier Beirut</a>
+            <a className="cursor-pointer" onClick={() => navigate('/')}>
+              <Logo variant="light" height={40} className="mb-2" />
+            </a>
           </div>
           {currentUser ? (
             <div className="flex-none">
@@ -74,6 +78,17 @@ export default function Layout() {
         <main className="flex-1">
           <Outlet />
         </main>
+
+        {/* Footer */}
+        <footer className="bg-gray-800 text-white py-8">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="mb-4 md:mb-0">
+                <Logo variant="light" height={40} className="mb-2" />
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
 
       {/* Drawer Side */}

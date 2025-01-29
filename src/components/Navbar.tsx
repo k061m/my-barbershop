@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { Logo } from './Logo';
 
 export default function Navbar() {
   const { currentUser } = useAuth();
@@ -9,9 +10,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-primary">
-              Barbershop
-            </Link>
+            <Logo width={120} height={40} className="hover:opacity-80 transition-opacity" />
           </div>
 
           <div className="flex items-center space-x-4">

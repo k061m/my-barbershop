@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { FirebaseError } from 'firebase/app';
+import { Logo } from '../components/Logo';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -42,7 +43,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-base-100 flex items-center justify-center px-4">
       <div className="card w-full max-w-md bg-base-200 shadow-xl">
         <div className="card-body">
-          <h2 className="card-title text-2xl justify-center mb-4">Welcome Back</h2>
+          <div className="flex flex-col items-center mb-6">
+            <Logo width={180} height={60} className="mb-4" />
+            <h2 className="card-title text-2xl justify-center mb-4">Welcome Back</h2>
+          </div>
           
           {error && (
             <div className="alert alert-error mb-4">
