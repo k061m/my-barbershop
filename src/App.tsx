@@ -57,11 +57,9 @@ export default function App() {
                 <Route 
                   path="booking" 
                   element={
-                    <PrivateRoute>
-                      <Suspense fallback={<LoadingSpinner />}>
-                        <BookingPage />
-                      </Suspense>
-                    </PrivateRoute>
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <BookingPage />
+                    </Suspense>
                   } 
                 />
                 

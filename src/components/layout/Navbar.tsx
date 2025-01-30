@@ -34,11 +34,11 @@ const Navbar = ({ setIsDrawerOpen }: NavbarProps) => {
   const { currentUser, logout } = useAuth();
   const { theme } = useTheme();
 
-  const handleAuthRedirect = (path: string) => {
-    if (currentUser) {
-      navigate(path);
-    } else {
+  const handleProtectedNavigation = (path: string) => {
+    if (!currentUser) {
       navigate('/login', { state: { from: location.pathname } });
+    } else {
+      navigate(path);
     }
     setIsDrawerOpen(false);
   };
@@ -58,23 +58,26 @@ const Navbar = ({ setIsDrawerOpen }: NavbarProps) => {
     {
       label: 'Home',
       path: '/',
-      show: true, // Always show
+      show: true,
+      protected: false
     },
     {
       label: 'Book',
       path: '/booking',
-      show: true, // Always show
+      show: true,
+      protected: false
     },
     {
       label: 'Profile',
       path: '/dashboard',
       show: !!currentUser,
+      protected: true
     },
     {
       label: currentUser ? 'Sign out' : 'Sign in',
       action: currentUser ? handleLogout : () => navigate('/login'),
       color: currentUser ? theme.colors.accent.primary : theme.colors.text.primary,
-      show: true, // Always show
+      show: true
     },
   ];
 
@@ -114,7 +117,16 @@ const Navbar = ({ setIsDrawerOpen }: NavbarProps) => {
             .map((item) => (
               <NavButton
                 key={item.label}
-                onClick={item.action || (() => handleAuthRedirect(item.path!))}
+                onClick={
+                  item.action ? 
+                  item.action : 
+                  item.protected ? 
+                  () => handleProtectedNavigation(item.path!) :
+                  () => {
+                    navigate(item.path!);
+                    setIsDrawerOpen(false);
+                  }
+                }
                 color={item.color || theme.colors.text.primary}
               >
                 {item.label}

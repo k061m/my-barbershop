@@ -5,6 +5,13 @@ import { useBarbers } from '../hooks/useBarbers';
 import { useServices } from '../hooks/useServices';
 import { appointmentService } from '../services/appointment.service';
 import { useTheme } from '../contexts/ThemeContext';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import BarberSelectionModal from '../components/booking/BarberSelectionModal';
+import ServiceSelectionModal from '../components/booking/ServiceSelectionModal';
+import DateTimeSelectionModal from '../components/booking/DateTimeSelectionModal';
+import BookingSummary from '../components/booking/BookingSummary';
+import BookingStep from '../components/booking/BookingStep';
+import LoginModal from '../components/auth/LoginModal';
 
 interface LocationState {
   from?: string;
@@ -29,7 +36,7 @@ export default function BookingPage() {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [activeModal, setActiveModal] = useState<'barber' | 'service' | 'datetime' | null>(null);
+  const [activeModal, setActiveModal] = useState<'barber' | 'service' | 'datetime' | 'login' | null>(null);
 
   useEffect(() => {
     if (state?.from === 'barbers' && state.selectedBarberId) {
@@ -39,16 +46,14 @@ export default function BookingPage() {
     }
   }, [state]);
 
-  // Generate available times for the selected date
   useEffect(() => {
     if (selectedDate && selectedBarberId) {
       const selectedBarber = barbers.find(b => b.id === selectedBarberId);
       if (!selectedBarber) return;
 
       const date = new Date(selectedDate);
-      const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ...
+      const dayOfWeek = date.getDay();
       
-      // Check if the selected day is a working day
       if (selectedBarber.workingDays.includes(dayOfWeek)) {
         const [startHour, startMinute] = selectedBarber.workingHours.start.split(':').map(Number);
         const [endHour, endMinute] = selectedBarber.workingHours.end.split(':').map(Number);
@@ -75,7 +80,6 @@ export default function BookingPage() {
     }
   }, [selectedDate, selectedBarberId, barbers]);
 
-  // Get the next 30 available days
   const getAvailableDates = () => {
     const selectedBarber = barbers.find(b => b.id === selectedBarberId);
     if (!selectedBarber) return [];
@@ -95,11 +99,6 @@ export default function BookingPage() {
     return dates;
   };
 
-  // Format date for input value
-  const formatDateForValue = (date: Date) => {
-    return date.toISOString().split('T')[0];
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedBarberId || !selectedServiceId || !selectedDate || !selectedTime) {
@@ -107,21 +106,17 @@ export default function BookingPage() {
       return;
     }
 
+    if (!currentUser) {
+      setError('Please sign in to complete your booking');
+      setActiveModal('login');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      const dateTime = new Date(`${selectedDate}T${selectedTime}`);
-      
-      await appointmentService.createAppointment({
-        userId: currentUser!.uid,
-        barberId: selectedBarberId,
-        serviceId: selectedServiceId,
-        date: dateTime,
-        status: 'pending'
-      });
-
-      navigate('/dashboard');
+      await createAppointment();
     } catch (error) {
       setError('Failed to create appointment');
       console.error('Booking error:', error);
@@ -130,11 +125,23 @@ export default function BookingPage() {
     }
   };
 
-  if (loadingBarbers || loadingServices) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.colors.background.primary }}>
-      <div className="loading loading-spinner loading-lg" style={{ color: theme.colors.accent.primary }}></div>
-    </div>
-  );
+  const createAppointment = async () => {
+    const dateTime = new Date(`${selectedDate}T${selectedTime}`);
+    
+    await appointmentService.createAppointment({
+      userId: currentUser!.uid,
+      barberId: selectedBarberId,
+      serviceId: selectedServiceId,
+      date: dateTime,
+      status: 'pending'
+    });
+
+    navigate('/dashboard');
+  };
+
+  if (loadingBarbers || loadingServices) {
+    return <LoadingSpinner />;
+  }
 
   const selectedBarber = barbers.find(b => b.id === selectedBarberId);
   const selectedService = services.find(s => s.id === selectedServiceId);
@@ -156,12 +163,8 @@ export default function BookingPage() {
           </div>
         )}
 
-        {/* Booking Steps Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Barber Selection Card */}
-          <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: theme.colors.background.card }}>
-            <h3 className="font-medium mb-2" style={{ color: theme.colors.text.secondary }}>Step 1</h3>
-            <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Choose Barber</h2>
+          <BookingStep stepNumber={1} title="Choose Barber">
             {selectedBarber ? (
               <div className="flex items-center gap-4">
                 <img
@@ -190,28 +193,23 @@ export default function BookingPage() {
                 Select Barber
               </button>
             )}
-          </div>
+          </BookingStep>
 
-          {/* Service Selection Card */}
-          <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: theme.colors.background.card }}>
-            <h3 className="font-medium mb-2" style={{ color: theme.colors.text.secondary }}>Step 2</h3>
-            <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Choose Service</h2>
+          <BookingStep stepNumber={2} title="Choose Service">
             {selectedService ? (
-              <div>
-                <div className="flex items-center gap-4">
-                  <img
-                    src={selectedService.image}
-                    alt={selectedService.translations.en.name}
-                    className="w-16 h-16 rounded-lg object-cover"
-                  />
-                  <div>
-                    <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-                      {selectedService.translations.en.name}
-                    </p>
-                    <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
-                      ${selectedService.price}
-                    </p>
-                  </div>
+              <div className="flex items-center gap-4">
+                <img
+                  src={selectedService.image}
+                  alt={selectedService.translations.en.name}
+                  className="w-16 h-16 rounded-lg object-cover"
+                />
+                <div>
+                  <p className="font-medium" style={{ color: theme.colors.text.primary }}>
+                    {selectedService.translations.en.name}
+                  </p>
+                  <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
+                    ${selectedService.price}
+                  </p>
                 </div>
               </div>
             ) : (
@@ -226,12 +224,9 @@ export default function BookingPage() {
                 Select Service
               </button>
             )}
-          </div>
+          </BookingStep>
 
-          {/* Date & Time Selection Card */}
-          <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: theme.colors.background.card }}>
-            <h3 className="font-medium mb-2" style={{ color: theme.colors.text.secondary }}>Step 3</h3>
-            <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Choose Date & Time</h2>
+          <BookingStep stepNumber={3} title="Choose Date & Time">
             {selectedDate && selectedTime ? (
               <div>
                 <p className="font-medium" style={{ color: theme.colors.text.primary }}>
@@ -257,254 +252,142 @@ export default function BookingPage() {
                 Select Date & Time
               </button>
             )}
-          </div>
+          </BookingStep>
         </div>
 
-        {/* Booking Summary and Submit */}
         {selectedBarber && selectedService && selectedDate && selectedTime && (
-          <div className="rounded-lg shadow-lg p-6 mt-8" style={{ backgroundColor: theme.colors.background.card }}>
-            <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Booking Summary</h2>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div>
-                <p style={{ color: theme.colors.text.secondary }}>Barber</p>
-                <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-                  {selectedBarber.translations.en.name}
-                </p>
-              </div>
-              <div>
-                <p style={{ color: theme.colors.text.secondary }}>Service</p>
-                <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-                  {selectedService.translations.en.name}
-                </p>
-              </div>
-              <div>
-                <p style={{ color: theme.colors.text.secondary }}>Date & Time</p>
-                <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-                  {new Date(selectedDate).toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric'
-                  })} at {selectedTime}
-                </p>
-              </div>
-              <div>
-                <p style={{ color: theme.colors.text.secondary }}>Price</p>
-                <p className="font-medium" style={{ color: theme.colors.accent.primary }}>
-                  ${selectedService.price}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full py-3 rounded-lg font-medium transition-colors hover:opacity-90"
-              style={{ 
-                backgroundColor: theme.colors.accent.primary,
-                color: theme.colors.background.primary
-              }}
-            >
-              {loading ? 'Booking...' : 'Confirm Booking'}
-            </button>
-          </div>
+          <BookingSummary
+            barber={{
+              ...selectedBarber,
+              id: selectedBarber.id || '',
+              image: selectedBarber.image || '',
+              createdAt: new Date(),
+              translations: selectedBarber.translations || {
+                en: { name: '', bio: '', description: '', specialties: '' },
+                de: { name: '', bio: '', description: '', specialties: '' },
+                ar: { name: '', bio: '', description: '', specialties: '' }
+              }
+            }}
+            service={{
+              ...selectedService,
+              id: selectedService.id || '',
+              image: selectedService.image || '',
+              createdAt: new Date(),
+              name: selectedService.name || '',
+              translations: {
+                en: { 
+                  name: selectedService.translations?.en?.name || selectedService.name || '',
+                  duration: selectedService.translations?.en?.duration || selectedService.duration?.toString() || ''
+                },
+                de: { 
+                  name: selectedService.translations?.de?.name || selectedService.name || '',
+                  duration: selectedService.translations?.de?.duration || selectedService.duration?.toString() || ''
+                },
+                ar: { 
+                  name: selectedService.translations?.ar?.name || selectedService.name || '',
+                  duration: selectedService.translations?.ar?.duration || selectedService.duration?.toString() || ''
+                }
+              },
+              duration: typeof selectedService.duration === 'string' ? parseInt(selectedService.duration) : (selectedService.duration || 0)
+            }}
+            date={selectedDate}
+            time={selectedTime}
+            onSubmit={handleSubmit}
+            loading={loading}
+          />
         )}
 
-        {/* Selection Modals */}
         {activeModal === 'barber' && (
-          <div className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50">
-            <div className="w-full max-w-2xl rounded-lg shadow-lg p-6" 
-              style={{ backgroundColor: theme.colors.background.card }}>
-              <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Select Barber</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
-                {barbers.map(barber => (
-                  <div
-                    key={barber.id}
-                    onClick={() => {
-                      if (barber.id) {
-                        setSelectedBarberId(barber.id);
-                        setActiveModal(null);
-                      }
-                    }}
-                    className="rounded-lg p-4 cursor-pointer transition-colors hover:opacity-90"
-                    style={{ backgroundColor: theme.colors.background.primary }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={barber.image}
-                        alt={barber.translations.en.name}
-                        className="w-16 h-16 rounded-full object-cover"
-                      />
-                      <div>
-                        <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-                          {barber.translations.en.name}
-                        </p>
-                        <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
-                          {barber.translations.en.specialties}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="mt-4 w-full py-3 rounded-lg transition-colors hover:opacity-90"
-                style={{ 
-                  backgroundColor: theme.colors.background.primary,
-                  color: theme.colors.text.primary,
-                  border: `1px solid ${theme.colors.text.secondary}`
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+          <BarberSelectionModal
+            barbers={barbers.map(barber => ({
+              ...barber,
+              id: barber.id || '',
+              image: barber.image || '',
+              createdAt: new Date(),
+              translations: barber.translations || {
+                en: { name: '', bio: '', description: '', specialties: '' },
+                de: { name: '', bio: '', description: '', specialties: '' },
+                ar: { name: '', bio: '', description: '', specialties: '' }
+              }
+            }))}
+            onSelect={(id) => {
+              setSelectedBarberId(id);
+              setActiveModal(null);
+            }}
+            onClose={() => setActiveModal(null)}
+          />
         )}
 
         {activeModal === 'service' && (
-          <div className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50">
-            <div className="w-full max-w-2xl rounded-lg shadow-lg p-6" 
-              style={{ backgroundColor: theme.colors.background.card }}>
-              <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Select Service</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
-                {services.map(service => (
-                  <div
-                    key={service.id}
-                    onClick={() => {
-                      if (service.id) {
-                        setSelectedServiceId(service.id);
-                        setActiveModal(null);
-                      }
-                    }}
-                    className="rounded-lg p-4 cursor-pointer transition-colors hover:opacity-90"
-                    style={{ backgroundColor: theme.colors.background.primary }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={service.image}
-                        alt={service.translations.en.name}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                      <div>
-                        <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-                          {service.translations.en.name}
-                        </p>
-                        <p className="text-sm" style={{ color: theme.colors.accent.primary }}>
-                          ${service.price}
-                        </p>
-                        <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
-                          {service.translations.en.duration}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="mt-4 w-full py-3 rounded-lg transition-colors hover:opacity-90"
-                style={{ 
-                  backgroundColor: theme.colors.background.primary,
-                  color: theme.colors.text.primary,
-                  border: `1px solid ${theme.colors.text.secondary}`
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+          <ServiceSelectionModal
+            services={services.map(service => ({
+              ...service,
+              id: service.id || '',
+              image: service.image || '',
+              createdAt: new Date(),
+              name: service.name || '',
+              translations: {
+                en: { 
+                  name: service.translations?.en?.name || service.name || '',
+                  duration: service.translations?.en?.duration || service.duration?.toString() || ''
+                },
+                de: { 
+                  name: service.translations?.de?.name || service.name || '',
+                  duration: service.translations?.de?.duration || service.duration?.toString() || ''
+                },
+                ar: { 
+                  name: service.translations?.ar?.name || service.name || '',
+                  duration: service.translations?.ar?.duration || service.duration?.toString() || ''
+                }
+              },
+              duration: typeof service.duration === 'string' ? parseInt(service.duration) : (service.duration || 0)
+            }))}
+            onSelect={(id) => {
+              setSelectedServiceId(id);
+              setActiveModal(null);
+            }}
+            onClose={() => setActiveModal(null)}
+          />
         )}
 
         {activeModal === 'datetime' && (
-          <div className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50">
-            <div className="w-full max-w-2xl rounded-lg shadow-lg p-6" 
-              style={{ backgroundColor: theme.colors.background.card }}>
-              <h2 className="text-xl font-bold mb-4" style={{ color: theme.colors.text.primary }}>Select Date & Time</h2>
+          <DateTimeSelectionModal
+            selectedDate={selectedDate}
+            selectedTime={selectedTime}
+            availableDates={getAvailableDates()}
+            availableTimes={availableTimes}
+            onDateChange={setSelectedDate}
+            onTimeChange={setSelectedTime}
+            onConfirm={() => setActiveModal(null)}
+            onClose={() => setActiveModal(null)}
+          />
+        )}
+
+        {activeModal === 'login' && (
+          <LoginModal
+            isOpen={true}
+            onClose={() => setActiveModal(null)}
+            onSuccess={async () => {
+              setActiveModal(null);
+              // Wait for a short delay to ensure auth state is updated
+              await new Promise(resolve => setTimeout(resolve, 500));
               
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: theme.colors.text.primary }}>
-                    Date
-                  </label>
-                  <select
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full p-3 rounded-lg transition-colors"
-                    style={{ 
-                      backgroundColor: theme.colors.background.primary,
-                      color: theme.colors.text.primary,
-                      border: `1px solid ${theme.colors.text.secondary}`
-                    }}
-                  >
-                    <option value="">Select a date</option>
-                    {getAvailableDates().map(date => (
-                      <option key={date.toISOString()} value={formatDateForValue(date)}>
-                        {date.toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              if (!currentUser) {
+                setError('Please try booking again');
+                return;
+              }
 
-                {selectedDate && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: theme.colors.text.primary }}>
-                      Time
-                    </label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {availableTimes.map(time => (
-                        <button
-                          key={time}
-                          onClick={() => setSelectedTime(time)}
-                          className="p-2 rounded-lg transition-colors hover:opacity-90"
-                          style={{ 
-                            backgroundColor: time === selectedTime ? theme.colors.accent.primary : theme.colors.background.primary,
-                            color: time === selectedTime ? theme.colors.background.primary : theme.colors.text.primary,
-                            border: `1px solid ${time === selectedTime ? theme.colors.accent.primary : theme.colors.text.secondary}`
-                          }}
-                        >
-                          {time}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-4 mt-6">
-                <button
-                  onClick={() => {
-                    if (selectedDate && selectedTime) {
-                      setActiveModal(null);
-                    }
-                  }}
-                  disabled={!selectedDate || !selectedTime}
-                  className="flex-1 py-3 rounded-lg transition-colors hover:opacity-90"
-                  style={{ 
-                    backgroundColor: theme.colors.accent.primary,
-                    color: theme.colors.background.primary,
-                    opacity: (!selectedDate || !selectedTime) ? 0.5 : 1
-                  }}
-                >
-                  Confirm
-                </button>
-                <button
-                  onClick={() => setActiveModal(null)}
-                  className="flex-1 py-3 rounded-lg transition-colors hover:opacity-90"
-                  style={{ 
-                    backgroundColor: theme.colors.background.primary,
-                    color: theme.colors.text.primary,
-                    border: `1px solid ${theme.colors.text.secondary}`
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
+              setLoading(true);
+              try {
+                await createAppointment();
+              } catch (error) {
+                setError('Failed to create appointment');
+                console.error('Booking error:', error);
+              } finally {
+                setLoading(false);
+              }
+            }}
+          />
         )}
       </div>
     </div>

@@ -18,7 +18,12 @@ export interface TimeStamps {
 
 /** Translation key-value pairs */
 export interface Translation {
-  [key: string]: string;
+  name: string;
+  bio?: string;
+  description?: string;
+  specialties?: string;
+  duration?: string;
+  title?: string;  // Added for gallery images
 }
 
 /** Base interface for multilingual content */
@@ -53,9 +58,9 @@ export interface User extends TimeStamps {
 export interface Barber extends MultilingualContent, TimeStamps {
   id: string;
   image: string;
-  available: boolean;
-  workingDays: string[];
+  workingDays: number[];
   workingHours: WorkingHours;
+  available: boolean;
   specialties?: string[];
   rating?: number;
   reviewCount?: number;
@@ -64,9 +69,11 @@ export interface Barber extends MultilingualContent, TimeStamps {
 /** Service offering data */
 export interface Service extends MultilingualContent, TimeStamps {
   id: string;
+  name: string;
+  duration: number;
   price: number;
-  duration: number;  // in minutes
   image: string;
+  description?: string;
   category?: string;
   available?: boolean;
 }
