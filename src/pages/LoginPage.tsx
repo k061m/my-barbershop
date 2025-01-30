@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { FirebaseError } from 'firebase/app';
 import { Logo } from '../components/Logo';
-import { Card } from '../components/Card';
+import { Card } from '../components/common/Card';
 
 export default function LoginPage() {
   const navigate = useNavigate();

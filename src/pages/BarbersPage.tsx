@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Card } from '../components/Card';
+import { Card } from '../components/common/Card';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBarbers } from '../hooks/useBarbers';
 

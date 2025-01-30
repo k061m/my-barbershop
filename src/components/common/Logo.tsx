@@ -1,30 +1,82 @@
-import { useTheme } from '../../contexts/ThemeContext';
+import { Link } from 'react-router-dom';
+import { brand } from '../../config/ui.config';
+import { logger } from '../../utils/debug';
+import { useEffect, useState } from 'react';
 
-export default function Logo() {
-  const { theme } = useTheme();
+interface LogoProps {
+  className?: string;
+  width?: number | 'auto' | 'full';
+  height?: number | 'auto' | 'full';
+  variant?: keyof typeof brand.logo;
+  padding?: number | string;
+  containerClassName?: string;
+  fit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+}
+
+export function Logo({ 
+  className = '', 
+  width = 'auto', 
+  height = 'auto',
+  variant = 'default',
+  padding,
+  containerClassName = '',
+  fit = 'contain'
+}: LogoProps) {
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    // Preload the logo image
+    const img = new Image();
+    img.src = brand.logo[variant];
+    
+    img.onload = () => {
+      logger.debug('Logo loaded successfully', {
+        component: 'Logo',
+        data: { variant, src: img.src }
+      });
+    };
+
+    img.onerror = () => {
+      logger.error('Failed to load logo', {
+        component: 'Logo',
+        data: { variant, src: img.src }
+      });
+      setError(true);
+    };
+  }, [variant]);
+
+  const containerStyle = {
+    padding: padding,
+    width: width === 'full' ? '100%' : typeof width === 'number' ? `${width}px` : width,
+    height: height === 'full' ? '100%' : typeof height === 'number' ? `${height}px` : height,
+  };
+
+  // Fallback content if logo fails to load
+  if (error) {
+    logger.warn('Using fallback text for logo', { component: 'Logo' });
+    return (
+      <Link 
+        to="/" 
+        className={`inline-flex items-center justify-center ${containerClassName}`}
+        style={containerStyle}
+      >
+        <span className="text-xl font-bold">{brand.name}</span>
+      </Link>
+    );
+  }
 
   return (
-    <div className="flex items-center space-x-2">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        className="w-8 h-8"
-        style={{ color: theme.colors.accent.primary }}
-      >
-        <path
-          fill="currentColor"
-          d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"
-        />
-        <circle
-          cx="12"
-          cy="10"
-          r="3"
-          fill={theme.colors.background.primary}
-        />
-      </svg>
-      <span className="text-xl font-bold" style={{ color: theme.colors.text.primary }}>
-        BarberShop
-      </span>
-    </div>
+    <Link 
+      to="/" 
+      className={`inline-flex items-center justify-center ${containerClassName}`}
+      style={containerStyle}
+    >
+      <img
+        src={brand.logo[variant]}
+        alt={`${brand.name} Logo`}
+        className={`object-${fit} w-full h-full ${className}`}
+        onError={() => setError(true)}
+      />
+    </Link>
   );
 } 

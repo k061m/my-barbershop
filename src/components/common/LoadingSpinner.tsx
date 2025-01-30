@@ -1,6 +1,7 @@
-import { useTheme } from '../../contexts/ThemeContext';
-
 export default function LoadingSpinner() {
-  const { theme } = useTheme();
-  return <div className="loading loading-spinner loading-lg" style={{ color: theme.colors.accent.primary }}></div>;
+  return (
+    <div className="min-h-screen bg-base-100 flex items-center justify-center">
+      <div className="loading loading-spinner loading-lg"></div>
+    </div>
+  );
 } 

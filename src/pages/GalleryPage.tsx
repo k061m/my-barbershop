@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { galleryService } from '../services/gallery.service';
-import type { GalleryImage } from '../data/types';
+import { GalleryImage } from '../types/data.types';
 
 const categories = ['All', 'Haircut', 'Styling', 'Grooming'];
 

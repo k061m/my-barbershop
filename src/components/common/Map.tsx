@@ -1,18 +1,49 @@
-import { useTheme } from '../../contexts/ThemeContext';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import { useEffect } from 'react';
 
-export default function Map() {
-  const { theme } = useTheme();
-  
+// Fix for default marker icon in react-leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: '/marker-icon-2x.png',
+  iconUrl: '/marker-icon.png',
+  shadowUrl: '/marker-shadow.png',
+});
+
+interface MapProps {
+  position: [number, number]; // [latitude, longitude]
+  address: string;
+  shopName: string;
+}
+
+export default function Map({ position, address, shopName }: MapProps) {
+  useEffect(() => {
+    // This is needed to fix the map display after initial render
+    window.dispatchEvent(new Event('resize'));
+  }, []);
+
   return (
-    <div className="w-full h-[400px] rounded-lg overflow-hidden">
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.9916256937595!2d2.292292615509614!3d48.85837007928757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e66e2964e34e2d%3A0x8ddca9ee380ef7e0!2sEiffel%20Tower!5e0!3m2!1sen!2sfr!4v1631234567890!5m2!1sen!2sfr"
-        width="100%"
-        height="100%"
-        style={{ border: 0 }}
-        allowFullScreen
-        loading="lazy"
-      />
+    <div className="h-[400px] w-full rounded-lg overflow-hidden shadow-lg">
+      <MapContainer 
+        center={position} 
+        zoom={15} 
+        scrollWheelZoom={false}
+        style={{ height: '100%', width: '100%' }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={position}>
+          <Popup>
+            <div className="text-center">
+              <h3 className="font-bold">{shopName}</h3>
+              <p>{address}</p>
+            </div>
+          </Popup>
+        </Marker>
+      </MapContainer>
     </div>
   );
 } 

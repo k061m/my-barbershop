@@ -1,9 +1,9 @@
-import { Review } from '../types/data.types';
+import { Review, Rating } from '../types/data.types';
 
 interface CreateReviewData {
   userId: string;
   barberId: string;
-  rating: number;
+  rating: Rating;
   comment: string;
   createdAt: Date;
 }

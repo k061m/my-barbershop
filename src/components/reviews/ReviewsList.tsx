@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Review } from '../../types/data.types';
 import ReviewCard from './ReviewCard';
-import Card from '../common/Card';
+import { Card } from '../common/Card';
 
 type SortOption = 'date' | 'rating';
 

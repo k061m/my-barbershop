@@ -1,6 +1,8 @@
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { Barber } from '../types/data.types';
 import { where, orderBy } from 'firebase/firestore';
 import { FirestoreService } from './firestore.service';
-import { Barber } from '../data/types';
 
 class BarberService extends FirestoreService<Barber> {
   constructor() {
