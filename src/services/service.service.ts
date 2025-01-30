@@ -1,8 +1,6 @@
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import { Service } from '../types/data.types';
 import { orderBy } from 'firebase/firestore';
 import { FirestoreService } from './firestore.service';
+import { Service } from '../types/data.types';
 
 class ServiceService extends FirestoreService<Service> {
   constructor() {

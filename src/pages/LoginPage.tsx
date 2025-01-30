@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { FirebaseError } from 'firebase/app';
-import { Logo } from '../components/Logo';
+import { Logo } from '../components/common/Logo';
 import { Card } from '../components/common/Card';
 
 export default function LoginPage() {

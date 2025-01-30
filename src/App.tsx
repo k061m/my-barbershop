@@ -3,7 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { theme } from './config/theme';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout';
+import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -13,9 +13,9 @@ import BarbersPage from './pages/BarbersPage';
 import ServicesPage from './pages/ServicesPage';
 import GalleryPage from './pages/GalleryPage';
 import PrivateRoute from './components/PrivateRoute';
-import AdminRoute from './components/AdminRoute';
+import AdminRoute from './components/auth/AdminRoute';
 import { lazy, Suspense } from 'react';
-import LoadingSpinner from './components/LoadingSpinner';
+import LoadingSpinner from './components/common/LoadingSpinner';
 
 // Lazy load routes
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));

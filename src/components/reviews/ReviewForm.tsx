@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { reviewService } from '../../services/review.service';
+import { Rating } from '../../types/data.types';
 
 interface ReviewFormProps {
   barberId: string;
@@ -24,7 +25,7 @@ export default function ReviewForm({ barberId, onSubmit }: ReviewFormProps) {
       await reviewService.createReview({
         userId: currentUser.uid,
         barberId,
-        rating,
+        rating: rating as Rating,
         comment,
         createdAt: new Date(),
       });

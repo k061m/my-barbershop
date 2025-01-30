@@ -1,6 +1,6 @@
 import { orderBy } from 'firebase/firestore';
 import { FirestoreService } from './firestore.service';
-import { GalleryImage } from '../data/types';
+import { GalleryImage } from '../types/data.types';
 
 class GalleryService extends FirestoreService<GalleryImage> {
   constructor() {

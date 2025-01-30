@@ -2,7 +2,7 @@ import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { FirebaseError } from 'firebase/app';
-import { Logo } from '../components/Logo';
+import { Logo } from '../components/common/Logo';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function RegisterPage() {
