@@ -1,5 +1,5 @@
 import { useTheme } from '../../contexts/ThemeContext';
-import { Barber } from '../../types/data.types';
+import { Barber } from '../../types';
 import BarberCard from './BarberCard';
 
 interface BarbersSectionProps {

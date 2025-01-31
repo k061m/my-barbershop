@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, where, QueryConstraint } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { Service } from '../services/database.service';
+import { Service } from '../types';
 
 export function useServices(queryConstraints: QueryConstraint[] = []) {
   const [services, setServices] = useState<Service[]>([]);

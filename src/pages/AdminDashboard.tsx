@@ -24,30 +24,44 @@ export default function AdminDashboard() {
       .filter(a => a.status === 'confirmed')
       .reduce((total, appointment) => {
         const service = services.find(s => s.id === appointment.serviceId);
-        return total + (service?.price || 0);
+        return total + (service?.basePrice || 0);
       }, 0)
   };
 
   const getBarberName = (barberId: string) => {
     const barber = barbers.find(b => b.id === barberId);
-    return barber?.name || 'Unknown Barber';
+    return barber?.personalInfo.firstName && barber?.personalInfo.lastName ? `${barber?.personalInfo.firstName} ${barber?.personalInfo.lastName}` : 'Unknown Barber';
   };
 
   const getServiceName = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
-    return service?.name || 'Unknown Service';
+    return service?.translations.en.name || 'Unknown Service';
   };
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'No date set';
-    const date = timestamp.toDate();
+    
+    // Handle Firestore Timestamp
+    if (timestamp.toDate) {
+      return new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(timestamp.toDate());
+    }
+    
+    // Handle regular Date object or string
+    const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
     return new Intl.DateTimeFormat('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric'
+      hour: '2-digit',
+      minute: '2-digit'
     }).format(date);
   };
 
@@ -227,46 +241,46 @@ export default function AdminDashboard() {
                   <div className="flex items-start gap-4">
                     <img
                       src={barber.image}
-                      alt={barber.translations.en.name}
+                      alt={barber.personalInfo.firstName && barber.personalInfo.lastName ? `${barber.personalInfo.firstName} ${barber.personalInfo.lastName}` : 'Unknown Barber'}
                       className="w-24 h-24 rounded-lg object-cover"
                     />
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="text-lg font-semibold" style={{ color: theme.colors.text.primary }}>
-                            {barber.translations.en.name}
+                            {barber.personalInfo.firstName && barber.personalInfo.lastName ? `${barber.personalInfo.firstName} ${barber.personalInfo.lastName}` : 'Unknown Barber'}
                           </h3>
                           <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
-                            {barber.translations.en.description}
+                            {barber.translations.en.bio}
                           </p>
                         </div>
                         <div className="flex flex-col items-end">
                           <div style={{ color: theme.colors.status.warning }} className="text-lg">
-                            ⭐ {(barber.rating || 0).toFixed(1)}
+                            ⭐ {(barber.professionalInfo.rating || 0).toFixed(1)}
                           </div>
                           <span className="px-2 py-1 rounded text-xs font-semibold" style={{ 
-                            backgroundColor: barber.available ? theme.colors.status.success : theme.colors.status.error,
+                            backgroundColor: barber.isActive ? theme.colors.status.success : theme.colors.status.error,
                             color: theme.colors.text.primary
                           }}>
-                            {barber.available ? 'Available' : 'Unavailable'}
+                            {barber.isActive ? 'Available' : 'Unavailable'}
                           </span>
                         </div>
                       </div>
                       
                       <div className="mt-3" style={{ color: theme.colors.text.primary }}>
                         <p className="text-sm"><strong>Bio:</strong> {barber.translations.en.bio}</p>
-                        <p className="text-sm mt-1"><strong>Specialties:</strong> {barber.translations.en.specialties}</p>
+                        <p className="text-sm mt-1"><strong>Specialties:</strong> {barber.professionalInfo.specialties}</p>
                       </div>
 
                       <div className="mt-3 flex flex-wrap gap-2" style={{ color: theme.colors.text.primary }}>
                         <div className="text-sm">
                           <strong>Working Days:</strong>{' '}
-                          {barber.workingDays.map(day => 
+                          {barber.availability.workingDays.map(day => 
                             ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][day - 1]
                           ).join(', ')}
                         </div>
                         <div className="text-sm">
-                          <strong>Hours:</strong> {barber.workingHours.start} - {barber.workingHours.end}
+                          <strong>Hours:</strong> {barber.availability.workingHours.start} - {barber.availability.workingHours.end}
                         </div>
                       </div>
                     </div>
@@ -300,10 +314,10 @@ export default function AdminDashboard() {
                   </p>
                   <div className="mt-4 flex justify-between items-center">
                     <span className="text-xl font-bold" style={{ color: theme.colors.accent.primary }}>
-                      ${service.price}
+                      ${service.basePrice}
                     </span>
                     <span className="text-sm" style={{ color: theme.colors.text.secondary }}>
-                      {service.duration}
+                      {service.baseDuration} {service.durationUnit}
                     </span>
                   </div>
                 </div>

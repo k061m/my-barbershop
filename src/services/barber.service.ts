@@ -1,6 +1,6 @@
 import { where, orderBy } from 'firebase/firestore';
 import { FirestoreService } from './firestore.service';
-import { Barber } from '../types/data.types';
+import { Barber } from '../types';
 
 class BarberService extends FirestoreService<Barber> {
   constructor() {
@@ -10,7 +10,7 @@ class BarberService extends FirestoreService<Barber> {
   async getAvailableBarbers() {
     try {
       return await this.query([
-        where('available', '==', true),
+        where('isActive', '==', true),
         orderBy('createdAt', 'desc')
       ]);
     } catch (error) {
@@ -21,7 +21,7 @@ class BarberService extends FirestoreService<Barber> {
 
   async getBarberByEmail(email: string): Promise<Barber | null> {
     try {
-      const results = await this.query([where('email', '==', email)]);
+      const results = await this.query([where('personalInfo.email', '==', email)]);
       return results[0] || null;
     } catch (error) {
       console.error('Error getting barber by email:', error);

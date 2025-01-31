@@ -1,8 +1,8 @@
 import { orderBy } from 'firebase/firestore';
 import { FirestoreService } from './firestore.service';
-import { GalleryImage } from '../types/data.types';
+import type { GalleryItem } from '../types';
 
-class GalleryService extends FirestoreService<GalleryImage> {
+class GalleryService extends FirestoreService<GalleryItem> {
   constructor() {
     super('gallery');
   }
@@ -17,11 +17,11 @@ class GalleryService extends FirestoreService<GalleryImage> {
   }
 
   // Override parent methods to remove modification abilities
-  async create(_data: Omit<GalleryImage, 'id'>): Promise<string> {
+  async create(_data: Omit<GalleryItem, 'id'>): Promise<string> {
     throw new Error('Access denied: Gallery images can only be added through the admin backend');
   }
 
-  async update(_id: string, _data: Partial<GalleryImage>): Promise<void> {
+  async update(_id: string, _data: Partial<GalleryItem>): Promise<void> {
     throw new Error('Access denied: Gallery images can only be updated through the admin backend');
   }
 

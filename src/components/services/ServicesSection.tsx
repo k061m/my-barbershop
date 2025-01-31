@@ -1,5 +1,5 @@
 import { useTheme } from '../../contexts/ThemeContext';
-import { Service } from '../../types/data.types';
+import { Service } from '../../types';
 import ServiceCard from './ServiceCard';
 
 interface ServicesSectionProps {

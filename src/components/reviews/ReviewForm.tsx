@@ -2,14 +2,15 @@ import { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { reviewService } from '../../services/review.service';
-import { Rating } from '../../types/data.types';
+import { Rating } from '../../types';
 
 interface ReviewFormProps {
   barberId: string;
+  serviceId: string;
   onSubmit?: () => void;
 }
 
-export default function ReviewForm({ barberId, onSubmit }: ReviewFormProps) {
+export default function ReviewForm({ barberId, serviceId, onSubmit }: ReviewFormProps) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,6 +26,7 @@ export default function ReviewForm({ barberId, onSubmit }: ReviewFormProps) {
       await reviewService.createReview({
         userId: currentUser.uid,
         barberId,
+        serviceId,
         rating: rating as Rating,
         comment,
         createdAt: new Date(),

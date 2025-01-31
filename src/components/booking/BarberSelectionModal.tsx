@@ -1,4 +1,4 @@
-import { Barber } from '../../types/data.types';
+import { Barber } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface BarberSelectionModalProps {
@@ -28,15 +28,15 @@ export default function BarberSelectionModal({ barbers, onSelect, onClose }: Bar
               <div className="flex items-center gap-4">
                 <img
                   src={barber.image}
-                  alt={barber.translations.en.name}
+                  alt={barber.translations.en.title}
                   className="w-16 h-16 rounded-full object-cover"
                 />
                 <div>
                   <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-                    {barber.translations.en.name}
+                    {barber.translations.en.title}
                   </p>
                   <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
-                    {barber.translations.en.specialties}
+                    {barber.translations.en.bio}
                   </p>
                 </div>
               </div>

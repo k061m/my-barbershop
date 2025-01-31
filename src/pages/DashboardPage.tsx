@@ -36,7 +36,7 @@ export default function DashboardPage() {
       .filter(a => a.status === 'confirmed')
       .reduce((total, appointment) => {
         const service = services.find(s => s.id === appointment.serviceId);
-        return total + (service?.price || 0);
+        return total + (service?.basePrice || 0);
       }, 0),
     favoriteBarber: (() => {
       const barberCounts = appointments.reduce((acc, app) => {
@@ -45,13 +45,13 @@ export default function DashboardPage() {
       }, {} as Record<string, number>);
       const mostFrequentBarberId = Object.entries(barberCounts)
         .sort(([,a], [,b]) => b - a)[0]?.[0];
-      return barbers.find(b => b.id === mostFrequentBarberId)?.translations?.en?.name || 'None yet';
+      return barbers.find(b => b.id === mostFrequentBarberId)?.translations?.en?.bio || 'None yet';
     })()
   };
 
   const getBarberName = (barberId: string) => {
     const barber = barbers.find(b => b.id === barberId);
-    return barber?.translations?.en?.name || 'Unknown Barber';
+    return barber?.personalInfo?.firstName || 'Unknown Barber';
   };
 
   const getServiceName = (serviceId: string) => {
@@ -134,7 +134,9 @@ export default function DashboardPage() {
 
     try {
       let date;
-      if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+      if (typeof timestamp === 'string') {
+        date = new Date(timestamp);
+      } else if (timestamp.toDate && typeof timestamp.toDate === 'function') {
         date = timestamp.toDate();
       } else if ('seconds' in timestamp && 'nanoseconds' in timestamp) {
         date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
@@ -172,7 +174,7 @@ export default function DashboardPage() {
       } else if (sortBy === 'price') {
         const serviceA = services.find(s => s.id === a.serviceId);
         const serviceB = services.find(s => s.id === b.serviceId);
-        return (serviceB?.price || 0) - (serviceA?.price || 0);
+        return (serviceB?.basePrice || 0) - (serviceA?.basePrice || 0);
       } else {
         return a.status.localeCompare(b.status);
       }
@@ -366,7 +368,7 @@ export default function DashboardPage() {
                             </div>
                           </td>
                           <td className="p-3">
-                            <span className="font-medium">${service?.price || 0}</span>
+                            <span className="font-medium">${service?.basePrice || 0}</span>
                           </td>
                           <td className="p-3">
                             <span className="px-2 py-1 rounded text-xs font-semibold" style={{ 
@@ -464,7 +466,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="mt-3 flex justify-between items-center">
                         <span className="font-bold" style={{ color: theme.colors.accent.primary }}>
-                          ${service?.price || 0}
+                          ${service?.basePrice || 0}
                         </span>
                         <div className="flex gap-2">
                           {appointment.status === 'pending' && (

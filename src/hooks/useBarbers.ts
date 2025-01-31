@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, where, QueryConstraint } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { Barber } from '../services/database.service';
+import { Barber } from '../types';
 
 export function useBarbers(queryConstraints: QueryConstraint[] = []) {
   const [barbers, setBarbers] = useState<Barber[]>([]);
@@ -41,7 +41,7 @@ export function useBarbers(queryConstraints: QueryConstraint[] = []) {
 
 // Helper hooks for specific queries
 export function useBarberByEmail(email: string | null) {
-  const constraints = email ? [where('email', '==', email)] : [];
+  const constraints = email ? [where('personalInfo.email', '==', email)] : [];
   return useBarbers(constraints);
 }
 

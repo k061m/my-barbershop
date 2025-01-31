@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Review } from '../../types/data.types';
+import { Review } from '../../types';
+import { timestampToDate } from '../../types';
 import ReviewCard from './ReviewCard';
 import { Card } from '../common/Card';
 
@@ -44,12 +45,9 @@ export default function ReviewsList({
 
   const sortedReviews = useMemo(() => 
     [...reviews].sort((a, b) => {
-      if (sortBy === 'date') {
-        return b.createdAt.getTime() - a.createdAt.getTime();
-      }
-      return b.rating - a.rating;
+      return timestampToDate(b.createdAt).getTime() - timestampToDate(a.createdAt).getTime();
     }),
-    [reviews, sortBy]
+    [reviews]
   );
 
   return (

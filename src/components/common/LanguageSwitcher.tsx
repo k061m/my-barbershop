@@ -1,5 +1,5 @@
 import { useTheme } from '../../contexts/ThemeContext';
-import { Language } from '../../types/data.types';
+import { Language } from '../../types';
 
 interface LanguageSwitcherProps {
   /** Currently selected language */

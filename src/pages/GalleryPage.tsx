@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { galleryService } from '../services/gallery.service';
-import { GalleryImage } from '../types/data.types';
+import type { GalleryItem } from '../types';
 
 const categories = ['All', 'Haircut', 'Styling', 'Grooming'];
 
 export default function GalleryPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
-  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [selectedImage, setSelectedImage] = useState<GalleryItem | null>(null);
+  const [images, setImages] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,7 +79,7 @@ export default function GalleryPage() {
             className="relative group cursor-pointer overflow-hidden rounded-lg shadow-lg"
           >
             <img
-              src={image.url}
+              src={image.image.url}
               alt={image.translations.en.title}
               className="w-full h-64 object-cover transform transition-transform duration-300 group-hover:scale-110"
             />
@@ -101,7 +101,7 @@ export default function GalleryPage() {
         >
           <div className="max-w-4xl w-full mx-4">
             <img
-              src={selectedImage.url}
+              src={selectedImage.image.url}
               alt={selectedImage.translations.en.title}
               className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
             />

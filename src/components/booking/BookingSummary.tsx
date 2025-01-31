@@ -1,4 +1,4 @@
-import { Barber, Service } from '../../types/data.types';
+import { Barber, Service } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface BookingSummaryProps {
@@ -27,7 +27,10 @@ export default function BookingSummary({
         <div>
           <p style={{ color: theme.colors.text.secondary }}>Barber</p>
           <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-            {barber.translations.en.name}
+            {`${barber.personalInfo.firstName} ${barber.personalInfo.lastName}`}
+          </p>
+          <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
+            {barber.translations.en.title}
           </p>
         </div>
         <div>
@@ -49,7 +52,7 @@ export default function BookingSummary({
         <div>
           <p style={{ color: theme.colors.text.secondary }}>Price</p>
           <p className="font-medium" style={{ color: theme.colors.accent.primary }}>
-            ${service.price}
+            ${service.basePrice}
           </p>
         </div>
       </div>

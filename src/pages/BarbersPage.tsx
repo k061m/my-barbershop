@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { Card } from '../components/common/Card';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBarbers } from '../hooks/useBarbers';
+import { Language } from '../types';
 
 export default function BarbersPage() {
   const navigate = useNavigate();
@@ -10,104 +10,149 @@ export default function BarbersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loading loading-spinner loading-lg"></div>
+      <div 
+        className="min-h-screen flex items-center justify-center" 
+        style={{ backgroundColor: theme.colors.background.primary }}
+      >
+        <div 
+          className="loading loading-spinner loading-lg"
+          style={{ color: theme.colors.accent.primary }}
+        />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8" style={{ color: theme.colors.text.primary }}>
-        Our Expert Barbers
-      </h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {barbers?.map(barber => (
-          <Card
-            key={barber.id}
-            image={barber.image}
-            onClick={() => navigate(`/booking?barber=${barber.id}`)}
+    <div 
+      className="min-h-screen py-12 px-4 sm:px-6 lg:px-8"
+      style={{ backgroundColor: theme.colors.background.primary }}
+    >
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 
+            className="text-4xl font-bold mb-4"
+            style={{ color: theme.colors.text.primary }}
           >
-            <div className="space-y-2">
-              <div className="flex justify-between items-start">
-                <h3 className="text-xl font-semibold" style={{ color: theme.colors.text.primary }}>
-                  {barber.translations?.en.name || barber.name}
-                </h3>
-                <div className="flex gap-2">
-                  {barber.available && (
-                    <span 
-                      className="px-2 py-1 rounded text-xs font-semibold"
-                      style={{ 
-                        backgroundColor: theme.colors.status.success,
-                        color: theme.colors.text.primary
-                      }}
-                    >
-                      Available
-                    </span>
-                  )}
-                  {barber.isPro && (
-                    <span 
-                      className="px-2 py-1 rounded text-xs font-semibold"
-                      style={{ 
-                        backgroundColor: theme.colors.accent.primary,
-                        color: theme.colors.background.primary
-                      }}
-                    >
-                      PRO
-                    </span>
-                  )}
+            Our Expert Barbers
+          </h1>
+          <p 
+            className="text-lg max-w-2xl mx-auto"
+            style={{ color: theme.colors.text.secondary }}
+          >
+            Meet our team of professional barbers dedicated to providing you with the best grooming experience.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {barbers?.map(barber => (
+            <div
+              key={barber.id}
+              className="rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:transform hover:scale-[1.02]"
+              style={{ backgroundColor: theme.colors.background.card }}
+            >
+              <div className="relative">
+                <img
+                  src={barber.image}
+                  alt={`${barber.personalInfo.firstName} ${barber.personalInfo.lastName}`}
+                  className="w-full h-64 object-cover"
+                />
+                {barber.isActive && (
+                  <div 
+                    className="absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold"
+                    style={{ 
+                      backgroundColor: theme.colors.status.success,
+                      color: theme.colors.background.primary
+                    }}
+                  >
+                    Available
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <h3 
+                    className="text-xl font-bold mb-1"
+                    style={{ color: theme.colors.text.primary }}
+                  >
+                    {`${barber.personalInfo.firstName} ${barber.personalInfo.lastName}`}
+                  </h3>
+                  <p 
+                    className="text-sm"
+                    style={{ color: theme.colors.text.secondary }}
+                  >
+                    {barber.translations.en.title}
+                  </p>
                 </div>
-              </div>
 
-              <div className="flex items-center space-x-2">
-                <span className="text-yellow-400">★</span>
-                <span style={{ color: theme.colors.text.secondary }}>
-                  {barber.rating} ({barber.reviewCount} reviews)
-                </span>
-              </div>
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className="text-lg"
+                    style={{ color: theme.colors.status.warning }}
+                  >
+                    {'★'.repeat(Math.round(barber.professionalInfo.rating))}
+                  </div>
+                  <span 
+                    className="text-sm"
+                    style={{ color: theme.colors.text.secondary }}
+                  >
+                    {barber.professionalInfo.rating.toFixed(1)}
+                  </span>
+                </div>
 
-              <div style={{ color: theme.colors.text.secondary }}>
-                {barber.translations?.en.description && (
-                  <p className="text-sm mb-2">{barber.translations.en.description}</p>
-                )}
-                {barber.experience && (
-                  <p className="text-sm">Experience: {barber.experience}</p>
-                )}
-                <p className="text-sm mt-1">
-                  Specialties: {barber.translations?.en.specialties || barber.specialties?.join(', ')}
+                <p 
+                  className="text-sm line-clamp-3"
+                  style={{ color: theme.colors.text.secondary }}
+                >
+                  {barber.translations.en.bio}
                 </p>
-              </div>
 
-              {(barber.workingDays || barber.workingHours) && (
-                <div style={{ color: theme.colors.text.secondary }}>
-                  {barber.workingDays && (
-                    <p className="text-sm">
-                      Days: {barber.workingDays.map(day => 
-                        ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][day - 1]
-                      ).join(', ')}
-                    </p>
-                  )}
-                  {barber.workingHours && (
-                    <p className="text-sm">
-                      Hours: {barber.workingHours.start} - {barber.workingHours.end}
-                    </p>
-                  )}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {barber.professionalInfo.specialties.map((specialty: string, index: number) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 rounded-full text-xs"
+                        style={{ 
+                          backgroundColor: theme.colors.accent.primary + '20',
+                          color: theme.colors.accent.primary
+                        }}
+                      >
+                        {specialty}
+                      </span>
+                    ))}
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {barber.professionalInfo.languages.map((language: Language, index: number) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 rounded-full text-xs"
+                        style={{ 
+                          backgroundColor: theme.colors.accent.secondary + '20',
+                          color: theme.colors.accent.secondary
+                        }}
+                      >
+                        {language.toUpperCase()}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              )}
 
-              <button 
-                className="w-full mt-4 py-2 rounded-md transition-colors duration-200 hover:opacity-90"
-                style={{ 
-                  backgroundColor: theme.colors.accent.primary,
-                  color: theme.colors.background.primary
-                }}
-              >
-                Book Appointment
-              </button>
+                <button
+                  onClick={() => navigate(`/booking?barber=${barber.id}`)}
+                  className="w-full py-3 rounded-lg font-medium transition-colors hover:opacity-90 mt-4"
+                  style={{ 
+                    backgroundColor: theme.colors.accent.primary,
+                    color: theme.colors.background.primary
+                  }}
+                >
+                  Book Appointment
+                </button>
+              </div>
             </div>
-          </Card>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

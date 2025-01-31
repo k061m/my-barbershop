@@ -1,9 +1,10 @@
-import { useEffect, useState, useMemo, memo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useBarbers } from '../hooks/useBarbers';
 import { useServices } from '../hooks/useServices';
+import { Barber, Service } from '../types';
 
 interface Content {
   homePage: {
@@ -29,57 +30,71 @@ interface Content {
 }
 
 interface SearchResults {
-  barbers: any[];
-  services: any[];
+  barbers: Barber[];
+  services: Service[];
 }
 
-// Memoized Button Component
-const StyledButton = memo(({ 
-  onClick, 
-  style, 
-  children 
-}: { 
-  onClick: () => void; 
-  style: React.CSSProperties; 
-  children: React.ReactNode;
-}) => (
-  <button 
-    onClick={onClick}
-    className="px-8 py-3 rounded-lg transition-opacity hover:opacity-90"
-    style={style}
-  >
-    {children}
-  </button>
-));
+interface Review {
+  id: number;
+  name: string;
+  rating: number;
+  comment: string;
+  date: string;
+  image: string;
+}
 
-// Memoized Section Title Component
-const SectionTitle = memo(({ 
-  title, 
-  onViewAll,
-  theme 
-}: { 
-  title: string; 
-  onViewAll?: () => void;
-  theme: any;
-}) => (
-  <div className="flex justify-between items-center mb-6">
-    <h2 
-      className="text-2xl font-bold"
-      style={{ color: theme.colors.text.primary }}
+interface StyledButtonProps {
+  onClick: () => void;
+  variant?: 'primary' | 'secondary';
+  children: React.ReactNode;
+}
+
+const StyledButton = ({ onClick, variant = 'primary', children }: StyledButtonProps) => {
+  const { theme } = useTheme();
+  
+  return (
+    <button 
+      onClick={onClick}
+      className="px-8 py-3 rounded-lg font-medium transition-all duration-300 hover:opacity-90 hover:transform hover:scale-[1.02]"
+      style={{ 
+        backgroundColor: variant === 'primary' ? theme.colors.accent.primary : theme.colors.background.card,
+        color: variant === 'primary' ? theme.colors.background.primary : theme.colors.text.primary,
+        boxShadow: theme.shadows.md
+      }}
     >
-      {title}
-    </h2>
-    {onViewAll && (
-      <button 
-        onClick={onViewAll}
-        className="text-sm hover:opacity-80 transition-opacity"
-        style={{ color: theme.colors.accent.primary }}
+      {children}
+    </button>
+  );
+};
+
+interface SectionTitleProps {
+  title: string;
+  onViewAll?: () => void;
+}
+
+const SectionTitle = ({ title, onViewAll }: SectionTitleProps) => {
+  const { theme } = useTheme();
+  
+  return (
+    <div className="flex justify-between items-center mb-6">
+      <h2 
+        className="text-2xl font-bold"
+        style={{ color: theme.colors.text.primary }}
       >
-        View All →
-      </button>
-    )}
-  </div>
-));
+        {title}
+      </h2>
+      {onViewAll && (
+        <button 
+          onClick={onViewAll}
+          className="text-sm font-medium transition-colors hover:opacity-80"
+          style={{ color: theme.colors.accent.primary }}
+        >
+          View All →
+        </button>
+      )}
+    </div>
+  );
+};
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -90,7 +105,10 @@ export default function HomePage() {
   const [searchInputValue, setSearchInputValue] = useState('');
   const [content, setContent] = useState<Content | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [searchResults, setSearchResults] = useState<SearchResults>({ barbers: [], services: [] });
+  const [searchResults, setSearchResults] = useState<SearchResults>({
+    barbers: [] as Barber[],
+    services: [] as Service[]
+  });
 
   useEffect(() => {
     fetch('/content.json')
@@ -107,32 +125,28 @@ export default function HomePage() {
       });
   }, []);
 
-  // Real-time search effect
   useEffect(() => {
-    const query = searchInputValue.trim();
+    const query = searchInputValue.trim().toLowerCase();
     
     if (query === '') {
       setSearchResults({ barbers: [], services: [] });
       return;
     }
 
-    const lowerCaseQuery = query.toLowerCase();
-
     const filteredBarbers = barbers?.filter(barber => 
-      barber.translations?.en.name.toLowerCase().includes(lowerCaseQuery) ||
-      (barber.translations?.en.specialties?.toLowerCase().includes(lowerCaseQuery) ?? false)
+      `${barber.personalInfo.firstName} ${barber.personalInfo.lastName}`.toLowerCase().includes(query) ||
+      barber.professionalInfo.specialties.some(specialty => specialty.toLowerCase().includes(query))
     ) || [];
 
     const filteredServices = services?.filter(service => 
-      service.translations?.en.name.toLowerCase().includes(lowerCaseQuery) ||
-      service.translations?.en.description?.toLowerCase().includes(lowerCaseQuery)
+      service.translations.en.name.toLowerCase().includes(query) ||
+      service.translations.en.description.toLowerCase().includes(query)
     ) || [];
 
     setSearchResults({ barbers: filteredBarbers, services: filteredServices });
   }, [searchInputValue, barbers, services]);
 
-  // Memoized reviews data
-  const reviews = useMemo(() => [
+  const reviews: Review[] = useMemo(() => [
     {
       id: 1,
       name: "John Doe",
@@ -151,28 +165,46 @@ export default function HomePage() {
     }
   ], []);
 
-  // Loading state
   if (loadingBarbers || loadingServices || !content) {
     return (
-      <div className="min-h-screen flex items-center justify-center" 
-        style={{ backgroundColor: theme.colors.background.primary }}>
-        <div className="loading loading-spinner loading-lg" 
-          style={{ color: theme.colors.accent.primary }}></div>
+      <div 
+        className="min-h-screen flex items-center justify-center" 
+        style={{ backgroundColor: theme.colors.background.primary }}
+      >
+        <div 
+          className="loading loading-spinner loading-lg"
+          style={{ color: theme.colors.accent.primary }}
+        />
       </div>
     );
   }
 
-  // Error state
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center" 
-        style={{ backgroundColor: theme.colors.background.primary }}>
-        <div className="text-center p-4" style={{ color: theme.colors.status.error }}>
-          {error}
+      <div 
+        className="min-h-screen flex items-center justify-center" 
+        style={{ backgroundColor: theme.colors.background.primary }}
+      >
+        <div 
+          className="text-center p-8 rounded-lg"
+          style={{ 
+            backgroundColor: theme.colors.background.card,
+            boxShadow: theme.shadows.lg
+          }}
+        >
+          <div 
+            className="text-xl mb-4"
+            style={{ color: theme.colors.status.error }}
+          >
+            {error}
+          </div>
           <button
             onClick={() => window.location.reload()}
-            className="block mt-4 underline"
-            style={{ color: theme.colors.accent.primary }}
+            className="px-6 py-2 rounded-lg font-medium transition-colors hover:opacity-90"
+            style={{ 
+              backgroundColor: theme.colors.accent.primary,
+              color: theme.colors.background.primary
+            }}
           >
             Retry
           </button>
@@ -182,10 +214,19 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen relative z-0" style={{ backgroundColor: theme.colors.background.primary }}>      
+    <div 
+      className="min-h-screen"
+      style={{ backgroundColor: theme.colors.background.primary }}
+    >      
       {/* Hero Section */}
-      <section className="relative h-[60vh] flex items-center justify-center text-center px-4 z-0">
-        <div className="relative space-y-6 max-w-4xl w-full">
+      <section 
+        className="relative min-h-[60vh] flex items-center justify-center text-center px-4"
+        style={{ 
+          backgroundColor: theme.colors.background.secondary,
+          boxShadow: theme.shadows.lg
+        }}
+      >
+        <div className="relative space-y-8 max-w-4xl w-full py-16">
           <img 
             src="/images/stock/logo.png" 
             alt="Professional Barber Services Logo" 
@@ -204,158 +245,91 @@ export default function HomePage() {
             {content.homePage.subtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <StyledButton 
-              onClick={() => navigate('/booking')}
-              style={{ 
-                backgroundColor: theme.colors.accent.primary,
-                color: theme.colors.background.primary
-              }}
-            >
+            <StyledButton onClick={() => navigate('/booking')} variant="primary">
               {content.homePage.buttons.bookNow}
             </StyledButton>
-            <StyledButton 
-              onClick={() => navigate('/services')}
-              style={{ 
-                backgroundColor: theme.colors.background.card,
-                color: theme.colors.text.primary
-              }}
-            >
+            <StyledButton onClick={() => navigate('/services')} variant="secondary">
               {content.homePage.buttons.viewServices}
             </StyledButton>
           </div>
         </div>
       </section>
 
-      <main className="container mx-auto px-4 py-8 space-y-8 relative z-0">
+      <main className="container mx-auto px-4 py-12 space-y-16">
         {/* Featured Barbers */}
         <section>
           <SectionTitle 
             title={content.homePage.sections.barbers.title}
             onViewAll={() => navigate('/barbers')}
-            theme={theme}
           />
           <div className="relative group">
             <div className="overflow-x-auto hide-scrollbar">
-              <div className="flex gap-4 pb-4" style={{ scrollBehavior: 'smooth' }}>
+              <div className="flex gap-6 pb-4" style={{ scrollBehavior: 'smooth' }}>
                 {barbers?.slice(0, 8).map(barber => (
                   <div 
                     key={barber.id}
-                    className="flex-none w-[200px]"
+                    className="flex-none w-[280px]"
                   >
                     <div 
                       onClick={() => navigate(`/booking?barber=${barber.id}`)}
-                      className="bg-opacity-40 rounded-lg overflow-hidden cursor-pointer hover:transform hover:scale-105 transition-all duration-300"
-                      style={{ backgroundColor: theme.colors.background.card }}
+                      className="rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:transform hover:scale-[1.02]"
+                      style={{ 
+                        backgroundColor: theme.colors.background.card,
+                        boxShadow: theme.shadows.md
+                      }}
                     >
-                      <div className="aspect-square">
+                      <div className="aspect-square relative">
                         <img 
                           src={barber.image} 
-                          alt={barber.translations?.en.name || barber.name}
+                          alt={`${barber.personalInfo.firstName} ${barber.personalInfo.lastName}`}
                           className="w-full h-full object-cover"
                         />
+                        {barber.isActive && (
+                          <div 
+                            className="absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold"
+                            style={{ 
+                              backgroundColor: theme.colors.status.success,
+                              color: theme.colors.background.primary
+                            }}
+                          >
+                            Available
+                          </div>
+                        )}
                       </div>
-                      <div className="p-3 space-y-1">
+                      <div className="p-4 space-y-2">
                         <h3 
-                          className="font-semibold text-sm truncate"
+                          className="font-bold text-lg truncate"
                           style={{ color: theme.colors.text.primary }}
                         >
-                          {barber.translations?.en.name || barber.name}
+                          {`${barber.personalInfo.firstName} ${barber.personalInfo.lastName}`}
                         </h3>
-                        <p 
-                          className="text-xs truncate"
-                          style={{ color: theme.colors.text.secondary }}
-                        >
-                          {barber.translations?.en.specialties || barber.specialties?.join(', ')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Scroll Buttons */}
-            <button
-              onClick={() => {
-                const container = document.querySelector('.overflow-x-auto');
-                if (container) container.scrollLeft -= 200;
-              }}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ color: theme.colors.text.primary }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={() => {
-                const container = document.querySelector('.overflow-x-auto');
-                if (container) container.scrollLeft += 200;
-              }}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ color: theme.colors.text.primary }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        </section>
-
-        {/* Add this CSS to hide scrollbar */}
-        <style>
-          {`
-            .hide-scrollbar {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
-            }
-            .hide-scrollbar::-webkit-scrollbar {
-              display: none;
-            }
-          `}
-        </style>
-
-        {/* Featured Services */}
-        <section>
-          <SectionTitle 
-            title={content.homePage.sections.services.title}
-            onViewAll={() => navigate('/services')}
-            theme={theme}
-          />
-          <div className="relative group">
-            <div className="overflow-x-auto hide-scrollbar">
-              <div className="flex gap-4 pb-4" style={{ scrollBehavior: 'smooth' }}>
-                {services?.slice(0, 8).map(service => (
-                  <div 
-                    key={service.id}
-                    className="flex-none w-[200px]"
-                  >
-                    <div 
-                      onClick={() => navigate(`/booking?service=${service.id}`)}
-                      className="bg-opacity-40 rounded-lg overflow-hidden cursor-pointer hover:transform hover:scale-105 transition-all duration-300"
-                      style={{ backgroundColor: theme.colors.background.card }}
-                    >
-                      <div className="aspect-square">
-                        <img 
-                          src={service.image} 
-                          alt={service.translations?.en.name || service.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="p-3 space-y-1">
-                        <h3 
-                          className="font-semibold text-sm truncate"
-                          style={{ color: theme.colors.text.primary }}
-                        >
-                          {service.translations?.en.name || service.name}
-                        </h3>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs" style={{ color: theme.colors.accent.primary }}>
-                            ${service.price}
+                        <div className="flex items-center gap-2">
+                          <span 
+                            className="text-lg"
+                            style={{ color: theme.colors.status.warning }}
+                          >
+                            {'★'.repeat(Math.round(barber.professionalInfo.rating))}
                           </span>
-                          <span className="text-xs" style={{ color: theme.colors.text.secondary }}>
-                            {service.translations?.en.duration || service.duration}
+                          <span 
+                            className="text-sm"
+                            style={{ color: theme.colors.text.secondary }}
+                          >
+                            {barber.professionalInfo.rating.toFixed(1)}
                           </span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {barber.professionalInfo.specialties.slice(0, 3).map((specialty, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 rounded-full text-xs"
+                              style={{ 
+                                backgroundColor: theme.colors.accent.primary + '20',
+                                color: theme.colors.accent.primary
+                              }}
+                            >
+                              {specialty}
+                            </span>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -363,32 +337,63 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
-            
-            {/* Scroll Buttons */}
-            <button
-              onClick={() => {
-                const container = document.querySelector('section:has(h2:contains("Services")) .overflow-x-auto');
-                if (container) container.scrollLeft -= 200;
-              }}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ color: theme.colors.text.primary }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={() => {
-                const container = document.querySelector('section:has(h2:contains("Services")) .overflow-x-auto');
-                if (container) container.scrollLeft += 200;
-              }}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ color: theme.colors.text.primary }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+          </div>
+        </section>
+
+        {/* Featured Services */}
+        <section>
+          <SectionTitle 
+            title={content.homePage.sections.services.title}
+            onViewAll={() => navigate('/services')}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {services?.slice(0, 8).map(service => (
+              <div 
+                key={service.id}
+                onClick={() => navigate(`/booking?service=${service.id}`)}
+                className="rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:transform hover:scale-[1.02]"
+                style={{ 
+                  backgroundColor: theme.colors.background.card,
+                  boxShadow: theme.shadows.md
+                }}
+              >
+                <div className="aspect-video">
+                  <img 
+                    src={service.image} 
+                    alt={service.translations.en.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-4 space-y-2">
+                  <h3 
+                    className="font-bold text-lg"
+                    style={{ color: theme.colors.text.primary }}
+                  >
+                    {service.translations.en.name}
+                  </h3>
+                  <p 
+                    className="text-sm line-clamp-2"
+                    style={{ color: theme.colors.text.secondary }}
+                  >
+                    {service.translations.en.description}
+                  </p>
+                  <div className="flex justify-between items-center pt-2">
+                    <span 
+                      className="font-bold"
+                      style={{ color: theme.colors.accent.primary }}
+                    >
+                      ${service.basePrice}
+                    </span>
+                    <span 
+                      className="text-sm"
+                      style={{ color: theme.colors.text.secondary }}
+                    >
+                      {service.baseDuration} {service.durationUnit}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -397,114 +402,91 @@ export default function HomePage() {
           <SectionTitle 
             title={content.homePage.sections.reviews.title}
             onViewAll={() => navigate('/reviews')}
-            theme={theme}
           />
-          <div className="relative group">
-            <div className="overflow-x-auto hide-scrollbar">
-              <div className="flex gap-4 pb-4" style={{ scrollBehavior: 'smooth' }}>
-                {reviews.map(review => (
-                  <div 
-                    key={review.id}
-                    className="flex-none w-[300px]"
-                  >
-                    <div 
-                      className="bg-opacity-40 rounded-lg overflow-hidden cursor-pointer hover:transform hover:scale-105 transition-all duration-300 h-full"
-                      style={{ backgroundColor: theme.colors.background.card }}
-                    >
-                      <div className="p-4 space-y-3">
-                        <div className="flex items-center gap-3">
-                          <img 
-                            src={review.image} 
-                            alt={review.name}
-                            className="w-12 h-12 rounded-full object-cover"
-                          />
-                          <div>
-                            <h3 
-                              className="font-semibold text-sm"
-                              style={{ color: theme.colors.text.primary }}
-                            >
-                              {review.name}
-                            </h3>
-                            <div className="flex items-center gap-1">
-                              <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
-                              <span className="text-xs" style={{ color: theme.colors.text.secondary }}>
-                                {review.rating}/5
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <p 
-                          className="text-sm line-clamp-3"
-                          style={{ color: theme.colors.text.primary }}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {reviews.map(review => (
+              <div 
+                key={review.id}
+                className="rounded-xl overflow-hidden"
+                style={{ 
+                  backgroundColor: theme.colors.background.card,
+                  boxShadow: theme.shadows.md
+                }}
+              >
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center gap-4">
+                    <img 
+                      src={review.image} 
+                      alt={review.name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 
+                        className="font-bold"
+                        style={{ color: theme.colors.text.primary }}
+                      >
+                        {review.name}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <span 
+                          className="text-lg"
+                          style={{ color: theme.colors.status.warning }}
                         >
-                          {review.comment}
-                        </p>
-                        <div className="flex justify-end">
-                          <span className="text-xs" style={{ color: theme.colors.text.secondary }}>
-                            {new Date(review.date).toLocaleDateString()}
-                          </span>
-                        </div>
+                          {'★'.repeat(review.rating)}
+                        </span>
+                        <span 
+                          className="text-sm"
+                          style={{ color: theme.colors.text.secondary }}
+                        >
+                          {review.rating}/5
+                        </span>
                       </div>
                     </div>
                   </div>
-                ))}
+                  <p 
+                    className="text-sm"
+                    style={{ color: theme.colors.text.primary }}
+                  >
+                    {review.comment}
+                  </p>
+                  <div className="flex justify-end">
+                    <span 
+                      className="text-sm"
+                      style={{ color: theme.colors.text.secondary }}
+                    >
+                      {new Date(review.date).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            {/* Scroll Buttons */}
-            <button
-              onClick={() => {
-                const container = document.querySelector('section:has(h2:contains("Reviews")) .overflow-x-auto');
-                if (container) container.scrollLeft -= 300;
-              }}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ color: theme.colors.text.primary }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={() => {
-                const container = document.querySelector('section:has(h2:contains("Reviews")) .overflow-x-auto');
-                if (container) container.scrollLeft += 300;
-              }}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ color: theme.colors.text.primary }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            ))}
           </div>
         </section>
 
         {/* Search Section */}
         <section>
-          <SectionTitle 
-            title="Search"
-            theme={theme}
-          />
+          <SectionTitle title="Search" />
           <div className="max-w-2xl mx-auto">
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-4 mb-8">
               <input
                 type="text"
                 placeholder="Search barbers or services..."
                 value={searchInputValue}
                 onChange={(e) => setSearchInputValue(e.target.value)}
-                className="flex-1 px-4 py-2 rounded-lg"
+                className="flex-1 px-4 py-3 rounded-lg transition-all duration-300"
                 style={{ 
                   backgroundColor: theme.colors.background.card,
                   color: theme.colors.text.primary,
-                  border: `1px solid ${theme.colors.text.secondary}`
+                  boxShadow: theme.shadows.sm
                 }}
               />
               <button
                 onClick={() => setSearchInputValue('')}
-                className="px-4 py-2 rounded-lg transition-opacity hover:opacity-90"
+                className="px-6 py-2 rounded-lg font-medium transition-all duration-300 hover:opacity-90"
                 style={{ 
                   backgroundColor: theme.colors.accent.primary,
-                  color: theme.colors.background.primary
+                  color: theme.colors.background.primary,
+                  boxShadow: theme.shadows.sm
                 }}
               >
                 Clear
@@ -512,42 +494,55 @@ export default function HomePage() {
             </div>
 
             {searchInputValue.trim() !== '' && (
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {searchResults.barbers.length === 0 && searchResults.services.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p style={{ color: theme.colors.text.secondary }}>
-                      No matches found for "{searchInputValue}"
-                    </p>
+                  <div 
+                    className="text-center py-12 rounded-lg"
+                    style={{ 
+                      backgroundColor: theme.colors.background.card,
+                      color: theme.colors.text.secondary
+                    }}
+                  >
+                    No matches found for "{searchInputValue}"
                   </div>
                 ) : (
                   <>
                     {searchResults.barbers.length > 0 && (
                       <div>
                         <h3 
-                          className="text-xl font-semibold mb-4"
-                          style={{ color: theme.colors.text.secondary }}
+                          className="text-xl font-bold mb-4"
+                          style={{ color: theme.colors.text.primary }}
                         >
                           Barbers
                         </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {searchResults.barbers.map(barber => (
                             <div 
                               key={barber.id}
                               onClick={() => navigate(`/booking?barber=${barber.id}`)}
-                              className="bg-opacity-40 rounded-lg overflow-hidden cursor-pointer hover:transform hover:scale-105 transition-all duration-300 flex items-center gap-3 p-3"
-                              style={{ backgroundColor: theme.colors.background.card }}
+                              className="flex items-center gap-4 p-4 rounded-lg cursor-pointer transition-all duration-300 hover:transform hover:scale-[1.02]"
+                              style={{ 
+                                backgroundColor: theme.colors.background.card,
+                                boxShadow: theme.shadows.sm
+                              }}
                             >
                               <img 
                                 src={barber.image} 
-                                alt={barber.translations?.en.name || barber.name}
-                                className="w-12 h-12 rounded-full object-cover"
+                                alt={`${barber.personalInfo.firstName} ${barber.personalInfo.lastName}`}
+                                className="w-16 h-16 rounded-full object-cover"
                               />
                               <div>
-                                <h4 className="font-semibold" style={{ color: theme.colors.text.primary }}>
-                                  {barber.translations?.en.name || barber.name}
+                                <h4 
+                                  className="font-bold"
+                                  style={{ color: theme.colors.text.primary }}
+                                >
+                                  {`${barber.personalInfo.firstName} ${barber.personalInfo.lastName}`}
                                 </h4>
-                                <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
-                                  {barber.translations?.en.specialties || barber.specialties?.join(', ')}
+                                <p 
+                                  className="text-sm"
+                                  style={{ color: theme.colors.text.secondary }}
+                                >
+                                  {barber.translations.en.title}
                                 </p>
                               </div>
                             </div>
@@ -559,34 +554,46 @@ export default function HomePage() {
                     {searchResults.services.length > 0 && (
                       <div>
                         <h3 
-                          className="text-xl font-semibold mb-4"
-                          style={{ color: theme.colors.text.secondary }}
+                          className="text-xl font-bold mb-4"
+                          style={{ color: theme.colors.text.primary }}
                         >
                           Services
                         </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {searchResults.services.map(service => (
                             <div 
                               key={service.id}
                               onClick={() => navigate(`/booking?service=${service.id}`)}
-                              className="bg-opacity-40 rounded-lg overflow-hidden cursor-pointer hover:transform hover:scale-105 transition-all duration-300 flex items-center gap-3 p-3"
-                              style={{ backgroundColor: theme.colors.background.card }}
+                              className="flex items-center gap-4 p-4 rounded-lg cursor-pointer transition-all duration-300 hover:transform hover:scale-[1.02]"
+                              style={{ 
+                                backgroundColor: theme.colors.background.card,
+                                boxShadow: theme.shadows.sm
+                              }}
                             >
                               <img 
                                 src={service.image} 
-                                alt={service.translations?.en.name || service.name}
-                                className="w-12 h-12 rounded-lg object-cover"
+                                alt={service.translations.en.name}
+                                className="w-16 h-16 rounded-lg object-cover"
                               />
                               <div className="flex-1">
-                                <h4 className="font-semibold" style={{ color: theme.colors.text.primary }}>
-                                  {service.translations?.en.name || service.name}
+                                <h4 
+                                  className="font-bold"
+                                  style={{ color: theme.colors.text.primary }}
+                                >
+                                  {service.translations.en.name}
                                 </h4>
                                 <div className="flex justify-between items-center">
-                                  <span style={{ color: theme.colors.accent.primary }}>
-                                    ${service.price}
+                                  <span 
+                                    className="font-medium"
+                                    style={{ color: theme.colors.accent.primary }}
+                                  >
+                                    ${service.basePrice}
                                   </span>
-                                  <span className="text-sm" style={{ color: theme.colors.text.secondary }}>
-                                    {service.translations?.en.duration || service.duration}
+                                  <span 
+                                    className="text-sm"
+                                    style={{ color: theme.colors.text.secondary }}
+                                  >
+                                    {service.baseDuration} {service.durationUnit}
                                   </span>
                                 </div>
                               </div>
@@ -605,50 +612,39 @@ export default function HomePage() {
         {/* Navigation Buttons */}
         <section className="flex flex-wrap justify-center gap-4">
           {!currentUser ? (
-            <StyledButton 
-              onClick={() => navigate('/login')}
-              style={{ 
-                backgroundColor: theme.colors.accent.primary,
-                color: theme.colors.background.primary
-              }}
-            >
+            <StyledButton onClick={() => navigate('/login')} variant="primary">
               {content.homePage.navigation.login}
             </StyledButton>
           ) : (
             <>
-              <StyledButton 
-                onClick={() => navigate('/dashboard')}
-                style={{ 
-                  backgroundColor: theme.colors.background.card,
-                  color: theme.colors.text.primary
-                }}
-              >
+              <StyledButton onClick={() => navigate('/dashboard')} variant="secondary">
                 {content.homePage.navigation.dashboard}
               </StyledButton>
               {currentUser.email === 'admin@admin.admin' && (
-                <StyledButton 
-                  onClick={() => navigate('/admin')}
-                  style={{ 
-                    backgroundColor: theme.colors.accent.secondary,
-                    color: theme.colors.text.primary
-                  }}
-                >
+                <StyledButton onClick={() => navigate('/admin')} variant="secondary">
                   {content.homePage.navigation.adminPanel}
                 </StyledButton>
               )}
             </>
           )}
-          <StyledButton 
-            onClick={() => navigate('/about')}
-            style={{ 
-              backgroundColor: theme.colors.background.card,
-              color: theme.colors.text.primary
-            }}
-          >
+          <StyledButton onClick={() => navigate('/about')} variant="secondary">
             {content.homePage.navigation.aboutUs}
           </StyledButton>
         </section>
       </main>
+
+      {/* Add this CSS to hide scrollbar */}
+      <style>
+        {`
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
     </div>
   );
 } 

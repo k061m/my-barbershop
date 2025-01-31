@@ -1,5 +1,5 @@
 import { useTheme } from '../../contexts/ThemeContext';
-import { Review } from '../../types/data.types';
+import { Review } from '../../types';
 import ReviewsList from './ReviewsList';
 
 interface ReviewsSectionProps {

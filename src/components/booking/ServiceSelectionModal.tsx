@@ -1,4 +1,4 @@
-import { Service } from '../../types/data.types';
+import { Service } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface ServiceSelectionModalProps {
@@ -36,10 +36,10 @@ export default function ServiceSelectionModal({ services, onSelect, onClose }: S
                     {service.translations.en.name}
                   </p>
                   <p className="text-sm" style={{ color: theme.colors.accent.primary }}>
-                    ${service.price}
+                    ${service.basePrice}
                   </p>
                   <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
-                    {service.translations.en.duration}
+                    {service.baseDuration} {service.durationUnit}
                   </p>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { useTheme } from '../../contexts/ThemeContext';
-import { Service } from '../../types/data.types';
+import { Service } from '../../types';
 
 interface ServiceCardProps {
   service: Service;
@@ -28,10 +28,10 @@ export default function ServiceCard({ service, onClick }: ServiceCardProps) {
       </p>
       <div className="flex justify-between items-center">
         <span className="font-bold" style={{ color: theme.colors.accent.primary }}>
-          ${service.price}
+          ${service.basePrice}
         </span>
         <span className="text-sm" style={{ color: theme.colors.text.secondary }}>
-          {service.duration} min
+          {service.baseDuration} {service.durationUnit}
         </span>
       </div>
     </div>

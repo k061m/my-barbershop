@@ -24,9 +24,9 @@ export default function ServicesPage() {
             <div className="space-y-2">
               <div className="flex justify-between items-start">
                 <h3 className="text-xl font-semibold" style={{ color: theme.colors.text.primary }}>
-                  {service.name}
+                  {service.translations.en.name}
                 </h3>
-                {service.popular && (
+                {service.isPopular && (
                   <span 
                     className="px-2 py-1 rounded text-xs font-semibold"
                     style={{ 
@@ -44,10 +44,10 @@ export default function ServicesPage() {
                   className="text-lg font-semibold"
                   style={{ color: theme.colors.accent.primary }}
                 >
-                  ${service.price}
+                  ${service.basePrice}
                 </span>
                 <span style={{ color: theme.colors.text.secondary }}>
-                  {service.duration}
+                  {service.baseDuration} {service.durationUnit}
                 </span>
               </div>
 
@@ -55,7 +55,7 @@ export default function ServicesPage() {
                 className="text-sm"
                 style={{ color: theme.colors.text.secondary }}
               >
-                {service.description}
+                {service.translations.en.description}
               </p>
 
               <button 

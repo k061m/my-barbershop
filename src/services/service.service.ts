@@ -1,6 +1,6 @@
-import { orderBy } from 'firebase/firestore';
+import { orderBy, where } from 'firebase/firestore';
 import { FirestoreService } from './firestore.service';
-import { Service } from '../types/data.types';
+import { Service } from '../types';
 
 class ServiceService extends FirestoreService<Service> {
   constructor() {
@@ -9,7 +9,10 @@ class ServiceService extends FirestoreService<Service> {
 
   async getActiveServices() {
     try {
-      return await this.query([orderBy('createdAt', 'desc')]);
+      return await this.query([
+        where('available', '==', true),
+        orderBy('createdAt', 'desc')
+      ]);
     } catch (error) {
       console.error('Error getting active services:', error);
       throw new Error('Failed to fetch services. Please try again later.');
