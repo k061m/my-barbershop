@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Service } from '../../types';
 import ServiceDetailsModal from './ServiceDetailsModal';
-import { useNavigate } from 'react-router-dom';
 import Card from '../common/Card';
-import Button from '../common/Button';
+import ServiceBookButton from './ServiceBookButton';
 
 interface ServiceCardProps {
   service: Service;
@@ -13,15 +12,9 @@ interface ServiceCardProps {
 export default function ServiceCard({ service }: ServiceCardProps) {
   const { currentLanguage } = useLanguage();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const navigate = useNavigate();
 
-  const handleImageOrNameClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCardClick = () => {
     setIsModalOpen(true);
-  };
-
-  const handleBookNow = () => {
-    navigate(`/booking?service=${service.id}`);
   };
 
   const header = (
@@ -29,8 +22,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
       <img 
         src={service.image} 
         alt={service.name[currentLanguage]}
-        className="w-full h-48 object-cover cursor-pointer"
-        onClick={handleImageOrNameClick}
+        className="w-full h-48 object-cover"
       />
       {service.isPopular && (
         <span className="absolute top-2 right-2 px-2 py-1 rounded text-xs font-semibold bg-accent-primary text-background-primary">
@@ -41,13 +33,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
   );
 
   const footer = (
-    <Button
-      variant="primary"
-      fullWidth
-      onClick={handleBookNow}
-    >
-      Book Now
-    </Button>
+    <ServiceBookButton serviceId={service.id} />
   );
 
   return (
@@ -56,12 +42,12 @@ export default function ServiceCard({ service }: ServiceCardProps) {
         header={header}
         footer={footer}
         hover
+        onClick={handleCardClick}
       >
         <div className="space-y-4">
           <div>
             <h3 
-              className="text-lg font-semibold cursor-pointer hover:opacity-80 text-text-primary"
-              onClick={handleImageOrNameClick}
+              className="text-lg font-semibold text-text-primary"
             >
               {service.name[currentLanguage]}
             </h3>

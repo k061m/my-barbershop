@@ -4,6 +4,7 @@ import { Barber } from '../../types';
 import StarRating from '../common/StarRating';
 import { useServices } from '../../hooks/useServices';
 import { motion, AnimatePresence } from 'framer-motion';
+import BarberBookButton from './BarberBookButton';
 
 interface BarberDetailsModalProps {
   barber: Barber;
@@ -188,19 +189,11 @@ export default function BarberDetailsModal({ barber, onClose, isOpen }: BarberDe
 
               {/* Book Now Button */}
               <div className="flex justify-center pt-4">
-                <button
-                  onClick={() => {
-                    onClose();
-                    // Add navigation to booking page
-                  }}
-                  className="px-8 py-3 rounded-lg font-medium text-lg transition-colors hover:opacity-90"
-                  style={{ 
-                    backgroundColor: theme.colors.accent.primary,
-                    color: theme.colors.background.primary
-                  }}
-                >
-                  Book Appointment
-                </button>
+                <BarberBookButton 
+                  barberId={barber.id} 
+                  fullWidth={false} 
+                  className="px-8 py-3 text-lg"
+                />
               </div>
             </div>
           </motion.div>

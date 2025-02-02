@@ -2,6 +2,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Service } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import ServiceBookButton from './ServiceBookButton';
 
 interface ServiceDetailsModalProps {
   service: Service;
@@ -154,19 +155,11 @@ export default function ServiceDetailsModal({ service, onClose, isOpen }: Servic
 
               {/* Book Now Button */}
               <div className="flex justify-center pt-4">
-                <button
-                  onClick={() => {
-                    onClose();
-                    // Add navigation to booking page with service pre-selected
-                  }}
-                  className="px-8 py-3 rounded-lg font-medium text-lg transition-colors hover:opacity-90"
-                  style={{ 
-                    backgroundColor: theme.colors.accent.primary,
-                    color: theme.colors.background.primary
-                  }}
-                >
-                  Book This Service
-                </button>
+                <ServiceBookButton 
+                  serviceId={service.id} 
+                  fullWidth={false} 
+                  className="px-8 py-3 text-lg"
+                />
               </div>
             </div>
           </motion.div>

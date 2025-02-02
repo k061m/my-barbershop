@@ -7,6 +7,7 @@ import { useServices } from '../hooks/useServices';
 import { useBranches } from '../hooks/useBranches';
 import ServiceCard from '../components/servicesPage/ServiceCard';
 import BarberCard from '../components/barbers/BarberCard';
+import BranchCard from '../components/branchesPage/BranchCard';
 import { componentStyles } from '../config/theme';
 
 interface Content {
@@ -249,75 +250,15 @@ export default function HomePage() {
           <div className="relative group">
             <div className="overflow-x-auto hide-scrollbar">
               <div className="flex gap-6 pb-4" style={{ scrollBehavior: 'smooth' }}>
-                {branches?.map(branch => (
+                {branches?.slice(0, 8).map(branch => (
                   <div 
                     key={branch.id}
                     className="flex-none w-[400px]"
                   >
-                    <div 
-                      className="rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:-translate-y-1"
-                      style={{ backgroundColor: theme.colors.background.card }}
-                    >
-                      <div className="relative h-48">
-                        <img
-                          src={branch.image}
-                          alt={branch.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div 
-                          className="absolute bottom-2 right-2 px-3 py-1 rounded-full flex items-center gap-1"
-                          style={{ backgroundColor: theme.colors.background.card }}
-                        >
-                          <span className="text-yellow-400">★</span>
-                          <span style={{ color: theme.colors.text.primary }}>{branch.rating}</span>
-                          <span style={{ color: theme.colors.text.secondary }}>({branch.reviews})</span>
-                        </div>
-                      </div>
-                      <div className="p-6">
-                        <h3 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
-                          {branch.name}
-                        </h3>
-                        <div className="space-y-3 mb-4" style={{ color: theme.colors.text.secondary }}>
-                          <p className="flex items-center gap-2">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span className="line-clamp-1">
-                              {branch.address.street}, {branch.address.city}
-                            </span>
-                          </p>
-                          <p className="flex items-center gap-2">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>
-                              {`${branch.workingHours.monday.open} - ${branch.workingHours.monday.close}`}
-                            </span>
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {branch.facilities.slice(0, 3).map((facility, index) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 rounded-full text-xs"
-                              style={{
-                                backgroundColor: theme.colors.background.hover,
-                                color: theme.colors.text.secondary
-                              }}
-                            >
-                              {facility}
-                            </span>
-                          ))}
-                        </div>
-                        <button
-                          onClick={() => navigate(`/booking?branch=${branch.id}`)}
-                          className={`w-full ${componentStyles.button.base} ${componentStyles.button.primary}`}
-                        >
-                          Book at this Location
-                        </button>
-                      </div>
-                    </div>
+                    <BranchCard
+                      branch={branch}
+                      showActions={true}
+                    />
                   </div>
                 ))}
               </div>
