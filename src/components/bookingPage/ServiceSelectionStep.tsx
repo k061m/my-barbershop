@@ -1,19 +1,31 @@
-import { Service } from '../../types';
+import { Service, Branch } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FaClock, FaDollarSign } from 'react-icons/fa';
 
 interface ServiceSelectionStepProps {
   services: Service[];
   selectedServiceId: string;
+  selectedBranchId: string;
   onSelect: (serviceId: string) => void;
+  branches: Branch[];
 }
 
 export default function ServiceSelectionStep({
   services,
   selectedServiceId,
-  onSelect
+  selectedBranchId,
+  onSelect,
+  branches
 }: ServiceSelectionStepProps) {
   const { theme } = useTheme();
+
+  // Get the selected branch
+  const selectedBranch = branches.find(branch => branch.id === selectedBranchId);
+
+  // Filter services based on the selected branch's services array
+  const availableServices = services.filter(service => 
+    selectedBranch?.services.includes(service.id)
+  );
 
   return (
     <div className="space-y-6">
@@ -22,8 +34,8 @@ export default function ServiceSelectionStep({
       </h2>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {services.length > 0 ? (
-          services.map(service => (
+        {availableServices.length > 0 ? (
+          availableServices.map(service => (
             <div
               key={service.id}
               onClick={() => onSelect(service.id)}
@@ -70,7 +82,7 @@ export default function ServiceSelectionStep({
               color: theme.colors.text.secondary 
             }}
           >
-            No services available. Please try again later or contact support.
+            No services available for this branch. Please try another branch or contact support.
           </div>
         )}
       </div>

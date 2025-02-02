@@ -5,6 +5,7 @@ interface BarberSelectionStepProps {
   barbers: Barber[];
   selectedBarberId: string;
   selectedBranchId: string;
+  selectedServiceId: string;
   onSelect: (barberId: string) => void;
 }
 
@@ -12,13 +13,16 @@ export default function BarberSelectionStep({
   barbers,
   selectedBarberId,
   selectedBranchId,
+  selectedServiceId,
   onSelect
 }: BarberSelectionStepProps) {
   const { theme } = useTheme();
 
-  // Filter barbers based on selected branch
+  // Filter barbers based on selected branch and service
   const availableBarbers = barbers.filter(barber => 
-    barber.branches && barber.branches.includes(selectedBranchId)
+    barber.branches?.includes(selectedBranchId) && 
+    barber.services?.includes(selectedServiceId) &&
+    barber.isActive
   );
 
   return (
@@ -54,6 +58,22 @@ export default function BarberSelectionStep({
                   <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
                     {barber.title.en}
                   </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs px-2 py-0.5 rounded-full" 
+                      style={{ 
+                        backgroundColor: theme.colors.background.secondary,
+                        color: theme.colors.text.secondary 
+                      }}>
+                      {barber.experienceYears}+ years
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded-full" 
+                      style={{ 
+                        backgroundColor: theme.colors.background.secondary,
+                        color: theme.colors.text.secondary 
+                      }}>
+                      ⭐ {barber.rating.toFixed(1)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -66,7 +86,7 @@ export default function BarberSelectionStep({
               color: theme.colors.text.secondary 
             }}
           >
-            No barbers available for this branch. Please try another branch or contact support.
+            No barbers available for this service at this branch. Please try another service or branch.
           </div>
         )}
       </div>

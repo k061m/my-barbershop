@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { Branch, Service, Barber } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,10 +26,12 @@ interface PendingAppointment {
   branchId: string;
   date: Date;
   price: number;
+  duration: number;
 }
 
 export default function BookingPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { theme } = useTheme();
   const { currentUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,6 +50,43 @@ export default function BookingPage() {
   const { barbers, isLoading: barbersLoading, error: barbersError } = useBarbers();
 
   useEffect(() => {
+    if (!branches.length || !services.length) return;
+
+    // Handle service pre-selection from URL
+    const serviceId = searchParams.get('service');
+    if (serviceId && !selectedService) {
+      const service = services.find(s => s.id === serviceId);
+      if (service) {
+        setSelectedService(service);
+        // Find branches that offer this service
+        const availableBranches = branches.filter(branch => 
+          branch.services.includes(serviceId)
+        );
+        
+        // If only one branch offers the service, select it automatically
+        if (availableBranches.length === 1) {
+          setSelectedBranch(availableBranches[0]);
+          setCurrentStep('barber');
+        } else {
+          setCurrentStep('branch');
+        }
+      }
+    }
+
+    // Handle branch pre-selection from URL
+    const branchId = searchParams.get('branch');
+    if (branchId && !selectedBranch) {
+      const branch = branches.find(b => b.id === branchId);
+      if (branch) {
+        setSelectedBranch(branch);
+        if (!selectedService) {
+          setCurrentStep('service');
+        } else {
+          setCurrentStep('barber');
+        }
+      }
+    }
+
     // Retrieve booking state from local storage
     const storedBookingState = localStorage.getItem('bookingState');
     if (storedBookingState) {
@@ -61,7 +100,12 @@ export default function BookingPage() {
       // Clear booking state from local storage
       localStorage.removeItem('bookingState');
     }
-  }, []);
+  }, [searchParams, branches, services, selectedBranch, selectedService]);
+
+  // Filter branches based on selected service
+  const availableBranches = selectedService
+    ? branches.filter(branch => branch.services.includes(selectedService.id))
+    : branches;
 
   const handleNext = () => {
     const steps: BookingStep[] = ['branch', 'service', 'barber', 'datetime', 'confirmation'];
@@ -119,7 +163,8 @@ export default function BookingPage() {
         serviceId: selectedService.id,
         branchId: selectedBranch.id,
         date: appointmentDate,
-        price: selectedService.basePrice
+        price: selectedService.basePrice,
+        duration: selectedService.baseDuration
       };
 
       const appointmentId = await appointmentService.createAppointment(pendingAppointment);
@@ -159,11 +204,21 @@ export default function BookingPage() {
       case 'branch':
         return (
           <BranchSelectionStep
-            branches={branches}
+            branches={availableBranches}
             selectedBranchId={selectedBranch?.id || ''}
             onSelect={(branchId) => {
               const branch = branches.find(b => b.id === branchId);
               setSelectedBranch(branch || null);
+              // If service is already selected, go to barber selection
+              if (selectedService) {
+                setCurrentStep('barber');
+              } else {
+                // Reset subsequent selections when branch changes
+                setSelectedService(null);
+                setSelectedBarber(null);
+                setSelectedDate('');
+                setSelectedTime('');
+              }
             }}
           />
         );
@@ -172,9 +227,15 @@ export default function BookingPage() {
           <ServiceSelectionStep
             services={services}
             selectedServiceId={selectedService?.id || ''}
+            selectedBranchId={selectedBranch?.id || ''}
+            branches={branches}
             onSelect={(serviceId) => {
               const service = services.find(s => s.id === serviceId);
               setSelectedService(service || null);
+              // Reset subsequent selections when service changes
+              setSelectedBarber(null);
+              setSelectedDate('');
+              setSelectedTime('');
             }}
           />
         );
@@ -184,21 +245,28 @@ export default function BookingPage() {
             barbers={barbers}
             selectedBarberId={selectedBarber?.id || ''}
             selectedBranchId={selectedBranch?.id || ''}
+            selectedServiceId={selectedService?.id || ''}
             onSelect={(barberId) => {
               const barber = barbers.find(b => b.id === barberId);
               setSelectedBarber(barber || null);
+              // Reset time selections when barber changes
+              setSelectedDate('');
+              setSelectedTime('');
             }}
           />
         );
       case 'datetime':
-        return (
+        return selectedBranch && selectedBarber && selectedService ? (
           <DateTimeSelectionStep
             selectedDate={selectedDate}
             selectedTime={selectedTime}
+            branchId={selectedBranch.id}
+            barberId={selectedBarber.id}
+            serviceDuration={selectedService.baseDuration}
             onSelectDate={setSelectedDate}
             onSelectTime={setSelectedTime}
           />
-        );
+        ) : null;
       case 'confirmation':
         return selectedBranch && selectedService && selectedBarber ? (
           <ConfirmationStep

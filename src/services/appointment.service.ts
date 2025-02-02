@@ -17,6 +17,7 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { parseISO, isWithinInterval, set, startOfDay } from 'date-fns';
 
 /**
  * Interface representing the data structure for an appointment
@@ -41,6 +42,8 @@ export interface AppointmentData {
   price: number;
   /** The timestamp when the appointment was last modified */
   lastModified?: Timestamp;
+  /** The duration of the service in minutes */
+  duration: number;
 }
 
 /**
@@ -330,6 +333,152 @@ class AppointmentService {
     } catch (error) {
       console.error('Error getting appointments by date range:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Checks if a time slot is available for a branch and barber
+   * @param branchId - ID of the branch
+   * @param barberId - ID of the barber
+   * @param date - Date of the appointment
+   * @param time - Time of the appointment
+   * @param duration - Duration of the service in minutes
+   * @returns Promise with availability status and conflicting appointments if any
+   */
+  async checkAvailability(
+    branchId: string,
+    barberId: string,
+    date: string,
+    time: string,
+    duration: number
+  ): Promise<{ available: boolean; conflicts?: Appointment[] }> {
+    try {
+      // Parse the date and time
+      const [hours, minutes] = time.split(':');
+      const appointmentDate = set(parseISO(date), {
+        hours: parseInt(hours),
+        minutes: parseInt(minutes),
+        seconds: 0,
+        milliseconds: 0
+      });
+
+      // Calculate end time
+      const endTime = new Date(appointmentDate.getTime() + duration * 60000);
+
+      // Query for appointments on that day only
+      const startOfDayDate = startOfDay(appointmentDate);
+      const endOfDayDate = new Date(startOfDayDate);
+      endOfDayDate.setHours(23, 59, 59, 999);
+
+      // Simpler query that only filters by date range and branch
+      const q = query(
+        this.collectionRef,
+        where('branchId', '==', branchId),
+        where('date', '>=', Timestamp.fromDate(startOfDayDate)),
+        where('date', '<=', Timestamp.fromDate(endOfDayDate))
+      );
+
+      const snapshot = await getDocs(q);
+      const appointments = snapshot.docs
+        .map(doc => convertToAppointment(doc.id, doc.data()))
+        .filter(appt => 
+          // Filter in memory
+          appt.status !== 'cancelled' &&
+          appt.barberId === barberId &&
+          isWithinInterval(appt.date.toDate(), {
+            start: appointmentDate,
+            end: endTime
+          })
+        );
+
+      return {
+        available: appointments.length === 0,
+        conflicts: appointments
+      };
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      throw error instanceof Error ? error : new Error('Failed to check availability');
+    }
+  }
+
+  /**
+   * Gets available time slots for a specific date
+   * @param branchId - ID of the branch
+   * @param barberId - ID of the barber
+   * @param date - Date to check
+   * @param duration - Duration of the service in minutes
+   * @returns Promise with array of available time slots
+   */
+  async getAvailableTimeSlots(
+    branchId: string,
+    barberId: string,
+    date: string,
+    duration: number
+  ): Promise<string[]> {
+    try {
+      // Define business hours (9 AM to 5 PM)
+      const timeSlots = [
+        '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+        '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
+        '16:00', '16:30'
+      ];
+
+      // Get the date range for the entire day
+      const selectedDate = parseISO(date);
+      const dayStart = startOfDay(selectedDate);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      // Simplest possible query - just by branchId
+      const q = query(
+        this.collectionRef,
+        where('branchId', '==', branchId)
+      );
+
+      const snapshot = await getDocs(q);
+      const existingAppointments = snapshot.docs
+        .map(doc => convertToAppointment(doc.id, doc.data()))
+        .filter(appt => {
+          const appointmentDate = appt.date.toDate();
+          return (
+            appt.barberId === barberId && 
+            appt.status !== 'cancelled' &&
+            appointmentDate >= dayStart &&
+            appointmentDate <= dayEnd
+          );
+        });
+
+      // Check each time slot against existing appointments
+      const availableSlots = timeSlots.filter(time => {
+        const [hours, minutes] = time.split(':');
+        const slotStart = set(selectedDate, {
+          hours: parseInt(hours),
+          minutes: parseInt(minutes),
+          seconds: 0,
+          milliseconds: 0
+        });
+        const slotEnd = new Date(slotStart.getTime() + duration * 60000);
+
+        // Check if this slot conflicts with any existing appointment
+        const hasConflict = existingAppointments.some(appt => {
+          const appointmentStart = appt.date.toDate();
+          const appointmentEnd = new Date(appointmentStart.getTime() + (appt as any).duration * 60000);
+          
+          return (
+            (slotStart >= appointmentStart && slotStart < appointmentEnd) ||
+            (slotEnd > appointmentStart && slotEnd <= appointmentEnd) ||
+            (slotStart <= appointmentStart && slotEnd >= appointmentEnd)
+          );
+        });
+
+        return !hasConflict;
+      });
+
+      return availableSlots;
+    } catch (error) {
+      console.error('Error getting available time slots:', error);
+      // Return empty array instead of throwing to handle gracefully in UI
+      return [];
     }
   }
 }
