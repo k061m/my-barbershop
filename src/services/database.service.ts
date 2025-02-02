@@ -1,51 +1,40 @@
 import {
-  collection,
   doc,
-  getDocs,
   getDoc,
-  addDoc,
   updateDoc,
-  deleteDoc,
-  query,
   where,
-  Timestamp,
+  setDoc,
   DocumentData,
-  setDoc
+  Timestamp
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { UserProfile } from './auth.service';
+import { FirestoreService } from './firestore.service';
+import type { 
+  Barber as BarberType, 
+  Service as ServiceType, 
+  Review as ReviewType 
+} from '../types';
 
-// Interfaces
+/** Translation interface for multilingual content */
+interface Translation {
+  name: string;
+  bio?: string;
+  description?: string;
+  specialties?: string;
+}
+
+/** Barber interface for barber data */
 export interface Barber extends DocumentData {
   id?: string;
   image?: string;
   workingDays: number[];
   workingHours: { start: string; end: string };
   available: boolean;
-  translations: {
-    en: {
-      name: string;
-      bio?: string;
-      description?: string;
-      specialties?: string;
-    };
-    de: {
-      name: string;
-      bio?: string;
-      description?: string;
-      specialties?: string;
-    };
-    ar: {
-      name: string;
-      bio?: string;
-      description?: string;
-      specialties?: string;
-    };
-  };
-  
+  translations: Record<'en' | 'de' | 'ar', Translation>;
   rating?: number;
 }
 
+/** Service interface for service data */
 export interface Service extends DocumentData {
   id?: string;
   name: string;
@@ -55,16 +44,7 @@ export interface Service extends DocumentData {
   description?: string;
 }
 
-export interface Appointment extends DocumentData {
-  id?: string;
-  userId: string;
-  barberId: string;
-  serviceId: string;
-  date: Timestamp;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-  notes?: string;
-}
-
+/** Review interface for review data */
 export interface Review extends DocumentData {
   id?: string;
   userId: string;
@@ -74,179 +54,175 @@ export interface Review extends DocumentData {
   date: Timestamp;
 }
 
-// Add UserRole type
+/** User role type definition */
 export type UserRole = 'user' | 'admin' | 'barber';
 
-const RETRY_ATTEMPTS = 3;
-const RETRY_DELAY = 1000; // 1 second
+/** User profile with role */
+interface UserProfileWithRole extends DocumentData {
+  email: string;
+  createdAt: string;
+  role: UserRole;
+  lastUpdated: string;
+}
 
-// Database Service
-export const dbService = {
-  // Barbers
-  async getBarbers(): Promise<Barber[]> {
-    const querySnapshot = await getDocs(collection(db, 'barbers'));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Barber[];
-  },
+/** Retry configuration for error handling */
+const RETRY_CONFIG = { attempts: 3, delay: 1000 };
 
-  async getBarber(id: string): Promise<Barber | null> {
-    const docRef = doc(db, 'barbers', id);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Barber : null;
-  },
+/**
+ * Concrete implementation of FirestoreService for Barber type
+ */
+class BarberService extends FirestoreService<BarberType> {
+  constructor() {
+    super('barbers');
+  }
 
-  async addBarber(barber: Omit<Barber, 'id'>): Promise<string> {
-    const docRef = await addDoc(collection(db, 'barbers'), barber);
-    return docRef.id;
-  },
+  getActive = (): Promise<BarberType[]> => this.queryActive();
+  getById = (id: string): Promise<BarberType | null> => this.getById(id);
+  createBarber = (data: Omit<BarberType, 'id'>): Promise<string> => this.create(data);
+  updateBarber = (id: string, data: Partial<BarberType>): Promise<void> => this.update(id, data);
+  deleteBarber = (id: string): Promise<void> => this.delete(id);
+}
 
-  async updateBarber(id: string, barber: Partial<Barber>): Promise<void> {
-    await updateDoc(doc(db, 'barbers', id), barber);
-  },
+/**
+ * Concrete implementation of FirestoreService for Service type
+ */
+class ServiceDbService extends FirestoreService<ServiceType> {
+  constructor() {
+    super('services');
+  }
 
-  async deleteBarber(id: string): Promise<void> {
-    await deleteDoc(doc(db, 'barbers', id));
-  },
+  getActive = (): Promise<ServiceType[]> => this.queryActive();
+  getById = (id: string): Promise<ServiceType | null> => this.getById(id);
+  createService = (data: Omit<ServiceType, 'id'>): Promise<string> => this.create(data);
+  updateService = (id: string, data: Partial<ServiceType>): Promise<void> => this.update(id, data);
+  deleteService = (id: string): Promise<void> => this.delete(id);
+}
 
-  // Services
-  async getServices(): Promise<Service[]> {
-    const querySnapshot = await getDocs(collection(db, 'services'));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Service[];
-  },
+/**
+ * Concrete implementation of FirestoreService for Review type
+ */
+class ReviewDbService extends FirestoreService<ReviewType> {
+  constructor() {
+    super('reviews');
+  }
 
-  async getService(id: string): Promise<Service | null> {
-    const docRef = doc(db, 'services', id);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Service : null;
-  },
+  getApproved = (barberId?: string): Promise<ReviewType[]> => 
+    barberId 
+      ? this.query([
+          where('barberId', '==', barberId),
+          where('status', '==', 'approved')
+        ])
+      : this.query([where('status', '==', 'approved')]);
+  
+  getById = (id: string): Promise<ReviewType | null> => this.getById(id);
+  createReview = (data: Omit<ReviewType, 'id'>): Promise<string> => this.create(data);
+  updateReview = (id: string, data: Partial<ReviewType>): Promise<void> => this.update(id, data);
+  deleteReview = (id: string): Promise<void> => this.delete(id);
+}
 
-  async addService(service: Omit<Service, 'id'>): Promise<string> {
-    const docRef = await addDoc(collection(db, 'services'), service);
-    return docRef.id;
-  },
+/**
+ * Database service class for managing all collections
+ */
+class DatabaseService {
+  private barbers = new BarberService();
+  private services = new ServiceDbService();
+  private reviews = new ReviewDbService();
 
-  async updateService(id: string, service: Partial<Service>): Promise<void> {
-    await updateDoc(doc(db, 'services', id), service);
-  },
+  /** Barber Methods */
+  getBarbers = () => this.barbers.getActive();
+  getBarber = (id: string) => this.barbers.getById(id);
+  addBarber = (barber: Omit<BarberType, 'id'>) => this.barbers.createBarber(barber);
+  updateBarber = (id: string, barber: Partial<BarberType>) => this.barbers.updateBarber(id, barber);
+  deleteBarber = (id: string) => this.barbers.deleteBarber(id);
 
-  async deleteService(id: string): Promise<void> {
-    await deleteDoc(doc(db, 'services', id));
-  },
+  /** Service Methods */
+  getServices = () => this.services.getActive();
+  getService = (id: string) => this.services.getById(id);
+  addService = (service: Omit<ServiceType, 'id'>) => this.services.createService(service);
+  updateService = (id: string, service: Partial<ServiceType>) => this.services.updateService(id, service);
+  deleteService = (id: string) => this.services.deleteService(id);
 
-  // Appointments
-  async getAppointments(userId?: string): Promise<Appointment[]> {
-    const appointmentsRef = collection(db, 'appointments');
-    const q = userId 
-      ? query(appointmentsRef, where('userId', '==', userId))
-      : appointmentsRef;
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Appointment[];
-  },
+  /** Review Methods */
+  getReviews = (barberId?: string) => this.reviews.getApproved(barberId);
+  getReview = (id: string) => this.reviews.getById(id);
+  addReview = (review: Omit<ReviewType, 'id'>) => this.reviews.createReview(review);
+  updateReview = (id: string, review: Partial<ReviewType>) => this.reviews.updateReview(id, review);
+  deleteReview = (id: string) => this.reviews.deleteReview(id);
 
-  async getAppointment(id: string): Promise<Appointment | null> {
-    const docRef = doc(db, 'appointments', id);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Appointment : null;
-  },
-
-  async addAppointment(appointment: Omit<Appointment, 'id'>): Promise<string> {
-    const docRef = await addDoc(collection(db, 'appointments'), appointment);
-    return docRef.id;
-  },
-
-  async updateAppointment(id: string, appointment: Partial<Appointment>): Promise<void> {
-    await updateDoc(doc(db, 'appointments', id), appointment);
-  },
-
-  async deleteAppointment(id: string): Promise<void> {
-    await deleteDoc(doc(db, 'appointments', id));
-  },
-
-  // Reviews
-  async getReviews(barberId?: string): Promise<Review[]> {
-    const reviewsRef = collection(db, 'reviews');
-    const q = barberId 
-      ? query(reviewsRef, where('barberId', '==', barberId))
-      : reviewsRef;
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Review[];
-  },
-
-  async getReview(id: string): Promise<Review | null> {
-    const docRef = doc(db, 'reviews', id);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Review : null;
-  },
-
-  async addReview(review: Omit<Review, 'id'>): Promise<string> {
-    const docRef = await addDoc(collection(db, 'reviews'), review);
-    return docRef.id;
-  },
-
-  async updateReview(id: string, review: Partial<Review>): Promise<void> {
-    await updateDoc(doc(db, 'reviews', id), review);
-  },
-
-  async deleteReview(id: string): Promise<void> {
-    await deleteDoc(doc(db, 'reviews', id));
-  },
-
-  // User Profile Methods
+  /**
+   * Creates a user profile with retry mechanism
+   * @param uid - User ID
+   * @param email - User email
+   */
   async createUserProfile(uid: string, email: string): Promise<void> {
     let lastError;
-    for (let attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
+    for (let attempt = 0; attempt < RETRY_CONFIG.attempts; attempt++) {
       try {
-        const userRef = doc(db, 'users', uid);
-        await setDoc(userRef, {
+        const userData: UserProfileWithRole = {
           email,
           createdAt: new Date().toISOString(),
-          role: 'user'
-        });
+          role: 'user',
+          lastUpdated: new Date().toISOString()
+        };
+        await setDoc(doc(db, 'users', uid), userData);
         return;
       } catch (error) {
-        console.error(`Attempt ${attempt + 1} failed:`, error);
         lastError = error;
-        if (attempt < RETRY_ATTEMPTS - 1) {
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        if (attempt < RETRY_CONFIG.attempts - 1) {
+          await new Promise(resolve => setTimeout(resolve, RETRY_CONFIG.delay));
         }
       }
     }
     throw lastError;
-  },
+  }
 
-  async getUserProfile(uid: string) {
+  /**
+   * Gets a user profile by ID
+   * @param uid - User ID
+   */
+  async getUserProfile(uid: string): Promise<UserProfileWithRole | null> {
     try {
-      const userRef = doc(db, 'users', uid);
-      const userSnap = await getDoc(userRef);
-      return userSnap.exists() ? userSnap.data() : null;
+      const userSnap = await getDoc(doc(db, 'users', uid));
+      return userSnap.exists() ? userSnap.data() as UserProfileWithRole : null;
     } catch (error) {
       console.error('Error getting user profile:', error);
       return null;
     }
-  },
+  }
 
-  async updateUserProfile(uid: string, profile: Partial<UserProfile>): Promise<void> {
+  /**
+   * Updates a user profile
+   * @param uid - User ID
+   * @param profile - Profile data to update
+   */
+  async updateUserProfile(uid: string, profile: Partial<UserProfileWithRole>): Promise<void> {
     let lastError;
-    for (let attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
+    for (let attempt = 0; attempt < RETRY_CONFIG.attempts; attempt++) {
       try {
-        const userRef = doc(db, 'users', uid);
-        await updateDoc(userRef, {
+        await updateDoc(doc(db, 'users', uid), {
           ...profile,
-          updatedAt: new Date().toISOString()
+          lastUpdated: new Date().toISOString()
         });
         return;
       } catch (error) {
-        console.error(`Attempt ${attempt + 1} failed:`, error);
         lastError = error;
-        if (attempt < RETRY_ATTEMPTS - 1) {
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        if (attempt < RETRY_CONFIG.attempts - 1) {
+          await new Promise(resolve => setTimeout(resolve, RETRY_CONFIG.delay));
         }
       }
     }
     throw lastError;
-  },
+  }
 
+  /**
+   * Checks if a user has admin role
+   * @param uid - User ID
+   * @returns Promise resolving to boolean indicating admin status
+   */
   async isUserAdmin(uid: string): Promise<boolean> {
     const profile = await this.getUserProfile(uid);
     return profile?.role === 'admin';
   }
-}; 
+}
+
+export const dbService = new DatabaseService(); 

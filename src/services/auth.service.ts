@@ -12,106 +12,125 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../config/firebase';
 import { dbService } from './database.service';
 
+/** Admin email constant for role-based access control */
+const ADMIN_EMAIL = 'admin@admin.admin';
+
+/** Google authentication provider instance */
+const googleProvider = new GoogleAuthProvider();
+
+/** User credentials interface for authentication */
 export interface UserCredentials {
   email: string;
   password: string;
 }
 
+/** User profile interface for profile updates */
 export interface UserProfile {
   displayName?: string;
   photoURL?: string;
 }
 
-const ADMIN_EMAIL = 'admin@admin.admin';
-const googleProvider = new GoogleAuthProvider();
-
+/**
+ * Authentication service providing user management functionality
+ * @namespace authService
+ */
 export const authService = {
+  /**
+   * Registers a new user with email and password
+   * @param {UserCredentials} credentials - User email and password
+   * @returns {Promise<User>} Firebase user object
+   */
   async register({ email, password }: UserCredentials): Promise<User> {
     const { user } = await createUserWithEmailAndPassword(auth, email, password);
     await dbService.createUserProfile(user.uid, email);
     return user;
   },
 
+  /**
+   * Authenticates user with email and password
+   * @param {UserCredentials} credentials - User email and password
+   * @returns {Promise<User>} Firebase user object
+   */
   async login({ email, password }: UserCredentials): Promise<User> {
     const { user } = await signInWithEmailAndPassword(auth, email, password);
-    
-    // If this is the admin user, ensure they have admin privileges
     if (email === ADMIN_EMAIL) {
-      const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, {
+      await setDoc(doc(db, 'users', user.uid), {
         email: ADMIN_EMAIL,
         role: 'admin',
         updatedAt: new Date().toISOString()
       }, { merge: true });
-      console.log('Admin privileges set up successfully');
     }
+    return user;
+  },
+
+  /**
+   * Authenticates user with Google
+   * @returns {Promise<User>} Firebase user object
+   */
+  async signInWithGoogle(): Promise<User> {
+    const { user } = await signInWithPopup(auth, googleProvider);
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    await setDoc(userRef, {
+      ...(userSnap.exists() ? {} : {
+        email: user.email,
+        role: 'user',
+        createdAt: new Date().toISOString(),
+      }),
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
     
     return user;
   },
 
-  async signInWithGoogle(): Promise<User> {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      
-      // Create or update user profile in Firestore
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-      
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          role: 'user',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      } else {
-        await setDoc(userRef, {
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-      }
-      
-      return user;
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-      throw error;
-    }
-  },
+  /**
+   * Signs out the current user
+   * @returns {Promise<void>}
+   */
+  logout: () => signOut(auth),
 
-  async logout(): Promise<void> {
-    await signOut(auth);
-  },
+  /**
+   * Sends password reset email
+   * @param {string} email - User's email address
+   * @returns {Promise<void>}
+   */
+  resetPassword: (email: string) => sendPasswordResetEmail(auth, email),
 
-  async resetPassword(email: string): Promise<void> {
-    await sendPasswordResetEmail(auth, email);
-  },
+  /**
+   * Updates user profile information
+   * @param {User} user - Firebase user object
+   * @param {UserProfile} profile - Profile data to update
+   * @returns {Promise<void>}
+   */
+  updateUserProfile: (user: User, profile: UserProfile) => updateProfile(user, profile),
 
-  async updateUserProfile(user: User, profile: UserProfile): Promise<void> {
-    await updateProfile(user, profile);
-  },
+  /**
+   * Gets current authenticated user
+   * @returns {User | null} Current user or null if not authenticated
+   */
+  getCurrentUser: () => auth.currentUser,
 
-  getCurrentUser(): User | null {
-    return auth.currentUser;
-  },
-
+  /**
+   * Checks if user has admin privileges
+   * @param {User | null} user - Firebase user object
+   * @returns {Promise<boolean>} True if user is admin
+   */
   async isUserAdmin(user: User | null): Promise<boolean> {
-    if (!user) return false;
-    if (user.email === ADMIN_EMAIL) {
-      const userRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userRef);
-      return userDoc.exists() && userDoc.data()?.role === 'admin';
-    }
-    return false;
+    if (!user || user.email !== ADMIN_EMAIL) return false;
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    return userDoc.exists() && userDoc.data()?.role === 'admin';
   }
 };
 
-export async function ensureUserIsAdmin() {
-  const userRef = doc(db, 'users', 'admin');
-  await setDoc(userRef, {
+/**
+ * Ensures admin user exists in the database
+ * @returns {Promise<boolean>} True if successful
+ */
+export async function ensureUserIsAdmin(): Promise<boolean> {
+  await setDoc(doc(db, 'users', 'admin'), {
     email: ADMIN_EMAIL,
     role: 'admin',
     updatedAt: new Date().toISOString()
