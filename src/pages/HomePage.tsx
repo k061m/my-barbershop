@@ -187,7 +187,6 @@ export default function HomePage() {
                     <BarberCard
                       barber={barber}
                       onClick={() => navigate(`/booking?barber=${barber.id}`)}
-                      showActions={false}
                     />
                   </div>
                 ))}

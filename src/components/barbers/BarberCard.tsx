@@ -5,6 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import StarRating from '../common/StarRating';
 import BarberDetailsModal from './BarberDetailsModal';
 import Card from '../common/Card';
+import Button from '../common/Button';
 import { componentStyles } from '../../config/theme';
 
 interface BarberCardProps {
@@ -28,6 +29,11 @@ export default function BarberCard({ barber, showActions = true, onClick }: Barb
     setIsModalOpen(true);
   };
 
+  const handleBookNow = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the card's onClick from firing
+    navigate(`/booking?barber=${barber.id}`);
+  };
+
   const header = (
     <div className="relative">
       <img 
@@ -45,12 +51,13 @@ export default function BarberCard({ barber, showActions = true, onClick }: Barb
   );
 
   const footer = showActions && (
-    <button
-      onClick={() => navigate('/booking', { state: { selectedBarberId: barber.id } })}
-      className={`w-full ${componentStyles.button.primary}`}
+    <Button
+      variant="primary"
+      fullWidth
+      onClick={handleBookNow}
     >
       Book Now
-    </button>
+    </Button>
   );
 
   return (

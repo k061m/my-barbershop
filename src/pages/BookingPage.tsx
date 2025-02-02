@@ -87,6 +87,25 @@ export default function BookingPage() {
       }
     }
 
+    // Handle barber pre-selection from URL
+    const barberId = searchParams.get('barber');
+    if (barberId && !selectedBarber && barbers.length > 0) {
+      const barber = barbers.find(b => b.id === barberId);
+      if (barber) {
+        setSelectedBarber(barber);
+        // If the barber works at only one branch, select it automatically
+        if (barber.branches?.length === 1) {
+          const branch = branches.find(b => b.id === barber.branches[0]);
+          if (branch) {
+            setSelectedBranch(branch);
+            setCurrentStep('service');
+          }
+        } else {
+          setCurrentStep('branch');
+        }
+      }
+    }
+
     // Retrieve booking state from local storage
     const storedBookingState = localStorage.getItem('bookingState');
     if (storedBookingState) {
@@ -100,7 +119,7 @@ export default function BookingPage() {
       // Clear booking state from local storage
       localStorage.removeItem('bookingState');
     }
-  }, [searchParams, branches, services, selectedBranch, selectedService]);
+  }, [searchParams, branches, services, barbers, selectedBranch, selectedService, selectedBarber]);
 
   // Filter branches based on selected service
   const availableBranches = selectedService
