@@ -39,12 +39,6 @@ export default function HomePage() {
   const { services, isLoading: loadingServices } = useServices();
   const { branches, isLoading: loadingBranches } = useBranches();
 
-  // Add debug logging
-  useEffect(() => {
-    console.log('Branches data:', branches);
-    console.log('Loading branches:', loadingBranches);
-  }, [branches, loadingBranches]);
-
   const [content, setContent] = useState<Content | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,6 +57,7 @@ export default function HomePage() {
       });
   }, []);
 
+  // Loading state for all data
   if (loadingBarbers || loadingServices || loadingBranches || !content) {
     return (
       <div 
@@ -77,7 +72,8 @@ export default function HomePage() {
     );
   }
 
-  if (error) {
+  // Error state
+  if (error || !barbers || !services || !branches) {
     return (
       <div 
         className="min-h-screen flex items-center justify-center" 
@@ -94,7 +90,7 @@ export default function HomePage() {
             className="text-xl mb-4"
             style={{ color: theme.colors.status.error }}
           >
-            {error}
+            {error || 'Failed to load data'}
           </div>
           <button
             onClick={() => window.location.reload()}
@@ -110,6 +106,11 @@ export default function HomePage() {
       </div>
     );
   }
+
+  // Filter out any invalid data
+  const validBarbers = barbers.filter(barber => barber && barber.firstName && barber.lastName);
+  const validServices = services.filter(service => service && service.name);
+  const validBranches = branches.filter(branch => branch && branch.name);
 
   return (
     <div 
@@ -179,7 +180,7 @@ export default function HomePage() {
           <div className="relative group">
             <div className="overflow-x-auto hide-scrollbar">
               <div className="flex gap-6 pb-4" style={{ scrollBehavior: 'smooth' }}>
-                {barbers?.slice(0, 8).map(barber => (
+                {validBarbers.slice(0, 8).map(barber => (
                   <div 
                     key={barber.id}
                     className="flex-none w-[280px]"
@@ -215,7 +216,7 @@ export default function HomePage() {
           <div className="relative group">
             <div className="overflow-x-auto hide-scrollbar">
               <div className="flex gap-6 pb-4" style={{ scrollBehavior: 'smooth' }}>
-                {services?.slice(0, 8).map(service => (
+                {validServices.slice(0, 8).map(service => (
                   <div 
                     key={service.id}
                     className="flex-none w-[280px]"
@@ -250,7 +251,7 @@ export default function HomePage() {
           <div className="relative group">
             <div className="overflow-x-auto hide-scrollbar">
               <div className="flex gap-6 pb-4" style={{ scrollBehavior: 'smooth' }}>
-                {branches?.map(branch => (
+                {validBranches.map(branch => (
                   <div 
                     key={branch.id}
                     className="flex-none w-[400px]"
