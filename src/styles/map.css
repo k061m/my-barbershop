@@ -1,0 +1,69 @@
+/* Custom styles for the map */
+.leaflet-container {
+  font-family: inherit;
+  border-radius: 0.5rem;
+  z-index: 10;
+  position: relative;
+}
+
+/* Ensure map controls are above other elements */
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 11;
+}
+
+/* Ensure popups are above controls */
+.leaflet-popup {
+  z-index: 12;
+}
+
+/* Custom popup styles */
+.custom-popup .leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.custom-popup .leaflet-popup-content {
+  margin: 0;
+  min-width: 200px;
+}
+
+.custom-popup .leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
+.custom-popup .leaflet-popup-tip {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* Layer control styles */
+.leaflet-control-layers {
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+.leaflet-control-layers-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 0.5rem;
+}
+
+.leaflet-touch .leaflet-control-layers {
+  border: none !important;
+}
+
+/* Ensure map markers are above the map but below popups */
+.leaflet-marker-pane {
+  z-index: 11;
+}
+
+/* Add a subtle transition to the marker hover */
+.leaflet-marker-icon {
+  transition: transform 0.2s ease;
+}
+
+.leaflet-marker-icon:hover {
+  transform: scale(1.1);
+} 

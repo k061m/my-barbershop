@@ -3,25 +3,35 @@ export const theme = {
     background: {
       primary: '#0D0D0D', // Deep black for the main background
       secondary: '#1A1A1A', // Slightly lighter black for sections
-      card: '#222222', // Dark gray for cards
-      hover: '#2E2E2E', // Subtle hover effect
-      active: '#383838' // Slightly brighter for active states
+      card: '#242424', // Dark gray for cards
+      hover: '#2A2A2A', // Subtle hover effect
+      active: '#383838', // Slightly brighter for active states
+      modal: 'rgba(0, 0, 0, 0.75)',
+      overlay: 'rgba(0, 0, 0, 0.5)'
     },
     text: {
       primary: '#EAEAEA', // Off-white for better readability
       secondary: '#B3B3B3', // Light gray for secondary text
-      muted: '#7A7A7A' // Muted gray for less prominent text
+      muted: '#7A7A7A', // Muted gray for less prominent text
+      inverse: '#0D0D0D',
+      disabled: '#4A4A4A'
     },
     accent: {
-      primary: '#FF6B6B', // Vibrant coral red for accents
-      secondary: '#FFD166', // Warm golden yellow for highlights
-      hover: '#06D6A0' // Bright teal for interactive elements
+      primary: '#FFD700', // Vibrant coral red for accents
+      secondary: '#D4A976', // Warm golden yellow for highlights
+      hover: '#FFC000' // Bright teal for interactive elements
     },
     status: {
-      success: '#4CAF50', // Green for success messages
-      error: '#FF4C4C', // Bright red for errors
-      warning: '#FFB74D', // Orange for warnings
-      info: '#29B6F6' // Sky blue for informational messages
+      success: '#48BB78', // Green for success messages
+      error: '#E53E3E', // Bright red for errors
+      warning: '#ECC94B', // Orange for warnings
+      info: '#3182CE' // Sky blue for informational messages
+    },
+    border: {
+      primary: '#2A2A2A',
+      secondary: '#383838',
+      focus: '#FFD700',
+      divider: '#1E1E1E'
     }
   },
   spacing: {
@@ -84,7 +94,7 @@ export const componentStyles = {
       `flex items-center space-x-4`,
     link:
       `px-3 py-2 rounded-md text-text-secondary hover:text-text-primary hover:bg-background-hover transition-all duration-150`,
-    button:
+      button:
       `px-4 py-2 rounded-md font-medium bg-accent-primary text-background-primary hover:bg-accent-hover transition-all duration-150`
   },
   card: {
@@ -96,6 +106,11 @@ export const componentStyles = {
   input: {
     base:
       `w-full px-4 py-2 rounded-md bg-background-secondary text-text-primary border border-background-hover focus:outline-none focus:ring focus:ring-accent-primary transition-all duration-150`
+  },
+  button: {
+    base: `px-4 py-2 rounded-md font-medium transition-all duration-150`,
+    primary: `text-background-primary`,
+    secondary: `text-text-primary`
   }
 };
 

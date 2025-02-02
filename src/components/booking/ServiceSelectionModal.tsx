@@ -2,13 +2,22 @@ import { Service } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface ServiceSelectionModalProps {
+  isOpen: boolean;
   services: Service[];
   onSelect: (serviceId: string) => void;
   onClose: () => void;
+  selectedServiceId: string;
 }
 
-export default function ServiceSelectionModal({ services, onSelect, onClose }: ServiceSelectionModalProps) {
+export default function ServiceSelectionModal({ 
+  isOpen,
+  services, 
+  onSelect, 
+  onClose,
+}: ServiceSelectionModalProps) {
   const { theme } = useTheme();
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50">
@@ -28,12 +37,12 @@ export default function ServiceSelectionModal({ services, onSelect, onClose }: S
               <div className="flex items-center gap-4">
                 <img
                   src={service.image}
-                  alt={service.translations.en.name}
+                  alt={service.name.en}
                   className="w-16 h-16 rounded-lg object-cover"
                 />
                 <div>
                   <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-                    {service.translations.en.name}
+                    {service.name.en}
                   </p>
                   <p className="text-sm" style={{ color: theme.colors.accent.primary }}>
                     ${service.basePrice}

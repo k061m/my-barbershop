@@ -68,6 +68,18 @@ const Navbar = ({ setIsDrawerOpen }: NavbarProps) => {
       protected: false
     },
     {
+      label: 'Branches',
+      path: '/branches',
+      show: true,
+      protected: false
+    },
+    {
+      label: 'Reviews',
+      path: '/reviews',
+      show: true,
+      protected: false
+    },
+    {
       label: 'Profile',
       path: '/dashboard',
       show: !!currentUser,

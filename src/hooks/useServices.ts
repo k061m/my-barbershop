@@ -1,42 +1,47 @@
 import { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, orderBy, where, QueryConstraint } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, QueryConstraint } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Service } from '../types';
 
-export function useServices(queryConstraints: QueryConstraint[] = []) {
+export function useServices(additionalConstraints: QueryConstraint[] = []) {
   const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
-    
-    // Create query with constraints
-    const q = query(collection(db, 'services'), ...queryConstraints);
-    
-    // Set up real-time listener
-    const unsubscribe = onSnapshot(q, 
-      (snapshot) => {
-        const items: Service[] = [];
-        snapshot.forEach((doc) => {
-          items.push({ id: doc.id, ...doc.data() } as Service);
-        });
-        setServices(items);
-        setLoading(false);
+    async function fetchServices() {
+      try {
+        setIsLoading(true);
         setError(null);
-      },
-      (err) => {
-        console.error('Error fetching services:', err);
-        setError(err);
-        setLoading(false);
+        
+        const queryConstraints: QueryConstraint[] = [
+          where('isActive', '==', true),
+          ...additionalConstraints
+        ];
+        
+        const servicesQuery = query(
+          collection(db, 'services'),
+          ...queryConstraints
+        );
+        
+        const snapshot = await getDocs(servicesQuery);
+        const servicesData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Service[];
+
+        setServices(servicesData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch services');
+      } finally {
+        setIsLoading(false);
       }
-    );
+    }
 
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, [JSON.stringify(queryConstraints)]);
+    fetchServices();
+  }, []);
 
-  return { services, loading, error };
+  return { services, isLoading, error };
 }
 
 // Helper hooks for specific queries

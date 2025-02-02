@@ -1,0 +1,172 @@
+[
+    {
+      "id": "review123",
+      "barberId": "alexJohnson",
+      "userId": "PStWOAzzMbb8gQV24tHgPkJI11x1",
+      "serviceId": "crewCut",
+      "rating": 5,
+      "comment": "Excellent service and attention to detail!",
+      "date": "2025-01-16T23:18:21Z",
+      "status": "approved",
+      "response": {
+        "by": "alexJohnson",
+        "message": "Thank you for your kind words!",
+        "date": "2025-01-17T09:00:00Z"
+      },
+      "isVerified": true,
+      "lastUpdated": "2025-01-30T14:30:00Z"
+    },
+    {
+      "id": "review124",
+      "barberId": "sarahSmith",
+      "userId": "user2",
+      "serviceId": "colorTreatment",
+      "rating": 5,
+      "comment": "Sarah did an amazing job with my hair color. The attention to detail and professional advice were outstanding!",
+      "date": "2025-01-15T18:30:00Z",
+      "status": "approved",
+      "response": {
+        "by": "sarahSmith",
+        "message": "I'm so glad you're happy with the results! Looking forward to seeing you again!",
+        "date": "2025-01-16T10:15:00Z"
+      },
+      "isVerified": true,
+      "lastUpdated": "2025-01-29T16:45:00Z"
+    },
+    {
+      "id": "review125",
+      "barberId": "davidMiller",
+      "userId": "user3",
+      "serviceId": "beardTrim",
+      "rating": 4,
+      "comment": "Great beard trim, very precise. Would appreciate more styling tips next time.",
+      "date": "2025-01-14T14:45:00Z",
+      "status": "approved",
+      "response": {
+        "by": "davidMiller",
+        "message": "Thanks for the feedback! I'll make sure to provide more styling advice during your next visit.",
+        "date": "2025-01-14T20:00:00Z"
+      },
+      "isVerified": true,
+      "lastUpdated": "2025-01-28T11:20:00Z"
+    },
+    {
+      "id": "review126",
+      "barberId": "minaLee",
+      "userId": "user4",
+      "serviceId": "asianHaircut",
+      "rating": 5,
+      "comment": "Mina's expertise with Asian hair textures is unmatched. Perfect cut and style!",
+      "date": "2025-01-13T16:20:00Z",
+      "status": "approved",
+      "response": {
+        "by": "minaLee",
+        "message": "Thank you! It's always a pleasure to help clients achieve their desired look.",
+        "date": "2025-01-14T09:30:00Z"
+      },
+      "isVerified": true,
+      "lastUpdated": "2025-01-27T09:15:00Z"
+    },
+    {
+      "id": "review127",
+      "barberId": "jamesWilson",
+      "userId": "user5",
+      "serviceId": "luxuryCut",
+      "rating": 5,
+      "comment": "The VIP treatment was exceptional. James's attention to detail and luxury service made this experience unforgettable.",
+      "date": "2025-01-12T19:15:00Z",
+      "status": "approved",
+      "response": {
+        "by": "jamesWilson",
+        "message": "I'm delighted you enjoyed our premium service. We strive to provide the best experience possible.",
+        "date": "2025-01-13T11:00:00Z"
+      },
+      "isVerified": true,
+      "lastUpdated": "2025-01-26T10:15:00Z"
+    },
+    {
+      "id": "review128",
+      "barberId": "robertChen",
+      "userId": "user6",
+      "serviceId": "modernFade",
+      "rating": 4,
+      "comment": "Really cool fade and modern style. The cut grew out nicely.",
+      "date": "2025-01-11T15:30:00Z",
+      "status": "approved",
+      "response": {
+        "by": "robertChen",
+        "message": "Appreciate the feedback! Glad to hear the cut is maintaining its shape.",
+        "date": "2025-01-12T08:45:00Z"
+      },
+      "isVerified": true,
+      "lastUpdated": "2025-01-25T08:45:00Z"
+    },
+    {
+      "id": "review129",
+      "barberId": "marcusBlack",
+      "userId": "user7",
+      "serviceId": "artisticDesign",
+      "rating": 5,
+      "comment": "Marcus's creative vision is incredible. He turned my hair into a work of art!",
+      "date": "2025-01-10T17:45:00Z",
+      "status": "approved",
+      "response": {
+        "by": "marcusBlack",
+        "message": "Thank you for trusting my artistic vision. It was a pleasure creating this unique style for you!",
+        "date": "2025-01-11T10:30:00Z"
+      },
+      "isVerified": true,
+      "lastUpdated": "2025-01-24T15:30:00Z"
+    },
+    {
+      "id": "review130",
+      "barberId": "thomasWright",
+      "userId": "user8",
+      "serviceId": "classicCut",
+      "rating": 5,
+      "comment": "Thomas's expertise in classic cuts is remarkable. Perfect blend of traditional style with a modern touch.",
+      "date": "2025-01-09T16:15:00Z",
+      "status": "approved",
+      "response": {
+        "by": "thomasWright",
+        "message": "Thank you! I love combining classic techniques with contemporary styles.",
+        "date": "2025-01-10T09:20:00Z"
+      },
+      "isVerified": true,
+      "lastUpdated": "2025-01-23T13:20:00Z"
+    },
+    {
+      "id": "review131",
+      "barberId": "alexJohnson",
+      "userId": "user9",
+      "serviceId": "buzzCut",
+      "rating": 4,
+      "comment": "Clean and precise buzz cut. Very professional service.",
+      "date": "2025-01-08T14:30:00Z",
+      "status": "approved",
+      "response": {
+        "by": "alexJohnson",
+        "message": "Appreciate your feedback! Precision is always our priority.",
+        "date": "2025-01-09T08:15:00Z"
+      },
+      "isVerified": true,
+      "lastUpdated": "2025-01-22T11:45:00Z"
+    },
+    {
+      "id": "review132",
+      "barberId": "sarahSmith",
+      "userId": "user10",
+      "serviceId": "styleDesign",
+      "rating": 5,
+      "comment": "Sarah's styling skills are phenomenal! She understood exactly what I wanted and delivered perfectly.",
+      "date": "2025-01-07T13:20:00Z",
+      "status": "approved",
+      "response": {
+        "by": "sarahSmith",
+        "message": "Thank you for the wonderful review! It's all about understanding and meeting our clients' vision.",
+        "date": "2025-01-08T09:45:00Z"
+      },
+      "isVerified": true,
+      "lastUpdated": "2025-01-21T10:30:00Z"
+    }
+]

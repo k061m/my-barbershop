@@ -1,6 +1,6 @@
 // ============= Basic Types =============
 /** Supported languages in the application */
-export type Language = 'en' | 'de' | 'ar';
+export type Language = 'ar' | 'en' | 'de';
 
 /** Available user roles */
 export type UserRole = 'user' | 'admin' | 'barber';
@@ -53,4 +53,23 @@ export const timestampToDate = (timestamp: FirestoreTimestamp): Date => {
     return timestamp.toDate();
   }
   return new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
-}; 
+};
+
+export interface LocalizedText {
+  ar: string;
+  en: string;
+  de: string;
+}
+
+export interface Address {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+export interface TimeRange {
+  start: string;
+  end: string;
+} 

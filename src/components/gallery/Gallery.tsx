@@ -40,14 +40,14 @@ const ImageModal = ({ image, onClose }: ImageModalProps) => {
     >
       <div className="relative max-w-4xl w-full">
         <img
-          src={image.image.url}
-          alt={image.translations.en.title}
+          src={image.url}
+          alt={image.title.en}
           className="w-full h-auto rounded-lg"
           id="modal-title"
         />
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-50 rounded-b-lg">
-          <h3 className="text-white font-semibold">{image.translations.en.title}</h3>
-          <p className="text-white text-sm">{image.translations.en.description}</p>
+          <h3 className="text-white font-semibold">{image.title.en}</h3>
+          <p className="text-white text-sm">{image.description.en}</p>
         </div>
         <button
           className="absolute top-4 right-4 p-2 rounded-full bg-black bg-opacity-50 text-white hover:bg-opacity-75 transition-opacity"
@@ -128,17 +128,17 @@ const GalleryItem = ({ image, onClick }: GalleryItemProps) => {
       onKeyPress={handleKeyPress}
       role="button"
       tabIndex={0}
-      aria-label={`View ${image.translations.en.title}`}
+      aria-label={`View ${image.title.en}`}
     >
       <img
-        src={image.image.url}
-        alt={image.translations.en.title}
+        src={image.url}
+        alt={image.title.en}
         className="w-full h-full object-cover transition-transform group-hover:scale-110"
       />
       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-end">
         <div className="p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity">
-          <h3 className="font-semibold">{image.translations.en.title}</h3>
-          <p className="text-sm">{image.translations.en.description}</p>
+          <h3 className="font-semibold">{image.title.en}</h3>
+          <p className="text-sm">{image.description.en}</p>
         </div>
       </div>
     </div>

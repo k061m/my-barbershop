@@ -1,0 +1,194 @@
+[
+    {
+      "id": "fadeCut",
+      "category": "haircut",
+      "basePrice": 25,
+      "baseDuration": 20,
+      "durationUnit": "minutes",
+      "skillLevel": "junior",
+      "name": {
+        "ar": "قص شعر قصير",
+        "en": "Buzz Cut",
+        "de": "Buzz Haarschnitt"
+      },
+      "description": {
+        "ar": "قص شعر قصير بسرعة وأنيق باستخدام ماكينة الحلاقة",
+        "en": "Quick and stylish short haircut using electric clippers",
+        "de": "Schneller und stylischer Kurzhaarschnitt mit Haarschneidemaschine"
+      },
+      "image": "/images/services/buzzCut.jpg",
+      "additionalOptions": ["/services/fadeCut","/services/balayageColor"],
+      "products": ["clipper-oil", "neck-brush"],
+      "isActive": true,
+      "lastUpdated": "2025-01-30T14:30:00Z",
+      "isPopular": true
+    },
+    {
+      "id": "balayageColor",
+      "category": "color",
+      "basePrice": 120,
+      "baseDuration": 120,
+      "durationUnit": "minutes",
+      "skillLevel": "senior",
+      "name": {
+        "ar": "صبغة بالياج",
+        "en": "Balayage Highlights",
+        "de": "Balayage Strähnen"
+      },
+      "description": {
+        "ar": "خصل مصبوغة يدويًا تخلق مظهرًا طبيعيًا مشرقًا",
+        "en": "Hand-painted highlights creating a natural, sun-kissed look",
+        "de": "Handgemalte Strähnen für einen natürlichen, sonnengeküssten Look"
+      },
+      "image": "/images/services/balayage.jpg",
+      "additionalOptions": ["/services/toner"],
+      "products": ["color-protect-shampoo", "heat-protectant"],
+      "isActive": true,
+      "lastUpdated": "2025-01-30T14:30:00Z",
+      "isPopular": true
+    },
+    {
+      "id": "keratinTreatment",
+      "category": "treatment",
+      "basePrice": 200,
+      "baseDuration": 180,
+      "durationUnit": "minutes",
+      "skillLevel": "expert",
+      "name": {
+        "ar": "علاج الكيراتين",
+        "en": "Keratin Smoothing Treatment",
+        "de": "Keratin Glättungsbehandlung"
+      },
+      "description": {
+        "ar": "علاج احترافي للتنعيم يقضي على التجعد ويضيف لمعانًا",
+        "en": "Professional smoothing treatment that eliminates frizz and adds shine",
+        "de": "Professionelle Glättungsbehandlung die Frizz eliminiert und Glanz verleiht"
+      },
+      "image": "/images/services/keratin.jpg",
+      "additionalOptions": ["/services/haircut"],
+      "products": ["keratin-shampoo", "heat-protectant", "smoothing-serum"],
+      "isActive": true,
+      "lastUpdated": "2025-01-30T14:30:00Z",
+      "isPopular": false
+    },
+    {
+      "id": "braidStyle",
+      "category": "styling",
+      "basePrice": 60,
+      "baseDuration": 45,
+      "durationUnit": "minutes",
+      "skillLevel": "intermediate",
+      "name": {
+        "ar": "تسريحات الضفائر",
+        "en": "Complex Braiding",
+        "de": "Komplexe Flechtfrisuren"
+      },
+      "description": {
+        "ar": "تسريحات ضفائر معقدة تشمل الضفائر الهولندية والفرنسية والشلال",
+        "en": "Intricate braiding styles including Dutch, French, and waterfall braids",
+        "de": "Komplizierte Flechtfrisuren einschließlich holländischer, französischer und Wasserfallzöpfe"
+      },
+      "image": "/images/services/braids.jpg",
+      "additionalOptions": ["/services/hairExtensions"],
+      "products": ["styling-cream", "hair-spray"],
+      "isActive": true,
+      "lastUpdated": "2025-01-30T14:30:00Z",
+      "isPopular": true
+    },
+    {
+      "id": "weddingUpdo",
+      "category": "special",
+      "basePrice": 150,
+      "baseDuration": 90,
+      "durationUnit": "minutes",
+      "skillLevel": "expert",
+      "name": {
+        "ar": "تسريحة زفاف",
+        "en": "Bridal Updo",
+        "de": "Braut Hochsteckfrisur"
+      },
+      "description": {
+        "ar": "تسريحة شعر أنيقة مثالية للزفاف والمناسبات الخاصة",
+        "en": "Elegant updo styling perfect for weddings and special occasions",
+        "de": "Elegante Hochsteckfrisur perfekt für Hochzeiten und besondere Anlässe"
+      },
+      "image": "/images/services/bridal.jpg",
+      "additionalOptions": ["/services/hairAccessories"],
+      "products": ["strong-hold-spray", "shine-serum"],
+      "isActive": true,
+      "lastUpdated": "2025-01-30T14:30:00Z",
+      "isPopular": false
+    },
+    {
+      "id": "rootTouchup",
+      "category": "color",
+      "basePrice": 75,
+      "baseDuration": 60,
+      "durationUnit": "minutes",
+      "skillLevel": "intermediate",
+      "name": {
+        "ar": "تغطية الجذور",
+        "en": "Root Color Touch-up",
+        "de": "Ansatzfärbung"
+      },
+      "description": {
+        "ar": "صبغة سريعة لتغطية جذور الشعر النامية والحفاظ على مظهرك",
+        "en": "Quick color application to cover growing roots and maintain your look",
+        "de": "Schnelle Farbauffrischung um nachwachsende Ansätze zu verdecken"
+      },
+      "image": "/images/services/roots.jpg",
+      "additionalOptions": ["/services/glossTreatment"],
+      "products": ["color-shampoo", "color-conditioner"],
+      "isActive": true,
+      "lastUpdated": "2025-01-30T14:30:00Z",
+      "isPopular": true
+    },
+    {
+      "id": "deepCondition",
+      "category": "treatment",
+      "basePrice": 45,
+      "baseDuration": 30,
+      "durationUnit": "minutes",
+      "skillLevel": "junior",
+      "name": {
+        "ar": "علاج ترطيب عميق",
+        "en": "Deep Conditioning Treatment",
+        "de": "Tiefenpflege Behandlung"
+      },
+      "description": {
+        "ar": "علاج ترطيب مكثف لإصلاح الشعر الجاف والتالف",
+        "en": "Intensive moisture treatment to restore dry, damaged hair",
+        "de": "Intensive Feuchtigkeitsbehandlung zur Wiederherstellung von trockenem, geschädigtem Haar"
+      },
+      "image": "/images/services/conditioning.jpg",
+      "additionalOptions": ["/services/scalpMassage"],
+      "products": ["deep-conditioner", "leave-in-treatment"],
+      "isActive": true,
+      "lastUpdated": "2025-01-30T14:30:00Z",
+      "isPopular": false
+    },
+    {
+      "id": "mensFade",
+      "category": "haircut",
+      "basePrice": 35,
+      "baseDuration": 30,
+      "durationUnit": "minutes",
+      "skillLevel": "intermediate",
+      "name": {
+        "ar": "قصة فيد عصرية",
+        "en": "Modern Fade Cut",
+        "de": "Moderner Fade Schnitt"
+      },
+      "description": {
+        "ar": "قصة شعر فيد دقيقة مع تصفيف عصري للرجال",
+        "en": "Precision fade haircut with modern styling for men",
+        "de": "Präziser Fade-Haarschnitt mit modernem Styling für Männer"
+      },
+      "image": "/images/services/fade.jpg",
+      "additionalOptions": ["/services/lineDesign"],
+      "products": ["pomade", "texture-spray"],
+      "isActive": true,
+      "lastUpdated": "2025-01-30T14:30:00Z",
+      "isPopular": true
+    }
+]

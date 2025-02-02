@@ -1,367 +1,316 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-
-// Contexts
-import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
-
-// Hooks
-import { useBarbers } from '../hooks/useBarbers';
+import { Branch, Service, Barber } from '../types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useBranches } from '../hooks/useBranches';
 import { useServices } from '../hooks/useServices';
-
-// Services
-import { appointmentService } from '../services/appointment.service';
-
-// Components
+import { useBarbers } from '../hooks/useBarbers';
+import { useAuth } from '../contexts/AuthContext';
+import BranchSelectionStep from '../components/booking/BranchSelectionStep';
+import ServiceSelectionStep from '../components/booking/ServiceSelectionStep';
+import BarberSelectionStep from '../components/booking/BarberSelectionStep';
+import DateTimeSelectionStep from '../components/booking/DateTimeSelectionStep';
+import ConfirmationStep from '../components/booking/ConfirmationStep';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import BarberSelectionModal from '../components/booking/BarberSelectionModal';
-import ServiceSelectionModal from '../components/booking/ServiceSelectionModal';
-import DateTimeSelectionModal from '../components/booking/DateTimeSelectionModal';
-import BookingSummary from '../components/booking/BookingSummary';
-import BookingStep from '../components/booking/BookingStep';
-import LoginModal from '../components/auth/LoginModal';
+import ErrorMessage from '../components/common/ErrorMessage';
+import { appointmentService } from '../services/appointment.service';
+import { format } from 'date-fns';
 
-// Types
-import { dateToTimestamp, Barber, Service } from '../types';
+type BookingStep = 'branch' | 'service' | 'barber' | 'datetime' | 'confirmation';
 
-interface LocationState {
-  from?: string;
-  selectedBarberId?: string;
-  selectedServiceId?: string;
+interface PendingAppointment {
+  barberId: string;
+  userId: string;
+  serviceId: string;
+  branchId: string;
+  date: Date;
+  price: number;
 }
 
-type ModalType = 'barber' | 'service' | 'datetime' | 'login' | null;
-
-const generateTimeSlots = (startTime: string, endTime: string): string[] => {
-  const [startHour, startMinute] = startTime.split(':').map(Number);
-  const [endHour, endMinute] = endTime.split(':').map(Number);
-  
-  const times: string[] = [];
-  let currentHour = startHour;
-  let currentMinute = startMinute;
-  
-  while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
-    const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-    times.push(timeString);
-    
-    currentMinute += 15;
-    if (currentMinute >= 60) {
-      currentHour += 1;
-      currentMinute = 0;
-    }
-  }
-  
-  return times;
-};
-
-const getAvailableDates = (barber: Barber | undefined): Date[] => {
-  if (!barber) return [];
-
-  const dates: Date[] = [];
-  const today = new Date();
-  let currentDate = new Date();
-
-  while (dates.length < 30) {
-    const dayOfWeek = currentDate.getDay();
-    if (barber.availability.workingDays.includes(dayOfWeek) && currentDate >= today) {
-      dates.push(new Date(currentDate));
-    }
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  return dates;
-};
-
-const normalizeService = (service: Service): Service => ({
-  ...service,
-  id: service.id || '',
-  image: service.image || '',
-  createdAt: dateToTimestamp(new Date()),
-  translations: {
-    en: { 
-      name: service.translations?.en?.name || '',
-      description: service.translations?.en?.description || ''
-    },
-    de: { 
-      name: service.translations?.de?.name || '',
-      description: service.translations?.de?.description || ''
-    },
-    ar: { 
-      name: service.translations?.ar?.name || '',
-      description: service.translations?.ar?.description || ''
-    }
-  },
-  basePrice: service.basePrice || 0,
-  baseDuration: service.baseDuration || 0,
-  durationUnit: service.durationUnit || 'minutes',
-  category: service.category || 'general',
-  skillLevel: service.skillLevel || 'junior',
-  isActive: service.isActive ?? true
-});
-
 export default function BookingPage() {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
-  const { barbers, loading: loadingBarbers } = useBarbers();
-  const { services, loading: loadingServices } = useServices();
   const { theme } = useTheme();
+  const { currentUser } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStep, setCurrentStep] = useState<BookingStep>('branch');
   
-  const state = location.state as LocationState;
-
-  const [selectedBarberId, setSelectedBarberId] = useState<string>(state?.selectedBarberId || '');
-  const [selectedServiceId, setSelectedServiceId] = useState<string>(state?.selectedServiceId || '');
+  // State for each step
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-  const [error, setError] = useState<string>('');
-  const [loading, setLoading] = useState(false);
-  const [activeModal, setActiveModal] = useState<ModalType>(null);
+
+  // Fetch data using custom hooks
+  const { branches, isLoading: branchesLoading, error: branchesError } = useBranches();
+  const { services, isLoading: servicesLoading, error: servicesError } = useServices();
+  const { barbers, isLoading: barbersLoading, error: barbersError } = useBarbers();
 
   useEffect(() => {
-    if (state?.from === 'barbers' && state.selectedBarberId) {
-      setSelectedBarberId(state.selectedBarberId);
-    } else if (state?.from === 'services' && state.selectedServiceId) {
-      setSelectedServiceId(state.selectedServiceId);
-    }
-  }, [state]);
-
-  useEffect(() => {
-    if (selectedDate && selectedBarberId) {
-      const selectedBarber = barbers.find(b => b.id === selectedBarberId);
-      if (!selectedBarber) return;
-
-      const date = new Date(selectedDate);
-      const dayOfWeek = date.getDay();
+    // Retrieve booking state from local storage
+    const storedBookingState = localStorage.getItem('bookingState');
+    if (storedBookingState) {
+      const { selectedBranch, selectedService, selectedBarber, selectedDate, selectedTime } = JSON.parse(storedBookingState);
+      setSelectedBranch(selectedBranch);
+      setSelectedService(selectedService);
+      setSelectedBarber(selectedBarber);
+      setSelectedDate(selectedDate);
+      setSelectedTime(selectedTime);
       
-      if (selectedBarber.availability.workingDays.includes(dayOfWeek)) {
-        const times = generateTimeSlots(
-          selectedBarber.availability.workingHours.start,
-          selectedBarber.availability.workingHours.end
-        );
-        setAvailableTimes(times);
-      } else {
-        setAvailableTimes([]);
-      }
+      // Clear booking state from local storage
+      localStorage.removeItem('bookingState');
     }
-  }, [selectedDate, selectedBarberId, barbers]);
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedBarberId || !selectedServiceId || !selectedDate || !selectedTime) {
-      setError('Please complete all selections');
-      return;
-    }
-
-    if (!currentUser) {
-      setError('Please sign in to complete your booking');
-      setActiveModal('login');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const dateTime = new Date(`${selectedDate}T${selectedTime}`);
-      
-      await appointmentService.createAppointment({
-        userId: currentUser.uid,
-        barberId: selectedBarberId,
-        serviceId: selectedServiceId,
-        date: dateTime,
-        status: 'pending'
-      });
-
-      navigate('/dashboard');
-    } catch (error) {
-      setError('Failed to create appointment');
-      console.error('Booking error:', error);
-    } finally {
-      setLoading(false);
+  const handleNext = () => {
+    const steps: BookingStep[] = ['branch', 'service', 'barber', 'datetime', 'confirmation'];
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex < steps.length - 1) {
+      setCurrentStep(steps[currentIndex + 1]);
     }
   };
 
-  if (loadingBarbers || loadingServices) {
-    return <LoadingSpinner />;
-  }
+  const handleBack = () => {
+    const steps: BookingStep[] = ['branch', 'service', 'barber', 'datetime', 'confirmation'];
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex > 0) {
+      setCurrentStep(steps[currentIndex - 1]);
+    }
+  };
 
-  const selectedBarber = barbers.find(b => b.id === selectedBarberId);
-  const selectedService = services.find(s => s.id === selectedServiceId);
+  const handleBookingConfirmation = async () => {
+    if (!selectedBranch || !selectedService || !selectedBarber || !selectedDate || !selectedTime) {
+      throw new Error('Please select all required fields');
+    }
 
-  const renderError = () => error && (
-    <div className="p-4 rounded-lg flex items-center gap-3 mb-6" 
-      style={{ backgroundColor: theme.colors.status.error, color: theme.colors.text.primary }}>
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <span>{error}</span>
-    </div>
-  );
+    try {
+      // Format the date and time properly
+      const [hours, minutes] = selectedTime.split(':');
+      const appointmentDate = new Date(selectedDate);
+      appointmentDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
-  const renderBarberStep = () => (
-    <BookingStep stepNumber={1} title="Choose Barber">
-      {selectedBarber ? (
-        <div className="flex items-center gap-4">
-          <img
-            src={selectedBarber.image}
-            alt={`${selectedBarber.personalInfo.firstName} ${selectedBarber.personalInfo.lastName}`}
-            className="w-16 h-16 rounded-full object-cover"
-          />
-          <div>
-            <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-              {`${selectedBarber.personalInfo.firstName} ${selectedBarber.personalInfo.lastName}`}
-            </p>
-            <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
-              {selectedBarber.translations.en.title}
-            </p>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setActiveModal('barber')}
-          className="w-full py-3 rounded-lg transition-colors hover:opacity-90"
-          style={{ 
-            backgroundColor: theme.colors.accent.primary,
-            color: theme.colors.background.primary
-          }}
-        >
-          Select Barber
-        </button>
-      )}
-    </BookingStep>
-  );
+      // Validate the date
+      if (isNaN(appointmentDate.getTime())) {
+        throw new Error('Invalid date or time selected');
+      }
+      
+      // Create a temporary "pending" appointment
+      const pendingAppointment: PendingAppointment = {
+        barberId: selectedBarber.id,
+        userId: currentUser!.uid,
+        serviceId: selectedService.id,
+        branchId: selectedBranch.id,
+        date: appointmentDate,
+        price: selectedService.basePrice
+      };
 
-  const renderServiceStep = () => (
-    <BookingStep stepNumber={2} title="Choose Service">
-      {selectedService ? (
-        <div className="flex items-center gap-4">
-          <img
-            src={selectedService.image}
-            alt={selectedService.translations.en.name}
-            className="w-16 h-16 rounded-lg object-cover"
-          />
-          <div>
-            <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-              {selectedService.translations.en.name}
-            </p>
-            <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
-              ${selectedService.basePrice}
-            </p>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setActiveModal('service')}
-          className="w-full py-3 rounded-lg transition-colors hover:opacity-90"
-          style={{ 
-            backgroundColor: theme.colors.accent.primary,
-            color: theme.colors.background.primary
-          }}
-        >
-          Select Service
-        </button>
-      )}
-    </BookingStep>
-  );
+      const appointmentId = await appointmentService.createAppointment(pendingAppointment);
 
-  const renderDateTimeStep = () => (
-    <BookingStep stepNumber={3} title="Choose Date & Time">
-      {selectedDate && selectedTime ? (
-        <div>
-          <p className="font-medium" style={{ color: theme.colors.text.primary }}>
-            {new Date(selectedDate).toLocaleDateString()}
-          </p>
-          <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
-            {selectedTime}
-          </p>
-        </div>
-      ) : (
-        <button
-          onClick={() => setActiveModal('datetime')}
-          className="w-full py-3 rounded-lg transition-colors hover:opacity-90"
-          style={{ 
-            backgroundColor: theme.colors.accent.primary,
-            color: theme.colors.background.primary
-          }}
-        >
-          Select Date & Time
-        </button>
-      )}
-    </BookingStep>
-  );
+      if (!currentUser) {
+        navigate(`/login?redirect=/booking/confirmation/${appointmentId}`);
+        return;
+      }
 
-  return (
-    <div className="min-h-screen p-4" style={{ backgroundColor: theme.colors.background.primary }}>
-      <div className="container mx-auto max-w-4xl">
-        <h1 className="text-3xl font-bold mb-8 text-center" style={{ color: theme.colors.text.primary }}>
-          Book Your Appointment
-        </h1>
+      // Navigate to success page with booking details
+      navigate('/booking/success', {
+        state: {
+          id: appointmentId,
+          branch: selectedBranch,
+          service: selectedService,
+          barber: selectedBarber,
+          date: format(appointmentDate, 'yyyy-MM-dd'),
+          time: format(appointmentDate, 'HH:mm')
+        }
+      });
+    } catch (error) {
+      console.error('Booking failed:', error);
+      alert(error instanceof Error ? error.message : 'Failed to create booking. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-        {renderError()}
+  const renderStep = () => {
+    const isLoading = branchesLoading || servicesLoading || barbersLoading;
+    const error = branchesError || servicesError || barbersError;
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {renderBarberStep()}
-          {renderServiceStep()}
-          {renderDateTimeStep()}
-        </div>
+    if (isLoading) {
+      return <LoadingSpinner />;
+    }
 
-        {selectedBarber && selectedService && selectedDate && selectedTime && (
-          <BookingSummary
-            barber={selectedBarber}
-            service={normalizeService(selectedService)}
-            date={selectedDate}
-            time={selectedTime}
-            onSubmit={handleSubmit}
-            loading={loading}
-          />
-        )}
+    if (error) {
+      return <ErrorMessage message={error} />;
+    }
 
-        {activeModal === 'barber' && (
-          <BarberSelectionModal
-            barbers={barbers}
-            onSelect={(id) => {
-              setSelectedBarberId(id);
-              setActiveModal(null);
+    switch (currentStep) {
+      case 'branch':
+        return (
+          <BranchSelectionStep
+            branches={branches}
+            selectedBranchId={selectedBranch?.id || ''}
+            onSelect={(branchId) => {
+              const branch = branches.find(b => b.id === branchId);
+              setSelectedBranch(branch || null);
             }}
-            onClose={() => setActiveModal(null)}
           />
-        )}
-
-        {activeModal === 'service' && (
-          <ServiceSelectionModal
+        );
+      case 'service':
+        return (
+          <ServiceSelectionStep
             services={services}
-            onSelect={(id) => {
-              setSelectedServiceId(id);
-              setActiveModal(null);
+            selectedServiceId={selectedService?.id || ''}
+            onSelect={(serviceId) => {
+              const service = services.find(s => s.id === serviceId);
+              setSelectedService(service || null);
             }}
-            onClose={() => setActiveModal(null)}
           />
-        )}
-
-        {activeModal === 'datetime' && selectedBarberId && (
-          <DateTimeSelectionModal
-            availableDates={getAvailableDates(selectedBarber)}
-            availableTimes={availableTimes}
+        );
+      case 'barber':
+        return (
+          <BarberSelectionStep
+            barbers={barbers}
+            selectedBarberId={selectedBarber?.id || ''}
+            selectedBranchId={selectedBranch?.id || ''}
+            onSelect={(barberId) => {
+              const barber = barbers.find(b => b.id === barberId);
+              setSelectedBarber(barber || null);
+            }}
+          />
+        );
+      case 'datetime':
+        return (
+          <DateTimeSelectionStep
             selectedDate={selectedDate}
             selectedTime={selectedTime}
-            onDateChange={setSelectedDate}
-            onTimeChange={setSelectedTime}
-            onConfirm={() => setActiveModal(null)}
-            onClose={() => setActiveModal(null)}
+            onSelectDate={setSelectedDate}
+            onSelectTime={setSelectedTime}
           />
-        )}
+        );
+      case 'confirmation':
+        return selectedBranch && selectedService && selectedBarber ? (
+          <ConfirmationStep
+            branch={selectedBranch}
+            service={selectedService}
+            barber={selectedBarber}
+            date={selectedDate}
+            time={selectedTime}
+          />
+        ) : null;
+      default:
+        return null;
+    }
+  };
 
-        {activeModal === 'login' && (
-          <LoginModal
-            isOpen={true}
-            onSuccess={() => {
-              setActiveModal(null);
-              handleSubmit(new Event('submit', { cancelable: true }) as unknown as React.FormEvent);
+  const canProceed = () => {
+    switch (currentStep) {
+      case 'branch':
+        return !!selectedBranch;
+      case 'service':
+        return !!selectedService;
+      case 'barber':
+        return !!selectedBarber;
+      case 'datetime':
+        return !!selectedDate && !!selectedTime;
+      case 'confirmation':
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0
+    })
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto p-4 min-h-screen">
+        <div className="mb-8">
+        <h1 
+          className="text-2xl font-bold mb-2"
+          style={{ color: theme.colors.text.primary }}
+        >
+          Book an Appointment
+        </h1>
+        <p 
+          className="text-sm"
+          style={{ color: theme.colors.text.secondary }}
+        >
+          select your branch, service, barber, date and time
+        </p>
+                </div>
+
+      <AnimatePresence mode="wait" custom={currentStep}>
+        <motion.div
+          key={currentStep}
+          custom={currentStep}
+          variants={slideVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{
+            x: { type: "spring", stiffness: 300, damping: 30 },
+            opacity: { duration: 0.2 }
+          }}
+        >
+          {renderStep()}
+        </motion.div>
+      </AnimatePresence>
+
+          <div className="mt-8 flex justify-between">
+        {currentStep !== 'branch' && (
+              <button
+            onClick={handleBack}
+            className="px-6 py-2 rounded-lg"
+            style={{ 
+              backgroundColor: theme.colors.background.secondary,
+              color: theme.colors.text.primary
             }}
-            onClose={() => setActiveModal(null)}
-          />
+          >
+            Back
+              </button>
+            )}
+        {currentStep !== 'confirmation' && (
+              <button
+            onClick={handleNext}
+            disabled={!canProceed()}
+            className={`px-6 py-2 rounded-lg ml-auto ${
+              !canProceed() ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            style={{ 
+              backgroundColor: theme.colors.accent.primary,
+              color: theme.colors.background.primary
+            }}
+              >
+                Next
+              </button>
         )}
+        {currentStep === 'confirmation' && (
+              <button
+            onClick={handleBookingConfirmation}
+            disabled={isSubmitting}
+            className="px-6 py-2 rounded-lg ml-auto"
+            style={{ 
+              backgroundColor: theme.colors.accent.primary,
+              color: theme.colors.background.primary
+            }}
+          >
+            {isSubmitting ? 'Confirming...' : 'Confirm Booking'}
+              </button>
+            )}
       </div>
     </div>
   );

@@ -1,7 +1,5 @@
-import { TimeStamps } from './common.types';
-
 /** Review status type */
-export type ReviewStatus = 'approved' | 'pending' | 'rejected';
+export type ReviewStatus = 'pending' | 'approved' | 'rejected';
 
 /** Review response structure */
 export interface ReviewResponse {
@@ -10,8 +8,8 @@ export interface ReviewResponse {
   date: string;
 }
 
-/** Review data structure */
-export interface Review extends TimeStamps {
+/** Review data structure matching Firestore */
+export interface Review {
   id: string;
   barberId: string;
   userId: string;
@@ -22,4 +20,8 @@ export interface Review extends TimeStamps {
   status: ReviewStatus;
   response?: ReviewResponse;
   isVerified: boolean;
+  lastUpdated: string;
+  createdAt: string;
+  userName: string;
+  barberName: string;
 } 

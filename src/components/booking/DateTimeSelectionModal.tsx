@@ -1,27 +1,29 @@
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface DateTimeSelectionModalProps {
+  isOpen: boolean;
   selectedDate: string;
   selectedTime: string;
   availableDates: Date[];
   availableTimes: string[];
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
-  onConfirm: () => void;
   onClose: () => void;
 }
 
 export default function DateTimeSelectionModal({
+  isOpen,
   selectedDate,
   selectedTime,
   availableDates,
   availableTimes,
   onDateChange,
   onTimeChange,
-  onConfirm,
   onClose
 }: DateTimeSelectionModalProps) {
   const { theme } = useTheme();
+
+  if (!isOpen) return null;
 
   const formatDateForValue = (date: Date) => {
     return date.toISOString().split('T')[0];
@@ -90,18 +92,6 @@ export default function DateTimeSelectionModal({
 
         <div className="flex gap-4 mt-6">
           <button
-            onClick={onConfirm}
-            disabled={!selectedDate || !selectedTime}
-            className="flex-1 py-3 rounded-lg transition-colors hover:opacity-90"
-            style={{ 
-              backgroundColor: theme.colors.accent.primary,
-              color: theme.colors.background.primary,
-              opacity: (!selectedDate || !selectedTime) ? 0.5 : 1
-            }}
-          >
-            Confirm
-          </button>
-          <button
             onClick={onClose}
             className="flex-1 py-3 rounded-lg transition-colors hover:opacity-90"
             style={{ 
@@ -111,6 +101,18 @@ export default function DateTimeSelectionModal({
             }}
           >
             Cancel
+          </button>
+          <button
+            onClick={onClose}
+            disabled={!selectedDate || !selectedTime}
+            className="flex-1 py-3 rounded-lg transition-colors hover:opacity-90"
+            style={{ 
+              backgroundColor: theme.colors.accent.primary,
+              color: theme.colors.background.primary,
+              opacity: (!selectedDate || !selectedTime) ? 0.5 : 1
+            }}
+          >
+            Confirm
           </button>
         </div>
       </div>

@@ -29,7 +29,7 @@ export default function ReviewForm({ barberId, serviceId, onSubmit }: ReviewForm
         serviceId,
         rating: rating as Rating,
         comment,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       });
       setComment('');
       setRating(5);

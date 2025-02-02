@@ -1,0 +1,129 @@
+[
+  {
+    "id": "branch1",
+    "name": "Downtown Branch",
+    "address": {
+      "street": "123 Main Street",
+      "city": "New York",
+      "state": "NY",
+      "zipCode": "10001",
+      "country": "USA"
+    },
+    "phoneNumber": "+1-212-555-0123",
+    "email": "downtown@barbershop.com",
+    "workingHours": {
+      "monday": { "open": "09:00", "close": "20:00" },
+      "tuesday": { "open": "09:00", "close": "20:00" },
+      "wednesday": { "open": "09:00", "close": "20:00" },
+      "thursday": { "open": "09:00", "close": "20:00" },
+      "friday": { "open": "09:00", "close": "21:00" },
+      "saturday": { "open": "10:00", "close": "18:00" },
+      "sunday": { "open": "10:00", "close": "16:00" }
+    },
+    "services": [
+      "haircut",
+      "shave",
+      "beard-trim",
+      "hair-styling"
+    ],
+    "facilities": [
+      "wifi",
+      "parking",
+      "refreshments",
+      "tv"
+    ],
+    "staff": 8,
+    "chairs": 6,
+    "isActive": true,
+    "rating": 4.8,
+    "reviews": 324,
+    "lastUpdated": "2024-02-01T12:00:00Z"
+  },
+  {
+    "id": "branch2",
+    "name": "Uptown Branch",
+    "address": {
+      "street": "456 Park Avenue",
+      "city": "New York",
+      "state": "NY",
+      "zipCode": "10022",
+      "country": "USA"
+    },
+    "phoneNumber": "+1-212-555-0456",
+    "email": "uptown@barbershop.com",
+    "workingHours": {
+      "monday": { "open": "10:00", "close": "19:00" },
+      "tuesday": { "open": "10:00", "close": "19:00" },
+      "wednesday": { "open": "10:00", "close": "19:00" },
+      "thursday": { "open": "10:00", "close": "19:00" },
+      "friday": { "open": "10:00", "close": "20:00" },
+      "saturday": { "open": "09:00", "close": "17:00" },
+      "sunday": { "open": "11:00", "close": "15:00" }
+    },
+    "services": [
+      "haircut",
+      "shave",
+      "beard-trim",
+      "hair-coloring",
+      "facial",
+      "head-massage"
+    ],
+    "facilities": [
+      "wifi",
+      "parking",
+      "refreshments",
+      "tv",
+      "air-conditioning",
+      "waiting-area"
+    ],
+    "staff": 12,
+    "chairs": 8,
+    "isActive": true,
+    "rating": 4.9,
+    "reviews": 456,
+    "lastUpdated": "2024-02-01T12:00:00Z"
+  },
+  {
+    "id": "branch3",
+    "name": "Brooklyn Branch",
+    "address": {
+      "street": "789 Bedford Avenue",
+      "city": "Brooklyn",
+      "state": "NY",
+      "zipCode": "11211",
+      "country": "USA"
+    },
+    "phoneNumber": "+1-718-555-0789",
+    "email": "brooklyn@barbershop.com",
+    "workingHours": {
+      "monday": { "open": "11:00", "close": "20:00" },
+      "tuesday": { "open": "11:00", "close": "20:00" },
+      "wednesday": { "open": "11:00", "close": "20:00" },
+      "thursday": { "open": "11:00", "close": "20:00" },
+      "friday": { "open": "11:00", "close": "22:00" },
+      "saturday": { "open": "10:00", "close": "22:00" },
+      "sunday": { "open": "12:00", "close": "18:00" }
+    },
+    "services": [
+      "haircut",
+      "shave",
+      "beard-trim",
+      "hair-styling",
+      "hair-treatment",
+      "kids-haircut"
+    ],
+    "facilities": [
+      "wifi",
+      "refreshments",
+      "tv",
+      "air-conditioning",
+      "kids-area"
+    ],
+    "staff": 10,
+    "chairs": 7,
+    "isActive": true,
+    "rating": 4.7,
+    "reviews": 289,
+    "lastUpdated": "2024-02-01T12:00:00Z"
+  }
+] 

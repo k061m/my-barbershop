@@ -4,10 +4,9 @@ import ServiceCard from './ServiceCard';
 
 interface ServicesSectionProps {
   services: Service[];
-  onServiceClick?: (service: Service) => void;
 }
 
-export default function ServicesSection({ services, onServiceClick }: ServicesSectionProps) {
+export default function ServicesSection({ services }: ServicesSectionProps) {
   const { theme } = useTheme();
 
   return (
@@ -21,7 +20,6 @@ export default function ServicesSection({ services, onServiceClick }: ServicesSe
             <ServiceCard
               key={service.id}
               service={service}
-              onClick={() => onServiceClick?.(service)}
             />
           ))}
         </div>

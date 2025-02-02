@@ -1,0 +1,27 @@
+{
+  "id": "appointmentId",
+  "barberId": "alexJohnson",
+  "userId": "PStWOAzzMbb8gQV24tHgPkJI11x1",
+  "serviceId": "crewCut",
+  "date": "2025-02-19T09:00:00Z",
+  "endTime": "2025-02-19T09:30:00Z",
+  "status": "cancelled",
+  "createdAt": "2025-01-30T22:10:33Z",
+  "updatedAt": "2025-01-31T08:15:22Z",
+  "cancellationreason": "Client schedule conflict",
+  "cancellationinitiatedBy": "client",
+  "notes": "Client prefers shorter on sides",
+  "price": 30,
+  "paymentstatus": "pending",
+  "paymentmethod": "credit_card",
+  "paymenttransactionId": "txn_123456",
+  "services": ["/services/beardTrim","/services/traditionalShave"],
+  "allergies": "None",
+  "preferredProducts": "Organic shampoo",
+  "reminderemailSent": true,
+  "remindersmsSent": false,
+  "feedbacksubmitted": false,
+  "feedbackrating": null,
+  "feedbackcomment": null
+}
+

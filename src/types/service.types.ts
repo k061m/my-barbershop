@@ -1,4 +1,4 @@
-import { TimeStamps, Language } from './common.types';
+import { LocalizedText } from './common.types';
 
 /** Service translation interface */
 export interface ServiceTranslation {
@@ -14,25 +14,36 @@ export interface ServiceOption {
 }
 
 /** Service skill level type */
-export type SkillLevel = 'junior' | 'senior' | 'master';
+export type SkillLevel = 
+  | 'junior'
+  | 'intermediate'
+  | 'senior'
+  | 'expert';
 
 /** Duration unit type */
 export type DurationUnit = 'minutes' | 'hours';
 
 /** Service offering data */
-export interface Service extends TimeStamps {
+export interface Service {
   id: string;
-  category: string;
+  category: ServiceCategory;
   basePrice: number;
   baseDuration: number;
   durationUnit: DurationUnit;
   skillLevel: SkillLevel;
-  translations: {
-    [key in Language]: ServiceTranslation;
-  };
+  name: LocalizedText;
+  description: LocalizedText;
   image: string;
-  additionalOptions?: ServiceOption[];
-  products?: string[];
+  additionalOptions: string[];
+  products: string[];
   isActive: boolean;
+  lastUpdated: string;
   isPopular: boolean;
-} 
+}
+
+export type ServiceCategory = 
+  | 'haircut'
+  | 'color'
+  | 'treatment'
+  | 'styling'
+  | 'special'; 

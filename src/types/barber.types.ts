@@ -1,4 +1,4 @@
-import { Language, TimeStamps } from './common.types';
+import { LocalizedText, TimeRange, Language } from './common.types';
 
 /** Working hours structure */
 export interface WorkingHours {
@@ -34,11 +34,7 @@ export interface ProfessionalInfo {
 }
 
 /** Barber service structure */
-export interface BarberService {
-  id: string;
-  price: number;
-  duration: number;
-}
+export type BarberService = string; // e.g. "/services/buzzCut" or "services/fadeCut"
 
 /** Barber translation interface */
 export interface BarberTranslation {
@@ -47,19 +43,48 @@ export interface BarberTranslation {
 }
 
 /** Barber profile data */
-export interface Barber extends TimeStamps {
+export interface Barber {
   id: string;
-  personalInfo: BarberPersonalInfo;
-  professionalInfo: ProfessionalInfo;
-  availability: {
-    workingDays: number[];
-    workingHours: WorkingHours;
-    breaks: BreakTime[];
-  };
-  services: BarberService[];
-  translations: {
-    [key in Language]: BarberTranslation;
-  };
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
   image: string;
+  employeeId: string;
+  birthDate: string;
+  gender: 'male' | 'female' | 'other';
+  hireDate: string;
   isActive: boolean;
+  lastUpdated: string;
+  rating: number;
+  experienceYears: number;
+  branches: string[];
+  breaks: TimeRange[];
+  workingDays: number[];
+  workingHours: TimeRange[];
+  certifications: string[];
+  languages: string[];
+  specialties: string[];
+  services: string[];
+  bio: LocalizedText;
+  title: LocalizedText;
+}
+
+export interface BarberTranslations {
+  [key: string]: {
+    title: string;
+    bio: string;
+  };
+}
+
+export interface BarberAvailability {
+  workingDays: number[]; // 0-6 (Sunday-Saturday)
+  workingHours: {
+    start: string; // HH:mm format
+    end: string; // HH:mm format
+  };
+  breaks?: {
+    start: string;
+    end: string;
+  }[];
 } 

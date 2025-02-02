@@ -9,9 +9,9 @@ export const brand = {
     small: '/images/stock/logo.png'
   },
   colors: {
-    primary: '#1a1a1a',
-    secondary: '#4a4a4a',
-    accent: '#ffd700'
+    primary: '#0D0D0D',
+    secondary: '#1A1A1A',
+    accent: '#FFD700'
   }
 } as const;
 
@@ -26,6 +26,15 @@ export const layout = {
   },
   footer: {
     height: '12rem'
+  },
+  spacing: {
+    container: {
+      padding: '1rem',
+      maxWidth: '1280px'
+    },
+    section: {
+      padding: '2rem'
+    }
   }
 } as const;
 

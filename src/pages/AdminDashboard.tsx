@@ -6,7 +6,7 @@ import { appointmentService } from '../services/appointment.service';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function AdminDashboard() {
-  const { appointments, loading } = useAppointments();
+  const { appointments } = useAppointments();
   const { barbers } = useBarbers();
   const { services } = useServices();
   const { theme } = useTheme();
@@ -30,12 +30,12 @@ export default function AdminDashboard() {
 
   const getBarberName = (barberId: string) => {
     const barber = barbers.find(b => b.id === barberId);
-    return barber?.personalInfo.firstName && barber?.personalInfo.lastName ? `${barber?.personalInfo.firstName} ${barber?.personalInfo.lastName}` : 'Unknown Barber';
+    return barber?.firstName && barber?.lastName ? `${barber?.firstName} ${barber?.lastName}` : 'Unknown Barber';
   };
 
   const getServiceName = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
-    return service?.translations.en.name || 'Unknown Service';
+    return service?.name.en || 'Unknown Service';
   };
 
   const formatDate = (timestamp: any) => {
@@ -74,14 +74,6 @@ export default function AdminDashboard() {
       alert('Failed to update appointment status. Please try again.');
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.colors.background.primary }}>
-        <div className="loading loading-spinner loading-lg" style={{ color: theme.colors.accent.primary }}></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen p-6" style={{ backgroundColor: theme.colors.background.primary }}>
@@ -241,22 +233,22 @@ export default function AdminDashboard() {
                   <div className="flex items-start gap-4">
                     <img
                       src={barber.image}
-                      alt={barber.personalInfo.firstName && barber.personalInfo.lastName ? `${barber.personalInfo.firstName} ${barber.personalInfo.lastName}` : 'Unknown Barber'}
+                      alt={barber.firstName && barber.lastName ? `${barber.firstName} ${barber.lastName}` : 'Unknown Barber'}
                       className="w-24 h-24 rounded-lg object-cover"
                     />
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="text-lg font-semibold" style={{ color: theme.colors.text.primary }}>
-                            {barber.personalInfo.firstName && barber.personalInfo.lastName ? `${barber.personalInfo.firstName} ${barber.personalInfo.lastName}` : 'Unknown Barber'}
+                            {barber.firstName && barber.lastName ? `${barber.firstName} ${barber.lastName}` : 'Unknown Barber'}
                           </h3>
                           <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
-                            {barber.translations.en.bio}
+                            {barber.bio.en}
                           </p>
                         </div>
                         <div className="flex flex-col items-end">
                           <div style={{ color: theme.colors.status.warning }} className="text-lg">
-                            ⭐ {(barber.professionalInfo.rating || 0).toFixed(1)}
+                            ⭐ {(barber.rating || 0).toFixed(1)}
                           </div>
                           <span className="px-2 py-1 rounded text-xs font-semibold" style={{ 
                             backgroundColor: barber.isActive ? theme.colors.status.success : theme.colors.status.error,
@@ -268,19 +260,19 @@ export default function AdminDashboard() {
                       </div>
                       
                       <div className="mt-3" style={{ color: theme.colors.text.primary }}>
-                        <p className="text-sm"><strong>Bio:</strong> {barber.translations.en.bio}</p>
-                        <p className="text-sm mt-1"><strong>Specialties:</strong> {barber.professionalInfo.specialties}</p>
+                        <p className="text-sm"><strong>Bio:</strong> {barber.bio.en}</p>
+                        <p className="text-sm mt-1"><strong>Specialties:</strong> {barber.specialties.join(', ')}</p>
                       </div>
 
                       <div className="mt-3 flex flex-wrap gap-2" style={{ color: theme.colors.text.primary }}>
                         <div className="text-sm">
                           <strong>Working Days:</strong>{' '}
-                          {barber.availability.workingDays.map(day => 
+                          {barber.workingDays.map(day => 
                             ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][day - 1]
                           ).join(', ')}
                         </div>
                         <div className="text-sm">
-                          <strong>Hours:</strong> {barber.availability.workingHours.start} - {barber.availability.workingHours.end}
+                          <strong>Hours:</strong> {barber.workingHours.map(hour => `${hour.start} - ${hour.end}`).join(', ')}
                         </div>
                       </div>
                     </div>
@@ -301,16 +293,16 @@ export default function AdminDashboard() {
                 <div className="px-4 pt-4">
                   <img
                     src={service.image}
-                    alt={service.translations.en.name}
+                    alt={service.name.en}
                     className="rounded-lg w-full h-48 object-cover"
                   />
                 </div>
                 <div className="p-4">
                   <h3 className="text-lg font-semibold" style={{ color: theme.colors.text.primary }}>
-                    {service.translations.en.name}
+                    {service.name.en}
                   </h3>
                   <p className="text-sm mt-1" style={{ color: theme.colors.text.secondary }}>
-                    {service.translations.en.description}
+                    {service.description.en}
                   </p>
                   <div className="mt-4 flex justify-between items-center">
                     <span className="text-xl font-bold" style={{ color: theme.colors.accent.primary }}>

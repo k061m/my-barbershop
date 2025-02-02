@@ -49,12 +49,12 @@ export default function AdminUserProfilePage() {
 
   const getBarberName = (barberId: string) => {
     const barber = barbers.find(b => b.id === barberId);
-    return barber?.personalInfo.firstName && barber?.personalInfo.lastName ? `${barber?.personalInfo.firstName} ${barber?.personalInfo.lastName}` : 'Unknown Barber';
+    return barber?.firstName && barber?.lastName ? `${barber?.firstName} ${barber?.lastName}` : 'Unknown Barber';
   };
 
   const getServiceName = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
-    return service?.translations.en.name || 'Unknown Service';
+    return service?.name.en || 'Unknown Service';
   };
 
   const formatDate = (timestamp: any) => {

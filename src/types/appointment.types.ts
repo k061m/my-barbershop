@@ -1,16 +1,29 @@
-import { TimeStamps } from './common.types';
+import { Timestamp } from 'firebase/firestore';
 
 /** Appointment status type */
-export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
+export type AppointmentStatus = 
+  | 'pending'
+  | 'confirmed'
+  | 'cancelled'
+  | 'completed'
+  | 'no-show';
 
 /** Payment method type */
-export type PaymentMethod = 'credit_card' | 'cash' | 'bank_transfer';
+export type PaymentMethod =
+  | 'credit_card'
+  | 'debit_card'
+  | 'cash'
+  | 'gift_card';
 
 /** Payment status type */
-export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
+export type PaymentStatus =
+  | 'pending'
+  | 'completed'
+  | 'failed'
+  | 'refunded';
 
 /** Cancellation initiator type */
-export type CancellationInitiator = 'client' | 'barber';
+export type CancellationInitiator = 'client' | 'barber' | 'system';
 
 /** Cancellation information */
 export interface AppointmentCancellation {
@@ -45,20 +58,30 @@ export interface AppointmentFeedback {
 }
 
 /** Appointment data */
-export interface Appointment extends TimeStamps {
+export interface Appointment {
   id: string;
   barberId: string;
   userId: string;
   serviceId: string;
-  date: string;
+  branchId: string;
+  date: Date | Timestamp;
   endTime: string;
   status: AppointmentStatus;
-  cancellation?: AppointmentCancellation;
+  createdAt: string;
+  updatedAt: string;
+  cancellationreason?: string;
+  cancellationinitiatedBy?: CancellationInitiator;
   notes?: string;
   price: number;
-  payment: AppointmentPayment;
-  additionalServices?: string[];
-  clientPreferences?: ClientPreferences;
-  reminders: ReminderStatus;
-  feedback: AppointmentFeedback;
+  paymentstatus: PaymentStatus;
+  paymentmethod?: PaymentMethod;
+  paymenttransactionId?: string;
+  services: string[];
+  allergies?: string;
+  preferredProducts?: string;
+  reminderemailSent: boolean;
+  remindersmsSent: boolean;
+  feedbacksubmitted: boolean;
+  feedbackrating?: number;
+  feedbackcomment?: string;
 } 

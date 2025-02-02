@@ -1,4 +1,4 @@
-import { TimeStamps, Language } from './common.types';
+import { LocalizedText } from './common.types';
 
 /** Gallery image structure */
 export interface GalleryImage {
@@ -15,13 +15,23 @@ export interface GalleryTranslation {
 }
 
 /** Gallery item data */
-export interface GalleryItem extends TimeStamps {
+export interface GalleryItem {
   id: string;
-  category: string;
-  image: GalleryImage;
-  translations: {
-    [key in Language]: GalleryTranslation;
-  };
+  category: GalleryCategory;
+  url: string;
+  altText: string;
+  title: LocalizedText;
+  description: LocalizedText;
   relatedServices: string[];
   isFeatured: boolean;
-} 
+  lastUpdated: string;
+  appointmentId: string;
+  barberId: string;
+  userId: string;
+}
+
+export type GalleryCategory = 
+  | 'haircuts'
+  | 'beards'
+  | 'styling'
+  | 'grooming'; 

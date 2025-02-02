@@ -4,12 +4,13 @@
 
 @layer base {
   body {
-    @apply min-h-screen;
-    font-family: theme('typography.fontFamily.primary');
+    @apply min-h-screen bg-background-primary text-text-primary;
+    font-family: theme('fontFamily.primary');
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: theme('typography.fontFamily.secondary');
+    font-family: theme('fontFamily.secondary');
+    @apply text-text-primary font-bold;
   }
 }
 
@@ -19,47 +20,46 @@
   }
 
   .btn-primary {
-    @apply bg-[#FFD700] text-black hover:bg-[#FFC000];
+    @apply bg-accent-primary text-background-primary hover:bg-accent-hover;
   }
 
   .btn-secondary {
-    @apply bg-[#1E1E1E] text-white hover:bg-[#2A2A2A];
+    @apply bg-background-card text-text-primary hover:bg-background-hover;
   }
 
   .input {
-    @apply w-full px-4 py-2 rounded-md bg-[#1E1E1E] text-white border border-[#2A2A2A]
-    focus:outline-none focus:border-[#FFD700] transition-all duration-150;
+    @apply w-full px-4 py-2 rounded-md bg-background-secondary text-text-primary border border-background-hover
+    focus:outline-none focus:border-accent-primary transition-all duration-150;
   }
 
   .card {
-    @apply rounded-lg shadow-md overflow-hidden bg-[#242424] transition-all duration-150;
+    @apply rounded-lg shadow-md overflow-hidden bg-background-card transition-all duration-150;
   }
 
   .menu-item {
-    @apply px-3 py-2 rounded-md text-[#A0A0A0] hover:text-white hover:bg-[#2A2A2A]
+    @apply px-3 py-2 rounded-md text-text-secondary hover:text-text-primary hover:bg-background-hover
     transition-all duration-150;
   }
 
   .active-menu-item {
-    @apply bg-[#2A2A2A] text-white;
+    @apply bg-background-hover text-text-primary;
   }
 }
 
-/* Custom scrollbar for dark theme */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1E1E1E;
+  @apply bg-background-secondary;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2A2A2A;
-  border-radius: 4px;
+  @apply bg-background-hover rounded-md;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #303030;
+  @apply bg-background-active;
 } 

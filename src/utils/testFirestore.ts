@@ -2,6 +2,7 @@ import { collection, addDoc, getDocs, serverTimestamp, doc, setDoc, getDoc } fro
 import { db } from '../config/firebase';
 import { getAuth } from 'firebase/auth';
 
+
 export async function testFirestoreConnection() {
   const auth = getAuth();
   const user = auth.currentUser;
