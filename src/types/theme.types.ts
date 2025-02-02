@@ -172,10 +172,57 @@ export interface ZIndexConfig {
   tooltip: number;
 }
 
+/** Color configuration matching Tailwind config */
+export interface ThemeColors {
+  background: {
+    primary: string;
+    secondary: string;
+    card: string;
+    hover: string;
+    active: string;
+    modal: string;
+    overlay: string;
+  };
+  text: {
+    primary: string;
+    secondary: string;
+    muted: string;
+    inverse: string;
+    disabled: string;
+  };
+  accent: {
+    primary: string;
+    secondary: string;
+    hover: string;
+  };
+  status: {
+    success: string;
+    error: string;
+    warning: string;
+    info: string;
+  };
+}
+
+/** Component style variants */
+export interface ComponentVariants {
+  button: {
+    primary: string;
+    secondary: string;
+    danger: string;
+    ghost: string;
+  };
+  badge: {
+    success: string;
+    error: string;
+    warning: string;
+    info: string;
+  };
+}
+
 /** Theme configuration */
 export interface Theme {
   name: string;
-  colors: ColorConfig;
+  colors: ThemeColors;
   semanticColors: SemanticColors;
   fonts: FontConfig;
   spacing: SpacingConfig;
@@ -188,4 +235,10 @@ export interface Theme {
 }
 
 /** Available theme names */
-export type ThemeName = 'light' | 'dark' | 'system' | 'custom'; 
+export type ThemeName = 'light' | 'dark' | 'system';
+
+/** Button variants */
+export type ButtonVariant = keyof ComponentVariants['button'];
+
+/** Badge variants */
+export type BadgeVariant = keyof ComponentVariants['badge']; 

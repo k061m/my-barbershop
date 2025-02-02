@@ -13,7 +13,7 @@ import DashboardPage from './pages/DashboardPage';
 import BarbersPage from './pages/BarbersPage';
 import ServicesPage from './pages/ServicesPage';
 import GalleryPage from './pages/GalleryPage';
-import PrivateRoute from './components/PrivateRoute';
+import PrivateRoute from './components/auth/PrivateRoute';
 import AdminRoute from './components/auth/AdminRoute';
 import { lazy, Suspense } from 'react';
 import LoadingSpinner from './components/common/LoadingSpinner';

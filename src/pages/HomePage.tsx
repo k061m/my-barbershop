@@ -5,8 +5,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useBarbers } from '../hooks/useBarbers';
 import { useServices } from '../hooks/useServices';
 import { useBranches } from '../hooks/useBranches';
-import ServiceCard from '../components/services/ServiceCard';
+import ServiceCard from '../components/servicesPage/ServiceCard';
 import BarberCard from '../components/barbers/BarberCard';
+import { componentStyles } from '../config/theme';
 
 interface Content {
   homePage: {
@@ -144,21 +145,13 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => navigate('/booking')}
-              className="px-6 py-2 rounded-lg font-medium transition-colors hover:opacity-90"
-              style={{ 
-                backgroundColor: theme.colors.accent.primary,
-                color: theme.colors.background.primary
-              }}
+              className={`${componentStyles.button.base} ${componentStyles.button.primary}`}
             >
               Book Now
             </button>
             <button
               onClick={() => navigate('/services')}
-              className="px-6 py-2 rounded-lg font-medium transition-colors hover:opacity-90"
-              style={{ 
-                backgroundColor: theme.colors.accent.primary,
-                color: theme.colors.background.primary
-              }}
+              className={`${componentStyles.button.base} ${componentStyles.button.primary}`}
             >
               View All Services
             </button>
@@ -169,12 +162,20 @@ export default function HomePage() {
       <main className="container mx-auto px-4 py-12 space-y-16">
         {/* Featured Barbers */}
         <section>
-          <h2 
-            className="text-3xl font-bold text-center mb-8"
-            style={{ color: theme.colors.text.primary }}
-          >
-            Our Barbers
-          </h2>
+          <div className="flex justify-between items-center mb-8">
+            <h2 
+              className="text-3xl font-bold"
+              style={{ color: theme.colors.text.primary }}
+            >
+              Our Barbers
+            </h2>
+            <button
+              onClick={() => navigate('/barbers')}
+              className={`${componentStyles.button.base} ${componentStyles.button.primary}`}
+            >
+              View All Barbers
+            </button>
+          </div>
           <div className="relative group">
             <div className="overflow-x-auto hide-scrollbar">
               <div className="flex gap-6 pb-4" style={{ scrollBehavior: 'smooth' }}>
@@ -192,27 +193,25 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
-            <button
-              onClick={() => navigate('/barbers')}
-              className="px-6 py-2 rounded-lg font-medium transition-colors hover:opacity-90"
-              style={{ 
-                backgroundColor: theme.colors.accent.primary,
-                color: theme.colors.background.primary
-              }}
-            >
-              View All Barbers
-            </button>
           </div>
         </section>
 
         {/* Featured Services */}
         <section>
-          <h2 
-            className="text-3xl font-bold text-center mb-8"
-            style={{ color: theme.colors.text.primary }}
-          >
-            Our Services
-          </h2>
+          <div className="flex justify-between items-center mb-8">
+            <h2 
+              className="text-3xl font-bold"
+              style={{ color: theme.colors.text.primary }}
+            >
+              Our Services
+            </h2>
+            <button
+              onClick={() => navigate('/services')}
+              className={`${componentStyles.button.base} ${componentStyles.button.primary}`}
+            >
+              View All Services
+            </button>
+          </div>
           <div className="relative group">
             <div className="overflow-x-auto hide-scrollbar">
               <div className="flex gap-6 pb-4" style={{ scrollBehavior: 'smooth' }}>
@@ -243,11 +242,7 @@ export default function HomePage() {
             </h2>
             <button
               onClick={() => navigate('/branches')}
-              className="px-6 py-2 rounded-lg font-medium transition-colors hover:opacity-90"
-              style={{ 
-                backgroundColor: theme.colors.accent.primary,
-                color: theme.colors.background.primary
-              }}
+              className={`${componentStyles.button.base} ${componentStyles.button.primary}`}
             >
               View All Locations
             </button>
@@ -260,8 +255,11 @@ export default function HomePage() {
                     key={branch.id}
                     className="flex-none w-[400px]"
                   >
-                    <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 shadow-lg h-full">
-                      <div className="relative h-48 mb-4 rounded-lg overflow-hidden">
+                    <div 
+                      className="rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:-translate-y-1"
+                      style={{ backgroundColor: theme.colors.background.card }}
+                    >
+                      <div className="relative h-48">
                         <img
                           src={branch.image}
                           alt={branch.name}
@@ -276,52 +274,50 @@ export default function HomePage() {
                           <span style={{ color: theme.colors.text.secondary }}>({branch.reviews})</span>
                         </div>
                       </div>
-                      <h3 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
-                        {branch.name}
-                      </h3>
-                      <div className="space-y-3 mb-4" style={{ color: theme.colors.text.secondary }}>
-                        <p className="flex items-center gap-2">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <span className="line-clamp-1">
-                            {branch.address.street}, {branch.address.city}
-                          </span>
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span>
-                            {`${branch.workingHours.monday.open} - ${branch.workingHours.monday.close}`}
-                          </span>
-                        </p>
+                      <div className="p-6">
+                        <h3 className="text-xl font-semibold mb-4" style={{ color: theme.colors.text.primary }}>
+                          {branch.name}
+                        </h3>
+                        <div className="space-y-3 mb-4" style={{ color: theme.colors.text.secondary }}>
+                          <p className="flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="line-clamp-1">
+                              {branch.address.street}, {branch.address.city}
+                            </span>
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>
+                              {`${branch.workingHours.monday.open} - ${branch.workingHours.monday.close}`}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {branch.facilities.slice(0, 3).map((facility, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 rounded-full text-xs"
+                              style={{
+                                backgroundColor: theme.colors.background.hover,
+                                color: theme.colors.text.secondary
+                              }}
+                            >
+                              {facility}
+                            </span>
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => navigate(`/booking?branch=${branch.id}`)}
+                          className={`w-full ${componentStyles.button.base} ${componentStyles.button.primary}`}
+                        >
+                          Book at this Location
+                        </button>
                       </div>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {branch.facilities.slice(0, 3).map((facility, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 rounded-full text-xs"
-                            style={{
-                              backgroundColor: theme.colors.background.card,
-                              color: theme.colors.text.secondary
-                            }}
-                          >
-                            {facility}
-                          </span>
-                        ))}
-                      </div>
-                      <button
-                        onClick={() => navigate(`/booking?branch=${branch.id}`)}
-                        className="w-full px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:opacity-90"
-                        style={{ 
-                          backgroundColor: theme.colors.accent.primary,
-                          color: theme.colors.background.primary
-                        }}
-                      >
-                        Book at this Location
-                      </button>
                     </div>
                   </div>
                 ))}
@@ -335,11 +331,7 @@ export default function HomePage() {
           {!currentUser ? (
             <button
               onClick={() => navigate('/login')}
-              className="px-6 py-2 rounded-lg font-medium transition-colors hover:opacity-90"
-              style={{ 
-                backgroundColor: theme.colors.accent.primary,
-                color: theme.colors.background.primary
-              }}
+              className={`${componentStyles.button.base} ${componentStyles.button.primary}`}
             >
               {content.homePage.navigation.login}
             </button>
@@ -347,22 +339,14 @@ export default function HomePage() {
             <>
               <button
                 onClick={() => navigate('/dashboard')}
-                className="px-6 py-2 rounded-lg font-medium transition-colors hover:opacity-90"
-                style={{ 
-                  backgroundColor: theme.colors.accent.primary,
-                  color: theme.colors.background.primary
-                }}
+                className={`${componentStyles.button.base} ${componentStyles.button.primary}`}
               >
                 {content.homePage.navigation.dashboard}
               </button>
               {currentUser.email === 'admin@admin.admin' && (
                 <button
                   onClick={() => navigate('/admin')}
-                  className="px-6 py-2 rounded-lg font-medium transition-colors hover:opacity-90"
-                  style={{ 
-                    backgroundColor: theme.colors.accent.primary,
-                    color: theme.colors.background.primary
-                  }}
+                  className={`${componentStyles.button.base} ${componentStyles.button.primary}`}
                 >
                   {content.homePage.navigation.adminPanel}
                 </button>
@@ -371,11 +355,7 @@ export default function HomePage() {
           )}
           <button
             onClick={() => navigate('/about')}
-            className="px-6 py-2 rounded-lg font-medium transition-colors hover:opacity-90"
-            style={{ 
-              backgroundColor: theme.colors.accent.primary,
-              color: theme.colors.background.primary
-            }}
+            className={`${componentStyles.button.base} ${componentStyles.button.primary}`}
           >
             {content.homePage.navigation.aboutUs}
           </button>

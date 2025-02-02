@@ -1,6 +1,6 @@
 import { useTheme } from '../contexts/ThemeContext';
 import { useServices } from '../hooks/useServices';
-import ServiceCard from '../components/services/ServiceCard';
+import ServiceCard from '../components/servicesPage/ServiceCard';
 
 export default function ServicesPage() {
   const { theme } = useTheme();

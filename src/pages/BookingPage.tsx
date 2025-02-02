@@ -7,11 +7,11 @@ import { useBranches } from '../hooks/useBranches';
 import { useServices } from '../hooks/useServices';
 import { useBarbers } from '../hooks/useBarbers';
 import { useAuth } from '../contexts/AuthContext';
-import BranchSelectionStep from '../components/booking/BranchSelectionStep';
-import ServiceSelectionStep from '../components/booking/ServiceSelectionStep';
-import BarberSelectionStep from '../components/booking/BarberSelectionStep';
-import DateTimeSelectionStep from '../components/booking/DateTimeSelectionStep';
-import ConfirmationStep from '../components/booking/ConfirmationStep';
+import BranchSelectionStep from '../components/bookingPage/BranchSelectionStep';
+import ServiceSelectionStep from '../components/bookingPage/ServiceSelectionStep';
+import BarberSelectionStep from '../components/bookingPage/BarberSelectionStep';
+import DateTimeSelectionStep from '../components/bookingPage/DateTimeSelectionStep';
+import ConfirmationStep from '../components/bookingPage/ConfirmationStep';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
 import { appointmentService } from '../services/appointment.service';
@@ -85,6 +85,23 @@ export default function BookingPage() {
     }
 
     try {
+      setIsSubmitting(true);
+
+      // Check if user is authenticated first
+      if (!currentUser) {
+        // Save booking state to local storage
+        const bookingState = {
+          selectedBranch,
+          selectedService,
+          selectedBarber,
+          selectedDate,
+          selectedTime
+        };
+        localStorage.setItem('bookingState', JSON.stringify(bookingState));
+        navigate('/login?redirect=/booking');
+        return;
+      }
+
       // Format the date and time properly
       const [hours, minutes] = selectedTime.split(':');
       const appointmentDate = new Date(selectedDate);
@@ -95,10 +112,10 @@ export default function BookingPage() {
         throw new Error('Invalid date or time selected');
       }
       
-      // Create a temporary "pending" appointment
+      // Create appointment only if user is authenticated
       const pendingAppointment: PendingAppointment = {
         barberId: selectedBarber.id,
-        userId: currentUser!.uid,
+        userId: currentUser.uid,
         serviceId: selectedService.id,
         branchId: selectedBranch.id,
         date: appointmentDate,
@@ -106,11 +123,6 @@ export default function BookingPage() {
       };
 
       const appointmentId = await appointmentService.createAppointment(pendingAppointment);
-
-      if (!currentUser) {
-        navigate(`/login?redirect=/booking/confirmation/${appointmentId}`);
-        return;
-      }
 
       // Navigate to success page with booking details
       navigate('/booking/success', {

@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { reviewService } from '../services/review.service';
 import type { Review } from '../types';
-import ReviewCard from '../components/reviews/ReviewCard';
+import ReviewCard from '../components/reviewsPage/ReviewCard';
 
 export default function ReviewsPage() {
   const { theme } = useTheme();

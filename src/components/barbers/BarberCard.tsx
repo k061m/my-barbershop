@@ -2,9 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Barber } from '../../types';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useTheme } from '../../contexts/ThemeContext';
 import StarRating from '../common/StarRating';
 import BarberDetailsModal from './BarberDetailsModal';
+import Card from '../common/Card';
+import { componentStyles } from '../../config/theme';
 
 interface BarberCardProps {
   barber: Barber;
@@ -15,7 +16,6 @@ interface BarberCardProps {
 export default function BarberCard({ barber, showActions = true, onClick }: BarberCardProps) {
   const navigate = useNavigate();
   const { currentLanguage } = useLanguage();
-  const { theme } = useTheme();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const formatWorkingDays = (days: number[]) => {
@@ -28,109 +28,104 @@ export default function BarberCard({ barber, showActions = true, onClick }: Barb
     setIsModalOpen(true);
   };
 
+  const header = (
+    <div className="relative">
+      <img 
+        src={barber.image} 
+        alt={`${barber.firstName} ${barber.lastName}`}
+        className="w-full h-48 object-cover cursor-pointer"
+        onClick={handleImageOrNameClick}
+      />
+      <div 
+        className="absolute bottom-0 left-0 right-0 p-2 bg-background-card bg-opacity-50 backdrop-blur-sm"
+      >
+        <StarRating rating={barber.rating} size="sm" />
+      </div>
+    </div>
+  );
+
+  const footer = showActions && (
+    <button
+      onClick={() => navigate('/booking', { state: { selectedBarberId: barber.id } })}
+      className={`w-full ${componentStyles.button.primary}`}
+    >
+      Book Now
+    </button>
+  );
+
   return (
     <>
-      <div 
-        className="rounded-lg shadow-lg overflow-hidden transition-transform hover:scale-[1.02]"
-        style={{ backgroundColor: theme.colors.background.card }}
+      <Card
+        header={header}
+        footer={footer}
+        hover
         onClick={onClick}
       >
-        <div className="relative">
-          <img 
-            src={barber.image} 
-            alt={`${barber.firstName} ${barber.lastName}`}
-            className="w-full h-48 object-cover cursor-pointer"
-            onClick={handleImageOrNameClick}
-          />
-          <div 
-            className="absolute bottom-0 left-0 right-0 p-2"
-            style={{ backgroundColor: `${theme.colors.background.card}80` }}
-          >
-            <StarRating rating={barber.rating} size="sm" />
-          </div>
-        </div>
-
-        <div className="p-4 space-y-3">
+        <div className="space-y-3">
           <div>
             <h3 
-              className="text-xl font-bold cursor-pointer hover:opacity-80"
-              style={{ color: theme.colors.text.primary }}
+              className="text-xl font-bold cursor-pointer hover:opacity-80 text-text-primary"
               onClick={handleImageOrNameClick}
             >
               {`${barber.firstName} ${barber.lastName}`}
             </h3>
-            <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
+            <p className="text-sm text-text-secondary">
               {barber.title[currentLanguage]}
             </p>
           </div>
 
-          <p className="text-sm" style={{ color: theme.colors.text.secondary }}>
+          <p className="text-sm text-text-secondary">
             {barber.bio[currentLanguage]}
           </p>
 
           <div className="space-y-2">
             <div>
-              <span className="text-sm font-semibold" style={{ color: theme.colors.text.primary }}>
+              <span className="text-sm font-semibold text-text-primary">
                 Employee ID:
               </span>
-              <span className="text-sm ml-2" style={{ color: theme.colors.text.secondary }}>
+              <span className="text-sm ml-2 text-text-secondary">
                 {barber.employeeId}
               </span>
             </div>
 
             <div>
-              <span className="text-sm font-semibold" style={{ color: theme.colors.text.primary }}>
+              <span className="text-sm font-semibold text-text-primary">
                 Languages:
               </span>
-              <span className="text-sm ml-2" style={{ color: theme.colors.text.secondary }}>
+              <span className="text-sm ml-2 text-text-secondary">
                 {barber.languages.join(', ').toUpperCase()}
               </span>
             </div>
 
             <div>
-              <span className="text-sm font-semibold" style={{ color: theme.colors.text.primary }}>
+              <span className="text-sm font-semibold text-text-primary">
                 Working Days:
               </span>
-              <span className="text-sm ml-2" style={{ color: theme.colors.text.secondary }}>
+              <span className="text-sm ml-2 text-text-secondary">
                 {formatWorkingDays(barber.workingDays)}
               </span>
             </div>
 
             <div>
-              <span className="text-sm font-semibold" style={{ color: theme.colors.text.primary }}>
+              <span className="text-sm font-semibold text-text-primary">
                 Services:
               </span>
-              <span className="text-sm ml-2" style={{ color: theme.colors.text.secondary }}>
+              <span className="text-sm ml-2 text-text-secondary">
                 {barber.services.join(', ')}
               </span>
             </div>
 
             <div>
-              <span className="text-sm font-semibold" style={{ color: theme.colors.text.primary }}>
+              <span className="text-sm font-semibold text-text-primary">
                 Specialties:
               </span>
-              <span className="text-sm ml-2" style={{ color: theme.colors.text.secondary }}>
+              <span className="text-sm ml-2 text-text-secondary">
                 {barber.specialties.join(', ')}
               </span>
             </div>
           </div>
-
-          {showActions && (
-            <div className="pt-2">
-              <button
-                onClick={() => navigate('/booking', { state: { selectedBarberId: barber.id } })}
-                className="w-full py-2 rounded-lg font-medium transition-colors hover:opacity-90"
-                style={{ 
-                  backgroundColor: theme.colors.accent.primary,
-                  color: theme.colors.background.primary
-                }}
-              >
-                Book Now
-              </button>
-            </div>
-          )}
         </div>
-      </div>
+      </Card>
 
       <BarberDetailsModal
         barber={barber}

@@ -1,6 +1,6 @@
 import { useTheme } from '../contexts/ThemeContext';
 import { useBranches } from '../hooks/useBranches';
-import BranchCard from '../components/branches/BranchCard';
+import BranchCard from '../components/branchesPage/BranchCard';
 
 export default function BranchesPage() {
   const { theme } = useTheme();

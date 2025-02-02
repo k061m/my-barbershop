@@ -6,4 +6,5 @@ export * from './appointment.types';
 export * from './review.types';
 export * from './gallery.types';
 export * from './branch.types';
+export * from './theme.types';
 

@@ -1,17 +1,19 @@
-import { ReactNode } from 'react';
-import { useTheme } from '../../contexts/ThemeContext';
+import React from 'react';
+import { componentStyles } from '../../config/theme';
 
 interface CardProps {
   /** The content to be rendered inside the card */
-  children: ReactNode;
+  children: React.ReactNode;
   /** Optional className for additional styling */
   className?: string;
+  /** Optional header content */
+  header?: React.ReactNode;
+  /** Optional footer content */
+  footer?: React.ReactNode;
+  /** Whether to show hover effects */
+  hover?: boolean;
   /** Optional onClick handler */
   onClick?: () => void;
-  /** Whether to show hover effects */
-  hoverable?: boolean;
-  /** Optional image URL */
-  image?: string;
 }
 
 /**
@@ -29,36 +31,37 @@ interface CardProps {
  * </Card>
  * ```
  */
-export function Card({ 
+export default function Card({ 
   children, 
   className = '', 
-  onClick,
-  hoverable = false,
-  image 
+  header, 
+  footer, 
+  hover = false,
+  onClick
 }: CardProps) {
-  const { theme } = useTheme();
-
   return (
     <div 
       className={`
-        rounded-lg shadow-lg
-        ${hoverable ? 'transition-transform hover:scale-105 cursor-pointer' : ''}
+        ${componentStyles.card.base}
+        ${hover ? componentStyles.card.hover : ''}
+        ${onClick ? 'cursor-pointer' : ''}
         ${className}
       `}
       onClick={onClick}
-      style={{ backgroundColor: theme.colors.background.card }}
-      role={onClick ? 'button' : 'article'}
     >
-      {image && (
-        <img 
-          src={image} 
-          alt=""
-          className="w-full h-48 object-cover rounded-t-lg"
-        />
+      {header && (
+        <div className={componentStyles.card.header}>
+          {header}
+        </div>
       )}
-      <div className="p-4">
+      <div className={componentStyles.card.body}>
         {children}
       </div>
+      {footer && (
+        <div className={componentStyles.card.footer}>
+          {footer}
+        </div>
+      )}
     </div>
   );
 } 

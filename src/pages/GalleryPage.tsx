@@ -3,7 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { galleryService } from '../services/gallery.service';
 import type { GalleryItem, GalleryCategory } from '../types';
-import GalleryCard from '../components/gallery/GalleryCard';
+import GalleryCard from '../components/galleryPage/GalleryCard';
 
 const categories: ('All' | GalleryCategory)[] = ['All', 'haircuts', 'beards', 'styling', 'grooming'];
 
