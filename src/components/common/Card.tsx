@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 
+// Define the props interface for the Card component
 interface CardProps {
   /** The content to be rendered inside the card */
   children: React.ReactNode;
@@ -24,7 +25,7 @@ interface CardProps {
  * 
  * @component
  * @example
- * ```tsx
+ * ```
  * <Card className="p-4" hover>
  *   <h2>Card Title</h2>
  *   <p>Card content goes here</p>
@@ -39,6 +40,7 @@ export default function Card({
   hover = false,
   onClick
 }: CardProps) {
+  // Access the current theme from the ThemeContext
   const { theme } = useTheme();
 
   return (
@@ -53,16 +55,18 @@ export default function Card({
       `}
       onClick={onClick}
       style={{
-        backgroundColor: `${theme.colors.background.card}dd`,
+        // Apply theme-based styles
+        backgroundColor: `${theme.colors.background.card}dd`, // Semi-transparent background
         boxShadow: `0 4px 6px -1px ${theme.colors.text.muted}20, 
-                    0 2px 4px -1px ${theme.colors.text.muted}10`,
-        border: `1px solid ${theme.colors.border}15`
+                    0 2px 4px -1px ${theme.colors.text.muted}10`, // Subtle shadow
+        border: `1px solid ${theme.colors.border}15` // Light border
       }}
     >
       {/* Glass effect overlay */}
       <div 
         className="absolute inset-0 z-0"
         style={{
+          // Create a gradient background for the glass effect
           background: `linear-gradient(
             135deg,
             ${theme.colors.background.card}05 0%,
@@ -74,22 +78,25 @@ export default function Card({
 
       {/* Content container */}
       <div className="relative z-10">
+        {/* Render header if provided */}
         {header && (
           <div className="overflow-hidden">
             {header}
           </div>
         )}
         
+        {/* Main content area */}
         <div className="p-4">
           {children}
         </div>
 
+        {/* Render footer if provided */}
         {footer && (
           <div 
             className="p-4 mt-2"
             style={{
-              borderTop: `1px solid ${theme.colors.border}15`,
-              backgroundColor: `${theme.colors.background.secondary}20`
+              borderTop: `1px solid ${theme.colors.border}15`, // Light top border
+              backgroundColor: `${theme.colors.background.secondary}20` // Slightly different background
             }}
           >
             {footer}
@@ -102,6 +109,7 @@ export default function Card({
         <div 
           className="absolute inset-0 opacity-0 transition-opacity duration-300 hover:opacity-100"
           style={{
+            // Create a gradient background for the hover effect
             background: `linear-gradient(
               135deg,
               ${theme.colors.accent.primary}05 0%,
@@ -113,4 +121,4 @@ export default function Card({
       )}
     </div>
   );
-} 
+}
