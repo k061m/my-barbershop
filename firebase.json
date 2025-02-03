@@ -1,10 +1,16 @@
 {
+  // Configuration for Firebase Firestore
   "firestore": {
+    // Path to the Firestore security rules file
     "rules": "firestore.rules",
+    // Path to the Firestore indexes configuration file
     "indexes": "firestore.indexes.json"
   },
+  // Configuration for Firebase emulators
   "emulators": {
+    // Configuration for the Data Connect emulator
     "dataconnect": {
+      // Specifies the directory where the Data Connect emulator will store its data
       "dataDir": "dataconnect/.dataconnect/pgliteData"
     }
   }
