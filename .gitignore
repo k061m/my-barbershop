@@ -1,61 +1,63 @@
 # Dependencies
-/node_modules
-/.pnp
-.pnp.js
+/node_modules        # Ignore the node_modules directory (contains project dependencies)
+/.pnp                # Ignore the .pnp directory (used by Plug'n'Play package management)
+.pnp.js              # Ignore the .pnp.js file (also used by Plug'n'Play)
 
 # Testing
-/coverage
+/coverage            # Ignore the coverage directory (contains test coverage reports)
 
 # Production
-/build
-/dist
+/build               # Ignore the build directory (contains production-ready files)
+/dist                # Ignore the dist directory (alternative name for build output)
 
 # Misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Logs
-logs
-*.log
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Local Netlify folder
-.netlify
-
-# Generated directories
-/dataconnect-generated
-/firebase-export-data
-/dataconnect/.dataconnect/pgliteData
-/firestore-data
+.DS_Store            # Ignore macOS system files
+.env.local           # Ignore local environment variables file
+.env.development.local  # Ignore development-specific local environment variables
+.env.test.local      # Ignore test-specific local environment variables
+.env.production.local # Ignore production-specific local environment variables
+.env                 # Ignore the main environment variables file
 
 # Debug logs
-*-debug.log*
+npm-debug.log*       # Ignore npm debug logs
+yarn-debug.log*      # Ignore yarn debug logs
+yarn-error.log*      # Ignore yarn error logs
+
+# IDE
+.idea/               # Ignore JetBrains IDE settings
+.vscode/             # Ignore Visual Studio Code settings
+*.swp                # Ignore Vim swap files
+*.swo                # Ignore Vim swap files
+
+# Logs
+logs                 # Ignore log directory
+*.log                # Ignore all log files
+
+# Repeated entries (can be consolidated)
+node_modules         # Already covered above
+dist                 # Already covered above
+dist-ssr             # Ignore server-side rendering dist directory
+*.local              # Ignore all .local files
+
+# Editor directories and files
+.vscode/*            # Ignore all VSCode files except extensions.json
+!.vscode/extensions.json  # Keep extensions.json file
+.idea                # Already covered above
+.DS_Store            # Already covered above
+*.suo                # Ignore Visual Studio user option files
+*.ntvs*              # Ignore Node.js Tools for Visual Studio files
+*.njsproj            # Ignore Node.js project files for Visual Studio
+*.sln                # Ignore Visual Studio solution files
+*.sw?                # Ignore Vim swap files (more general than *.swp and *.swo)
+
+# Local Netlify folder
+.netlify             # Ignore Netlify configuration folder
+
+# Generated directories
+/dataconnect-generated  # Ignore generated data connection files
+/firebase-export-data   # Ignore exported Firebase data
+/dataconnect/.dataconnect/pgliteData  # Ignore PGLite data for dataconnect
+/firestore-data      # Ignore Firestore data
+
+# Debug logs (repeated, can be consolidated)
+*-debug.log*         # Ignore all debug log files
