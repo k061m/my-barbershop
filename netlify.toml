@@ -1,28 +1,44 @@
 [build]
+  # Build command: Run TypeScript compiler (tsc) with skipLibCheck flag, then build with Vite
   command = "CI= tsc --skipLibCheck && vite build"
+  # Directory where the built files will be published
   publish = "dist"
+  # Directory containing serverless functions
   functions = "netlify/functions"
 
 [build.environment]
+  # Specify Node.js version for the build environment
   NODE_VERSION = "18"
 
 [dev]
+  # Specify custom development framework
   framework = "#custom"
+  # Development command: Run Vite dev server with host flag
   command = "npm run dev:vite -- --host"
+  # Port on which the app is running locally
   targetPort = 3000
+  # Port on which Netlify Dev will expose your site
   port = 9999
+  # Directory to serve in development mode
   publish = "dist"
 
 [[redirects]]
+  # Redirect all paths to index.html (for single-page applications)
   from = "/*"
   to = "/index.html"
   status = 200
 
 [[headers]]
+  # Apply these headers to all files
   for = "/*"
   [headers.values]
+    # Prevent site from being embedded in iframes on other domains
     X-Frame-Options = "SAMEORIGIN"
+    # Enable browser's built-in XSS protection
     X-XSS-Protection = "1; mode=block"
+    # Content Security Policy: Define allowed sources for various resource types
     Content-Security-Policy = "default-src 'self' https://*.firebaseapp.com https://*.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseapp.com https://*.googleapis.com https://apis.google.com https://*.googletagmanager.com http://localhost:* https://localhost:*; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.googleapis.com https://*.gstatic.com https://*.firebaseapp.com https://api.dicebear.com; connect-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://firebaseinstallations.googleapis.com wss://*.firebaseio.com https://apis.google.com; frame-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://*.googletagmanager.com http://localhost:* https://localhost:*;"
+    # Control how much referrer information should be included with requests
     Referrer-Policy = "strict-origin-when-cross-origin"
+    # Prevent MIME type sniffing
     X-Content-Type-Options = "nosniff"
