@@ -3,6 +3,7 @@ import { brand } from '../../config/ui.config';
 import { logger } from '../../utils/debug';
 import { useEffect, useState } from 'react';
 
+// Define the props interface for the Logo component
 interface LogoProps {
   className?: string;
   width?: number | 'auto' | 'full';
@@ -22,14 +23,16 @@ export function Logo({
   containerClassName = '',
   fit = 'contain'
 }: LogoProps) {
+  // State to track if there's an error loading the logo
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    // Preload the logo image
+    // Preload the logo image to handle loading errors
     const img = new Image();
     img.src = brand.logo[variant];
     
     img.onload = () => {
+      // Log successful logo load
       logger.debug('Logo loaded successfully', {
         component: 'Logo',
         data: { variant, src: img.src }
@@ -37,14 +40,16 @@ export function Logo({
     };
 
     img.onerror = () => {
+      // Log error and update state if logo fails to load
       logger.error('Failed to load logo', {
         component: 'Logo',
         data: { variant, src: img.src }
       });
       setError(true);
     };
-  }, [variant]);
+  }, [variant]); // Re-run effect if variant changes
 
+  // Define container styles based on props
   const containerStyle = {
     padding: padding,
     width: width === 'full' ? '100%' : typeof width === 'number' ? `${width}px` : width,
@@ -65,6 +70,7 @@ export function Logo({
     );
   }
 
+  // Render the logo image
   return (
     <Link 
       to="/" 
@@ -75,8 +81,8 @@ export function Logo({
         src={brand.logo[variant]}
         alt={`${brand.name} Logo`}
         className={`object-${fit} w-full h-full ${className}`}
-        onError={() => setError(true)}
+        onError={() => setError(true)} // Set error state if image fails to load
       />
     </Link>
   );
-} 
+}
