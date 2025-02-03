@@ -1,11 +1,107 @@
-{
-  "compilerOptions": {
-    "composite": true,
-    "skipLibCheck": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "types": ["node"]
+/** 
+ * Tailwind CSS Configuration File
+ * This file defines the design system for the entire application, 
+ * customizing colors, typography, and plugins used in the project.
+ * 
+ * @type {import('tailwindcss').Config} 
+ */
+export default {
+  // Specify files to scan for Tailwind CSS class names
+  content: [
+    "./index.html",             // Include the main HTML file
+    "./src/**/*.{js,ts,jsx,tsx}", // Scan all JavaScript, TypeScript, JSX, and TSX files in the src folder
+  ],
+
+  // Theme customization section
+  theme: {
+    extend: {
+      // Custom color palette for the app
+      colors: {
+        // Background colors for various surfaces
+        background: {
+          primary: '#0D0D0D',   // Main background color for the app
+          secondary: '#1A1A1A', // Background color for secondary containers
+          card: '#242424',      // Background color for cards and elevated surfaces
+          hover: '#2A2A2A',     // Background color for hover state on interactive elements
+          active: '#383838',    // Background color for active/pressed state
+          modal: 'rgba(0, 0, 0, 0.75)',  // Background color for modal overlays
+          overlay: 'rgba(0, 0, 0, 0.5)'  // General overlay color
+        },
+        // Typography colors for text elements
+        text: {
+          primary: '#EAEAEA',   // Default text color
+          secondary: '#B3B3B3', // Secondary text color
+          muted: '#7A7A7A',     // Text for less important content
+          inverse: '#0D0D0D',   // Text color for light text on colored backgrounds
+          disabled: '#4A4A4A'   // Text color for disabled text elements
+        },
+        // Accent colors for branding and highlights
+        accent: {
+          primary: '#48BB78',   // Primary brand color (Green)
+          secondary: '#D4A976', // Secondary brand color (Gold)
+          hover: '#FFC000'      // Hover state color for accent elements (Yellow)
+        },
+        // Status colors for feedback and notifications
+        status: {
+          success: '#48BB78',   // Success state color (Green)
+          error: '#E53E3E',     // Error state color (Red)
+          warning: '#ECC94B',   // Warning state color (Yellow)
+          info: '#3182CE'       // Informational state color (Blue)
+        }
+      },
+
+      // Custom font families for the application
+      fontFamily: {
+        primary: ['Inter', 'system-ui', 'sans-serif'], // Main text font
+        secondary: ['Playfair Display', 'serif']      // Font for headings and accents
+      },
+
+      // Font size scale for different text elements (in rem units)
+      fontSize: {
+        xs: '0.75rem',     // 12px - Small labels
+        sm: '0.875rem',    // 14px - Secondary text
+        base: '1rem',      // 16px - Body text
+        lg: '1.125rem',    // 18px - Large text
+        xl: '1.25rem',     // 20px - Small headings
+        '2xl': '1.5rem',   // 24px - Medium headings
+        '3xl': '1.875rem', // 30px - Large headings
+        '4xl': '2.25rem'   // 36px - Extra large headings
+      }
+    }
   },
-  "include": ["vite.config.ts", "src/scripts/**/*"]
-} 
+
+  // Plugins configuration for extending Tailwind CSS functionality
+  plugins: [
+    require("daisyui") // DaisyUI plugin for pre-built UI components
+  ],
+
+  // DaisyUI theme configuration
+  daisyui: {
+    themes: [
+      {
+        // Custom theme definition for the app
+        mytheme: {
+          // Primary colors used throughout the theme
+          "primary": "#FFD700",           // Primary actions and highlights (Gold)
+          "primary-content": "#0D0D0D",   // Text color on primary color (Black)
+          "secondary": "#D4A976",         // Secondary actions (Gold)
+          "accent": "#FFC000",            // Accents and focus states (Yellow)
+          
+          // Neutral colors for the UI elements
+          "neutral": "#4A5568",           // Neutral elements (Grayish Blue)
+          
+          // Base colors for different surface levels
+          "base-100": "#0D0D0D",         // Main background (Black)
+          "base-200": "#1A1A1A",         // Elevated surfaces (Dark Gray)
+          "base-300": "#242424",         // Higher elevation surfaces (Medium Gray)
+          
+          // Status colors for feedback messages
+          "info": "#3182CE",             // Informational elements (Blue)
+          "success": "#48BB78",          // Success states (Green)
+          "warning": "#ECC94B",          // Warning states (Yellow)
+          "error": "#E53E3E",            // Error states (Red)
+        },
+      },
+    ],
+  },
+}
