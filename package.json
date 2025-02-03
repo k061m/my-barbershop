@@ -14,42 +14,77 @@
     "cleanup": "rimraf ./dist ./dataconnect-generated ./firebase-export-data ./dataconnect/.dataconnect/pgliteData ./firestore-data \"./firestore-debug.log\" \"./dataconnect-debug.log\""
   },
   "dependencies": {
+    // Custom Firebase connector for the project
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    // UI components for React
     "@headlessui/react": "latest",
+    // Icon set for React
     "@heroicons/react": "latest",
+    // Middleware for enabling CORS in Express
     "cors": "latest",
+    // Tailwind CSS component library
     "daisyui": "latest",
+    // Modern JavaScript date utility library
     "date-fns": "latest",
+    // Loads environment variables from a .env file
     "dotenv": "latest",
+    // Web application framework for Node.js
     "express": "latest",
+    // Firebase SDK for client-side operations
     "firebase": "latest",
+    // Firebase Admin SDK for server-side operations
     "firebase-admin": "latest",
+    // Animation library for React
     "framer-motion": "latest",
+    // Internationalization framework
     "i18next": "latest",
+    // Interactive maps library
     "leaflet": "latest",
+    // Core React library
     "react": "latest",
+    // React package for working with the DOM
     "react-dom": "latest",
+    // React bindings for i18next
     "react-i18next": "latest",
+    // Icon library for React
     "react-icons": "latest",
+    // React components for Leaflet maps
     "react-leaflet": "latest",
+    // Routing library for React applications
     "react-router-dom": "latest"
   },
   "devDependencies": {
+    // Types for Netlify serverless functions
     "@netlify/functions": "latest",
+    // TypeScript definitions for cors
     "@types/cors": "latest",
+    // TypeScript definitions for express
     "@types/express": "latest",
+    // TypeScript definitions for leaflet
     "@types/leaflet": "latest",
+    // TypeScript definitions for Node.js
     "@types/node": "latest",
+    // TypeScript definitions for React
     "@types/react": "latest",
+    // TypeScript definitions for ReactDOM
     "@types/react-dom": "latest",
+    // Vite plugin for React with SWC compiler
     "@vitejs/plugin-react-swc": "latest",
+    // PostCSS plugin to parse CSS and add vendor prefixes
     "autoprefixer": "latest",
+    // Netlify command-line interface
     "netlify-cli": "latest",
+    // Tool for transforming CSS with JavaScript
     "postcss": "latest",
+    // Cross-platform tool for deleting files and directories
     "rimraf": "latest",
+    // Utility-first CSS framework
     "tailwindcss": "latest",
+    // TypeScript execution and REPL for Node.js
     "ts-node": "latest",
+    // TypeScript language
     "typescript": "latest",
+    // Next-generation frontend tooling
     "vite": "latest"
   }
 }
