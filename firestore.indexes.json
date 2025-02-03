@@ -1,19 +1,31 @@
 {
+  // Define the indexes for Firestore collections
   "indexes": [
     {
+      // Specify the collection to be indexed
       "collectionGroup": "appointments",
+
+      // Set the scope of the query to the entire collection
       "queryScope": "COLLECTION",
+
+      // Define the fields to be indexed and their order
       "fields": [
         {
+          // First field to index: userId
           "fieldPath": "userId",
+          // Sort order for userId: ascending
           "order": "ASCENDING"
         },
         {
+          // Second field to index: date
           "fieldPath": "date",
+          // Sort order for date: descending
           "order": "DESCENDING"
         }
       ]
     }
   ],
+
+  // No field overrides are specified in this configuration
   "fieldOverrides": []
 }
