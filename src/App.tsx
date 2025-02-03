@@ -33,26 +33,35 @@ import AboutPage from './pages/AboutPage';
 // Lazy load routes
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const BookingPage = lazy(() => import('./pages/BookingPage'));
+// Explanation: These lines use React's lazy loading feature to import components only when needed, improving initial load time.
 
 export default function App() {
   return (
     <BrowserRouter>
+      {/* Explanation: BrowserRouter is used to enable routing in the application */}
       <AuthProvider>
+        {/* Explanation: AuthProvider likely manages authentication state throughout the app */}
         <ThemeProvider>
+          {/* Explanation: ThemeProvider probably handles theming for the application */}
           <LanguageProvider>
+            {/* Explanation: LanguageProvider likely manages internationalization */}
             <div className="min-h-screen flex flex-col" style={{ 
               backgroundColor: theme.colors.background.primary,
               color: theme.colors.text.primary,
               transition: 'background-color 0.3s ease, color 0.3s ease'
             }}>
+              {/* Explanation: This div sets up the main container for the app, applying theme colors and a smooth transition for theme changes */}
               <Routes>
+                {/* Explanation: Routes component from react-router-dom defines the routing structure */}
                 <Route element={<Layout />}>
+                  {/* Explanation: Layout component is likely a common wrapper for all routes */}
                   <Route index element={<HomePage />} />
                   <Route path="login" element={<LoginPage />} />
                   <Route path="register" element={<RegisterPage />} />
                   <Route path="about" element={<AboutPage />} />
                   
                   {/* Forgot Password Flow */}
+                  {/* Explanation: This nested route structure handles the forgot password process */}
                   <Route path="forgot-password">
                     <Route index element={<ForgotPasswordPage />} />
                     <Route path="email" element={<ForgotPasswordViaEmailPage />} />
@@ -64,6 +73,7 @@ export default function App() {
                   </Route>
 
                   {/* Redirect /reset-password to /forgot-password/reset */}
+                  {/* Explanation: These routes handle redirects for backward compatibility or user-friendly URLs */}
                   <Route 
                     path="reset-password" 
                     element={<Navigate to="/forgot-password/reset" replace />} 
@@ -81,6 +91,7 @@ export default function App() {
                   <Route path="contact" element={<ContactPage />} />
                   
                   {/* Protected Routes */}
+                  {/* Explanation: These routes are wrapped in components that likely check for user authentication before rendering */}
                   <Route 
                     path="dashboard" 
                     element={
@@ -101,6 +112,7 @@ export default function App() {
                       </Suspense>
                     } 
                   />
+                  {/* Explanation: Suspense is used here for lazy-loaded components, showing a loading spinner while the component loads */}
                   <Route 
                     path="booking/success" 
                     element={
@@ -112,6 +124,7 @@ export default function App() {
                   <Route path="/booking/:id" element={<AppointmentDetailsPage />} />
                   
                   {/* Admin Routes */}
+                  {/* Explanation: This route is protected by AdminRoute and uses lazy loading for the AdminDashboard */}
                   <Route 
                     path="admin/*" 
                     element={
@@ -130,4 +143,4 @@ export default function App() {
       </AuthProvider>
     </BrowserRouter>
   );
-} 
+}
