@@ -7,22 +7,30 @@ import Navbar from './Navbar';
 import BackArrow from '../common/BackArrow';
 
 export default function Layout() {
+  // Hook for programmatic navigation
   const navigate = useNavigate();
+  // Hook to access current location
   const location = useLocation();
+  // Custom hook to access authentication context
   const { currentUser, logout } = useAuth();
+  // State to control drawer open/close
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  // Function to check if a given path is currently active
   const isActive = (path: string) => location.pathname === path;
 
+  // Function to handle navigation with authentication check
   const handleAuthRedirect = (path: string) => {
     if (currentUser) {
       navigate(path);
     } else {
+      // Redirect to login if user is not authenticated, saving the intended destination
       navigate('/login', { state: { from: location.pathname } });
     }
     setIsDrawerOpen(false);
   };
 
+  // Function to handle user logout
   const handleLogout = async () => {
     try {
       await logout();
@@ -35,6 +43,7 @@ export default function Layout() {
 
   return (
     <div className="drawer relative" style={{ backgroundColor: theme.colors.background.primary }}>
+      {/* Checkbox input to control drawer state */}
       <input 
         id="my-drawer" 
         type="checkbox" 
@@ -44,52 +53,56 @@ export default function Layout() {
       />
       
       <div className="drawer-content flex flex-col">
-        {/* Back Arrow */}
+        {/* Back Arrow component */}
         <BackArrow />
-        
+   
         {/* Main Content */}
-        <main 
-          className="flex-1 relative pb-20" 
-          style={{ backgroundColor: theme.colors.background.primary }}
-        >
-          <Outlet />
-        </main>
+<main 
+  className="flex-1 relative pb-20" 
+  style={{ backgroundColor: theme.colors.background.primary }}
+>
+  {/* Outlet is likely a React Router component for rendering nested routes */}
+  <Outlet />
+</main>
 
-        {/* Navbar */}
-        <Navbar />
+{/* Navbar component */}
+<Navbar />
 
-        {/* Footer */}
-        <footer 
-          className="py-8"
-          style={{ backgroundColor: theme.colors.background.secondary }}
-        >
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="mb-4 md:mb-0 w-full max-w-[200px]">
-                <Logo 
-                  variant="light" 
-                  width="full"
-                  height={50}
-                  padding="0.5rem"
-                  containerClassName="hover:opacity-90 transition-opacity"
-                  fit="contain"
-                />
-              </div>
-            </div>
-          </div>
-        </footer>
+{/* Footer section */}
+<footer 
+  className="py-8"
+  style={{ backgroundColor: theme.colors.background.secondary }}
+>
+  <div className="container mx-auto px-4">
+    <div className="flex flex-col md:flex-row justify-between items-center">
+      <div className="mb-4 md:mb-0 w-full max-w-[200px]">
+        {/* Logo component with various props */}
+        <Logo 
+          variant="light" 
+          width="full"
+          height={50}
+          padding="0.5rem"
+          containerClassName="hover:opacity-90 transition-opacity"
+          fit="contain"
+        />
       </div>
+    </div>
+  </div>
+</footer>
+</div>
 
-      {/* Drawer Side */}
-      <div className="drawer-side z-50">
-        <label htmlFor="my-drawer" className="drawer-overlay"></label>
-        <ul 
-          className="menu p-4 w-80 min-h-full text-base-content"
-          style={{ 
-            backgroundColor: theme.colors.background.secondary,
-            color: theme.colors.text.primary
-          }}
-        >
+{/* Drawer Side - likely part of a responsive sidebar or menu */}
+<div className="drawer-side z-50">
+  {/* Label acting as an overlay for the drawer */}
+  <label htmlFor="my-drawer" className="drawer-overlay"></label>
+  {/* Menu list for the drawer */}
+  <ul 
+    className="menu p-4 w-80 min-h-full text-base-content"
+    style={{ 
+      backgroundColor: theme.colors.background.secondary,
+      color: theme.colors.text.primary
+    }}
+  >
           <li className="menu-title" style={{ color: theme.colors.text.secondary }}>Navigation</li>
           <li>
             <a 
