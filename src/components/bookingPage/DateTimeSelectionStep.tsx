@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { format, addDays, isSameDay, subDays, isBefore, startOfDay, getDay } from 'date-fns';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
@@ -6,6 +6,7 @@ import { appointmentService } from '../../services/appointment.service';
 import { useBarbers } from '../../hooks/useBarbers';
 import LoadingSpinner from '../common/LoadingSpinner';
 
+// Interface for component props
 interface DateTimeSelectionStepProps {
   selectedDate: string;
   selectedTime: string;
@@ -16,6 +17,7 @@ interface DateTimeSelectionStepProps {
   onSelectTime: (time: string) => void;
 }
 
+// Main component
 export default function DateTimeSelectionStep({
   selectedDate,
   selectedTime,
@@ -33,18 +35,18 @@ export default function DateTimeSelectionStep({
   const { barbers } = useBarbers();
 
   // Get selected barber
-  const selectedBarber = barbers.find(b => b.id === barberId);
+  const selectedBarber = useMemo(() => barbers.find(b => b.id === barberId), [barbers, barberId]);
 
   // Define all possible time slots
-  const allTimeSlots = [
+  const allTimeSlots = useMemo(() => [
     '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
     '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
     '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
     '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'
-  ];
+  ], []);
 
   // Check if a time is within working hours
-  const isWithinWorkingHours = (time: string): boolean => {
+  const isWithinWorkingHours = useCallback((time: string): boolean => {
     if (!selectedBarber?.workingHours?.[0]?.start || !selectedBarber?.workingHours?.[1]?.end) {
       return false;
     }
@@ -58,10 +60,10 @@ export default function DateTimeSelectionStep({
     const endValue = endHours * 60 + endMinutes;
 
     return timeValue >= startValue && timeValue <= endValue;
-  };
+  }, [selectedBarber]);
 
   // Check if a time is during a break
-  const isDuringBreak = (time: string): boolean => {
+  const isDuringBreak = useCallback((time: string): boolean => {
     if (!selectedBarber?.breaks) return false;
 
     const [hours, minutes] = time.split(':').map(Number);
@@ -79,27 +81,29 @@ export default function DateTimeSelectionStep({
       }
       return false;
     });
-  };
+  }, [selectedBarber]);
 
   // Check if a date is a working day
-  const isWorkingDay = (date: Date): boolean => {
+  const isWorkingDay = useCallback((date: Date): boolean => {
     if (!selectedBarber?.workingDays) return false;
     const dayOfWeek = getDay(date); // 0 = Sunday, 1 = Monday, etc.
     return selectedBarber.workingDays.includes(dayOfWeek);
-  };
+  }, [selectedBarber]);
 
   // Generate next 7 days from the start date
-  const dates = Array.from({ length: 7 }, (_, i) => addDays(startDate, i))
-    .filter(date => !isBefore(date, startOfDay(new Date()))); // Only show future dates
+  const dates = useMemo(() => 
+    Array.from({ length: 7 }, (_, i) => addDays(startDate, i))
+      .filter(date => !isBefore(date, startOfDay(new Date()))), // Only show future dates
+  [startDate]);
 
   // Navigate dates
-  const handlePrevWeek = () => {
+  const handlePrevWeek = useCallback(() => {
     setStartDate(prevDate => subDays(prevDate, 7));
-  };
+  }, []);
 
-  const handleNextWeek = () => {
+  const handleNextWeek = useCallback(() => {
     setStartDate(prevDate => addDays(prevDate, 7));
-  };
+  }, []);
 
   // Load available time slots when date changes
   useEffect(() => {
@@ -142,39 +146,39 @@ export default function DateTimeSelectionStep({
     } else {
       setAvailableTimeSlots([]);
     }
-  }, [selectedDate, branchId, barberId, serviceDuration, selectedBarber]);
+  }, [selectedDate, branchId, barberId, serviceDuration, selectedBarber, allTimeSlots, isWithinWorkingHours, isDuringBreak, isWorkingDay]);
 
   // Format time slot for display
-  const formatTimeSlot = (time: string): string => {
+  const formatTimeSlot = useCallback((time: string): string => {
     const [hours, minutes] = time.split(':');
     const date = new Date();
     date.setHours(parseInt(hours, 10));
     date.setMinutes(parseInt(minutes, 10));
     return format(date, 'h:mm a');
-  };
+  }, []);
 
   // Check if a time slot is in the past
-  const isTimeSlotInPast = (date: string, time: string): boolean => {
+  const isTimeSlotInPast = useCallback((date: string, time: string): boolean => {
     if (!isSameDay(new Date(date), new Date())) return false;
     const [hours, minutes] = time.split(':');
     const slotTime = new Date();
     slotTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
     return isBefore(slotTime, new Date());
-  };
+  }, []);
 
   // Get reason why time slot is not available
-  const getUnavailabilityReason = (date: string, time: string): string => {
+  const getUnavailabilityReason = useCallback((date: string, time: string): string => {
     if (isPast(date, time)) return 'Past';
     if (!isWorkingDay(new Date(date))) return 'Not a working day';
     if (!isWithinWorkingHours(time)) return 'Outside working hours';
     if (isDuringBreak(time)) return 'Break time';
     return 'Unavailable';
-  };
+  }, [isWorkingDay, isWithinWorkingHours, isDuringBreak]);
 
   // Check if time is past
-  const isPast = (date: string, time: string): boolean => {
+  const isPast = useCallback((date: string, time: string): boolean => {
     return selectedDate ? isTimeSlotInPast(date, time) : false;
-  };
+  }, [selectedDate, isTimeSlotInPast]);
 
   if (error) {
     return (
