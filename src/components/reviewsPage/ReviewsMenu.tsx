@@ -1,3 +1,4 @@
+// Import necessary dependencies and components
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -6,11 +7,14 @@ import ReviewCard from './ReviewCard';
 import { cardVariants, transitions } from '../../config/transitions';
 
 export default function ReviewsMenu() {
+  // Hook to programmatically navigate
   const navigate = useNavigate();
+  // Hook to access the current theme
   const { theme } = useTheme();
+  // Custom hook to fetch reviews, limiting to 10
   const { reviews, isLoading } = useReviews(10);
 
-
+  // Display a loading skeleton while data is being fetched
   if (isLoading) {
     return (
       <div className="w-full animate-pulse">
@@ -26,8 +30,10 @@ export default function ReviewsMenu() {
     );
   }
 
+  // Main component render
   return (
     <div className="w-full">
+      {/* Header section with title, review count, and "View All" button */}
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-3">
           <h2 
@@ -52,8 +58,10 @@ export default function ReviewsMenu() {
         </button>
       </div>
 
+      {/* Horizontally scrollable review cards container */}
       <div className="overflow-x-auto hide-scrollbar">
         <div className="flex gap-6 pb-4" style={{ scrollBehavior: 'smooth' }}>
+          {/* Map through reviews and render ReviewCard components */}
           {reviews?.slice(0, 8).map((review, index) => (
             <motion.div
               key={review.id}
@@ -75,4 +83,4 @@ export default function ReviewsMenu() {
       </div>
     </div>
   );
-} 
+}
