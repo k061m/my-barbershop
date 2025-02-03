@@ -2,42 +2,55 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Helper functions
+    
+    // Checks if the request is coming from an authenticated user
     function isAuthenticated() {
       return request.auth != null;
     }
     
+    // Checks if the authenticated user has an admin email
     function isAdmin() {
       return request.auth.token.email == 'admin@admin.admin';
     }
     
+    // Checks if the authenticated user is the owner of the document
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
     
     // User profiles
     match /users/{userId} {
+      // Allow read if the user is authenticated and either the owner or an admin
       allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      // Allow write if the user is authenticated and either the owner or an admin
       allow write: if isAuthenticated() && (isOwner(userId) || isAdmin());
     }
     
     // Barbers collection
     match /barbers/{barberId} {
+      // Allow public read access to barber information
       allow read: if true;
+      // Only allow admins to modify barber information
       allow write: if isAuthenticated() && isAdmin();
     }
     
     // Services collection
     match /services/{serviceId} {
+      // Allow public read access to service information
       allow read: if true;
+      // Only allow admins to modify service information
       allow write: if isAuthenticated() && isAdmin();
     }
     
     // Appointments collection
     match /appointments/{appointmentId} {
+      // Allow read if the user is authenticated and either the appointment owner or an admin
       allow read: if isAuthenticated() && (
         resource.data.userId == request.auth.uid || isAdmin()
       );
+      // Allow any authenticated user to create an appointment
       allow create: if isAuthenticated();
+      // Allow update or delete if the user is authenticated and either the appointment owner or an admin
       allow update, delete: if isAuthenticated() && (
         resource.data.userId == request.auth.uid || isAdmin()
       );
@@ -45,14 +58,19 @@ service cloud.firestore {
     
     // Gallery collection
     match /gallery/{imageId} {
-      allow read: if true;  // Allow public read access
+      // Allow public read access to gallery images
+      allow read: if true;
+      // Only allow admins to add, update, or delete gallery images
       allow create, update, delete: if isAuthenticated() && isAdmin();
     }
     
     // Reviews collection
     match /reviews/{reviewId} {
+      // Allow public read access to reviews
       allow read: if true;
+      // Allow any authenticated user to create a review
       allow create: if isAuthenticated();
+      // Only allow admins to modify or delete reviews
       allow update, delete: if isAdmin();
     }
   }
