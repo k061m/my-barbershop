@@ -1,65 +1,81 @@
+/* Import Tailwind CSS base styles, components, and utilities */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Custom base styles */
 @layer base {
   body {
     @apply min-h-screen bg-background-primary text-text-primary;
     font-family: theme('fontFamily.primary');
+    /* Set minimum height, background color, text color, and primary font family for the body */
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: theme('fontFamily.secondary');
     @apply text-text-primary font-bold;
+    /* Apply secondary font family, primary text color, and bold weight to headings */
   }
 }
 
+/* Custom component styles */
 @layer components {
   .btn {
     @apply px-4 py-2 rounded-md font-medium transition-all duration-150;
+    /* Base button styles: padding, rounded corners, medium font weight, and transition effect */
   }
 
   .btn-primary {
     @apply bg-accent-primary text-background-primary hover:bg-accent-hover;
+    /* Primary button: accent background, light text, hover effect */
   }
 
   .btn-secondary {
     @apply bg-background-card text-text-primary hover:bg-background-hover;
+    /* Secondary button: card background, primary text color, hover effect */
   }
 
   .input {
     @apply w-full px-4 py-2 rounded-md bg-background-secondary text-text-primary border border-background-hover
     focus:outline-none focus:border-accent-primary transition-all duration-150;
+    /* Input field styles: full width, padding, colors, border, focus effect, and transition */
   }
 
   .card {
     @apply rounded-lg shadow-md overflow-hidden bg-background-card transition-all duration-150;
+    /* Card component: rounded corners, shadow, overflow handling, background color, and transition */
   }
 
   .menu-item {
     @apply px-3 py-2 rounded-md text-text-secondary hover:text-text-primary hover:bg-background-hover
     transition-all duration-150;
+    /* Menu item: padding, colors, hover effect, and transition */
   }
 
   .active-menu-item {
     @apply bg-background-hover text-text-primary;
+    /* Active menu item: background and text color */
   }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar styles */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
+  /* Set width and height of the scrollbar */
 }
 
 ::-webkit-scrollbar-track {
   @apply bg-background-secondary;
+  /* Style the scrollbar track */
 }
 
 ::-webkit-scrollbar-thumb {
   @apply bg-background-hover rounded-md;
+  /* Style the scrollbar thumb */
 }
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-background-active;
-} 
+  /* Style the scrollbar thumb on hover */
+}
