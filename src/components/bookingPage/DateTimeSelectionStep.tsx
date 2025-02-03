@@ -200,138 +200,148 @@ export default function DateTimeSelectionStep({
         Select Date & Time
       </h2>
 
-      {/* Date Selection */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 
-            className="text-lg font-medium"
-            style={{ color: theme.colors.text.primary }}
-          >
-            {format(startDate, 'MMMM yyyy')}
-          </h3>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrevWeek}
-              className="p-2 rounded-full hover:opacity-80 transition-opacity"
-              style={{ backgroundColor: theme.colors.background.secondary }}
-              disabled={isSameDay(startDate, new Date())}
-            >
-              <FaChevronLeft style={{ color: theme.colors.text.primary }} />
-            </button>
-            <button
-              onClick={handleNextWeek}
-              className="p-2 rounded-full hover:opacity-80 transition-opacity"
-              style={{ backgroundColor: theme.colors.background.secondary }}
-            >
-              <FaChevronRight style={{ color: theme.colors.text.primary }} />
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-7 gap-2">
-          {dates.map(date => {
-            const isWorkDay = isWorkingDay(date);
-            
-            return (
-              <button
-                key={date.toISOString()}
-                onClick={() => onSelectDate(date.toISOString())}
-                className={`p-2 rounded-lg flex flex-col items-center ${
-                  selectedDate && isSameDay(new Date(selectedDate), date)
-                    ? 'ring-2 ring-accent'
-                    : ''
-                }`}
-                style={{ 
-                  backgroundColor: theme.colors.background.secondary,
-                  color: theme.colors.text.primary,
-                  opacity: !isWorkDay || isBefore(date, startOfDay(new Date())) ? 0.5 : 1,
-                  cursor: !isWorkDay ? 'not-allowed' : 'pointer'
-                }}
-                disabled={!isWorkDay || isBefore(date, startOfDay(new Date()))}
-                title={!isWorkDay ? 'Not a working day' : undefined}
-              >
-                <span className="text-xs" style={{ color: theme.colors.text.secondary }}>
-                  {format(date, 'EEE')}
-                </span>
-                <span className="text-lg font-medium">
-                  {format(date, 'd')}
-                </span>
-                {!isWorkDay && (
-                  <span className="text-xs mt-1" style={{ color: theme.colors.text.secondary }}>
-                    Off
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Time Selection */}
-      <div>
-        <h3 
-          className="text-lg font-medium mb-4"
-          style={{ color: theme.colors.text.primary }}
-        >
-          Available Times
-        </h3>
-        {isLoading ? (
-          <div className="flex justify-center">
-            <LoadingSpinner />
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-2">
-            {allTimeSlots.map(time => {
-              const isAvailable = availableTimeSlots.includes(time);
-              const isPastTime = selectedDate ? isTimeSlotInPast(selectedDate, time) : false;
-              const isDisabled = !isAvailable || isPastTime;
-              const unavailabilityReason = getUnavailabilityReason(selectedDate, time);
-
-              return (
-                <button
-                  key={time}
-                  onClick={() => !isDisabled && onSelectTime(time)}
-                  className={`py-2 px-4 rounded-lg transition-all ${
-                    selectedTime === time ? 'ring-2 ring-accent' : ''
-                  }`}
-                  style={{ 
-                    backgroundColor: theme.colors.background.secondary,
-                    color: theme.colors.text.primary,
-                    opacity: isDisabled ? 0.5 : 1,
-                    cursor: isDisabled ? 'not-allowed' : 'pointer'
-                  }}
-                  disabled={isDisabled}
-                  title={isDisabled ? unavailabilityReason : undefined}
-                >
-                  {formatTimeSlot(time)}
-                  {isDisabled && (
-                    <div className="text-xs mt-1" style={{ color: theme.colors.text.secondary }}>
-                      {unavailabilityReason}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-            {selectedDate && !isLoading && (
-              !isWorkingDay(new Date(selectedDate)) ? (
-                <div 
-                  className="col-span-3 text-center py-4"
-                  style={{ color: theme.colors.text.secondary }}
-                >
-                  This is not a working day for the selected barber.
-                </div>
-              ) : availableTimeSlots.length === 0 ? (
-                <div 
-                  className="col-span-3 text-center py-4"
-                  style={{ color: theme.colors.text.secondary }}
-                >
-                  No available time slots for this date.
-                </div>
-              ) : null
-            )}
-          </div>
-        )}
-      </div>
+{/* Date Selection Section */}
+<div>
+  {/* Header with month/year display and navigation buttons */}
+  <div className="flex items-center justify-between mb-4">
+    {/* Display current month and year */}
+    <h3 
+      className="text-lg font-medium"
+      style={{ color: theme.colors.text.primary }}
+    >
+      {format(startDate, 'MMMM yyyy')}
+    </h3>
+    {/* Navigation buttons for previous and next week */}
+    <div className="flex items-center gap-2">
+      {/* Previous week button */}
+      <button
+        onClick={handlePrevWeek}
+        className="p-2 rounded-full hover:opacity-80 transition-opacity"
+        style={{ backgroundColor: theme.colors.background.secondary }}
+        disabled={isSameDay(startDate, new Date())} // Disable if it's the current date
+      >
+        <FaChevronLeft style={{ color: theme.colors.text.primary }} />
+      </button>
+      {/* Next week button */}
+      <button
+        onClick={handleNextWeek}
+        className="p-2 rounded-full hover:opacity-80 transition-opacity"
+        style={{ backgroundColor: theme.colors.background.secondary }}
+      >
+        <FaChevronRight style={{ color: theme.colors.text.primary }} />
+      </button>
     </div>
-  );
-} 
+  </div>
+
+  {/* Calendar grid for date selection */}
+  <div className="grid grid-cols-7 gap-2">
+    {dates.map(date => {
+      const isWorkDay = isWorkingDay(date);
+      
+      return (
+        <button
+          key={date.toISOString()}
+          onClick={() => onSelectDate(date.toISOString())}
+          className={`p-2 rounded-lg flex flex-col items-center ${
+            selectedDate && isSameDay(new Date(selectedDate), date)
+              ? 'ring-2 ring-accent'
+              : ''
+          }`}
+          style={{ 
+            backgroundColor: theme.colors.background.secondary,
+            color: theme.colors.text.primary,
+            opacity: !isWorkDay || isBefore(date, startOfDay(new Date())) ? 0.5 : 1,
+            cursor: !isWorkDay ? 'not-allowed' : 'pointer'
+          }}
+          disabled={!isWorkDay || isBefore(date, startOfDay(new Date()))}
+          title={!isWorkDay ? 'Not a working day' : undefined}
+        >
+          {/* Display day of week */}
+          <span className="text-xs" style={{ color: theme.colors.text.secondary }}>
+            {format(date, 'EEE')}
+          </span>
+          {/* Display date */}
+          <span className="text-lg font-medium">
+            {format(date, 'd')}
+          </span>
+          {/* Show 'Off' for non-working days */}
+          {!isWorkDay && (
+            <span className="text-xs mt-1" style={{ color: theme.colors.text.secondary }}>
+              Off
+            </span>
+          )}
+        </button>
+      );
+    })}
+  </div>
+</div>
+
+{/* Time Selection Section */}
+<div>
+  <h3 
+    className="text-lg font-medium mb-4"
+    style={{ color: theme.colors.text.primary }}
+  >
+    Available Times
+  </h3>
+  {/* Show loading spinner while fetching time slots */}
+  {isLoading ? (
+    <div className="flex justify-center">
+      <LoadingSpinner />
+    </div>
+  ) : (
+    // Display time slots grid
+    <div className="grid grid-cols-3 gap-2">
+      {allTimeSlots.map(time => {
+        const isAvailable = availableTimeSlots.includes(time);
+        const isPastTime = selectedDate ? isTimeSlotInPast(selectedDate, time) : false;
+        const isDisabled = !isAvailable || isPastTime;
+        const unavailabilityReason = getUnavailabilityReason(selectedDate, time);
+
+        return (
+          <button
+            key={time}
+            onClick={() => !isDisabled && onSelectTime(time)}
+            className={`py-2 px-4 rounded-lg transition-all ${
+              selectedTime === time ? 'ring-2 ring-accent' : ''
+            }`}
+            style={{ 
+              backgroundColor: theme.colors.background.secondary,
+              color: theme.colors.text.primary,
+              opacity: isDisabled ? 0.5 : 1,
+              cursor: isDisabled ? 'not-allowed' : 'pointer'
+            }}
+            disabled={isDisabled}
+            title={isDisabled ? unavailabilityReason : undefined}
+          >
+            {formatTimeSlot(time)}
+            {/* Show reason for unavailability if time slot is disabled */}
+            {isDisabled && (
+              <div className="text-xs mt-1" style={{ color: theme.colors.text.secondary }}>
+                {unavailabilityReason}
+              </div>
+            )}
+          </button>
+        );
+      })}
+      {/* Display messages for non-working days or no available slots */}
+      {selectedDate && !isLoading && (
+        !isWorkingDay(new Date(selectedDate)) ? (
+          <div 
+            className="col-span-3 text-center py-4"
+            style={{ color: theme.colors.text.secondary }}
+          >
+            This is not a working day for the selected barber.
+          </div>
+        ) : availableTimeSlots.length === 0 ? (
+          <div 
+            className="col-span-3 text-center py-4"
+            style={{ color: theme.colors.text.secondary }}
+          >
+            No available time slots for this date.
+          </div>
+        ) : null
+      )}
+    </div>
+  )}
+</div>
