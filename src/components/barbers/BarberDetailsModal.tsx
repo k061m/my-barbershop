@@ -1,28 +1,34 @@
+// Import necessary dependencies
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Barber } from '../../types/barber.types';
 import StarRating from '../common/StarRating';
 
+// Define the props interface for the component
 interface BarberDetailsModalProps {
   barber: Barber;
   isOpen: boolean;
   onClose: () => void;
 }
 
+// Define the main component
 export default function BarberDetailsModal({ barber, isOpen, onClose }: BarberDetailsModalProps) {
   const navigate = useNavigate();
   const { currentLanguage } = useLanguage();
 
+  // Function to handle booking action
   const handleBookNow = () => {
     navigate('/booking', { state: { selectedBarber: barber } });
   };
 
+  // Function to format working days into a readable string
   const formatWorkingDays = (days: number[]) => {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     return days.map(day => dayNames[day]).join(', ');
   };
 
+  // Function to format services into a readable string
   const getServicesList = (serviceIds: string[]) => {
     return serviceIds.join(', ');
   };
