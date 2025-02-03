@@ -1,15 +1,26 @@
+/* Import Tailwind CSS base styles */
 @tailwind base;
+/* Import Tailwind CSS component styles */
 @tailwind components;
+/* Import Tailwind CSS utility styles */
 @tailwind utilities;
 
+/* Define root-level styles */
 :root {
+  /* Set the font family stack, starting with Inter and falling back to system fonts */
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Set the line height to 1.5 times the font size */
   line-height: 1.5;
+  /* Set the font weight to 400 (normal) */
   font-weight: 400;
 }
 
+/* Styles for the body element */
 body {
+  /* Remove default margin */
   margin: 0;
+  /* Set minimum width to 320 pixels */
   min-width: 320px;
+  /* Set minimum height to 100% of the viewport height */
   min-height: 100vh;
-} 
+}
