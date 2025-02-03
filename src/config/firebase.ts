@@ -1,9 +1,11 @@
+// Import necessary Firebase modules
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 
+// Firebase configuration object
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -21,10 +23,10 @@ for (const key of requiredKeys) {
   }
 }
 
-// Initialize Firebase
+// Initialize Firebase app
 const app = initializeApp(firebaseConfig);
 
-// Initialize services
+// Initialize and export Firebase services
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
@@ -37,6 +39,7 @@ const initAnalytics = async () => {
   return null;
 };
 
+// Initialize analytics and handle potential errors
 export const analytics = initAnalytics().catch(error => {
   if (import.meta.env.DEV) {
     console.warn('Firebase Analytics initialization failed:', error);
@@ -54,8 +57,9 @@ const handleFirebaseError = (error: unknown) => {
   }
 };
 
+// Add event listener for unhandled rejections related to Firebase
 window.addEventListener('unhandledrejection', (event) => {
   if (event.reason?.toString().includes('Firebase')) {
     handleFirebaseError(event.reason);
   }
-}); 
+});
