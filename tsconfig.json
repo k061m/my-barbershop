@@ -1,27 +1,68 @@
 {
   "compilerOptions": {
+    // Specifies the target ECMAScript version for the compiled output
     "target": "ES2020",
+
+    // Ensures that class fields follow the `useDefineForClassFields` behavior (defined in ECMAScript)
     "useDefineForClassFields": true,
+
+    // Specifies a list of libraries to include in the compilation
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+    // Specifies the module code generation style
     "module": "ESNext",
+
+    // Skip type checking of declaration files (useful for faster compilation)
     "skipLibCheck": true,
+
+    // Specifies the module resolution strategy; "bundler" is suitable for bundler tools like Webpack
     "moduleResolution": "bundler",
+
+    // Allows importing TypeScript files with `.ts` and `.tsx` extensions
     "allowImportingTsExtensions": true,
+
+    // Allows importing JSON files as modules
     "resolveJsonModule": true,
+
+    // Ensures isolated modules when working with TypeScript (prevents certain import issues)
     "isolatedModules": true,
+
+    // Disables emitting any output files (useful when using TypeScript purely for type-checking)
     "noEmit": true,
+
+    // Configures JSX transformation for React applications
     "jsx": "react-jsx",
+
+    // Enables strict type-checking options for better safety and code quality
     "strict": true,
+
+    // Ensures that unused local variables are reported as errors
     "noUnusedLocals": true,
+
+    // Ensures that unused function parameters are reported as errors
     "noUnusedParameters": true,
+
+    // Ensures that all switch case statements are properly handled (no fallthrough cases)
     "noFallthroughCasesInSwitch": true,
+
+    // Specifies the base directory for module resolution
     "baseUrl": ".",
+
+    // Configures custom paths for module resolution (useful for absolute imports)
     "paths": {
       "@/*": ["src/*"]
     },
+
+    // Includes the Node.js types for type checking
     "types": ["node"]
   },
+
+  // Specifies the files and directories to include in the project
   "include": ["src/**/*.ts", "src/**/*.tsx"],
+
+  // Specifies the files and directories to exclude from the project
   "exclude": ["src/scripts/**/*"],
+
+  // Specifies additional configuration files to extend
   "references": [{ "path": "./tsconfig.node.json" }]
 }
