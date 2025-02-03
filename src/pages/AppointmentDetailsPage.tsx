@@ -10,13 +10,15 @@ import { format } from 'date-fns';
 import { FaChevronLeft, FaStar, FaMapMarkerAlt, FaClock, FaCut } from 'react-icons/fa';
 import { Timestamp } from 'firebase/firestore';
 
+type FirestoreDate = Date | Timestamp | { _seconds: number; _nanoseconds: number } | string;
+
 interface Appointment {
   id: string;
   userId: string;
   barberId: string;
   serviceId: string;
   branchId: string;
-  date: Timestamp;
+  date: FirestoreDate;
   status: 'pending' | 'confirmed' | 'cancelled';
   price: number;
 }
@@ -56,8 +58,18 @@ export default function AppointmentDetailsPage() {
     fetchAppointment();
   }, [id, currentUser, navigate]);
 
-  const formatDateTime = (timestamp: Timestamp) => {
-    return format(timestamp.toDate(), "MMMM d, yyyy 'at' h:mm a");
+  const formatDateTime = (date: FirestoreDate) => {
+    if (date instanceof Timestamp) {
+      return format(date.toDate(), "MMMM d, yyyy 'at' h:mm a");
+    } else if (date instanceof Date) {
+      return format(date, "MMMM d, yyyy 'at' h:mm a");
+    } else if (typeof date === 'string') {
+      return format(new Date(date), "MMMM d, yyyy 'at' h:mm a");
+    } else if (date && typeof date === 'object' && '_seconds' in date) {
+      const timestamp = new Timestamp(date._seconds, date._nanoseconds);
+      return format(timestamp.toDate(), "MMMM d, yyyy 'at' h:mm a");
+    }
+    return 'Invalid date';
   };
 
   const getBarber = () => {

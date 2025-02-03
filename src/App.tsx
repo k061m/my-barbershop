@@ -9,6 +9,12 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ForgotPasswordViaEmailPage from './pages/ForgotPasswordViaEmailPage';
+import ForgotPasswordViaSmsPage from './pages/ForgotPasswordViaSmsPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import PasswordResetSuccessPage from './pages/PasswordResetSuccessPage';
+import CodeSentPage from './pages/CodeSentPage';
+import VerifyCodePage from './pages/VerifyCodePage';
 import DashboardPage from './pages/DashboardPage';
 import BarbersPage from './pages/BarbersPage';
 import ServicesPage from './pages/ServicesPage';
@@ -22,6 +28,7 @@ import ReviewsPage from './pages/ReviewsPage';
 import ContactPage from './pages/ContactPage';
 import BookingSuccessPage from './pages/BookingSuccessPage';
 import AppointmentDetailsPage from './pages/AppointmentDetailsPage';
+import AboutPage from './pages/AboutPage';
 
 // Lazy load routes
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -43,7 +50,29 @@ export default function App() {
                   <Route index element={<HomePage />} />
                   <Route path="login" element={<LoginPage />} />
                   <Route path="register" element={<RegisterPage />} />
-                  <Route path="forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="about" element={<AboutPage />} />
+                  
+                  {/* Forgot Password Flow */}
+                  <Route path="forgot-password">
+                    <Route index element={<ForgotPasswordPage />} />
+                    <Route path="email" element={<ForgotPasswordViaEmailPage />} />
+                    <Route path="sms" element={<ForgotPasswordViaSmsPage />} />
+                    <Route path="code-sent" element={<CodeSentPage />} />
+                    <Route path="verify" element={<VerifyCodePage />} />
+                    <Route path="reset" element={<ResetPasswordPage />} />
+                    <Route path="success" element={<PasswordResetSuccessPage />} />
+                  </Route>
+
+                  {/* Redirect /reset-password to /forgot-password/reset */}
+                  <Route 
+                    path="reset-password" 
+                    element={<Navigate to="/forgot-password/reset" replace />} 
+                  />
+                  <Route 
+                    path="reset-password/success" 
+                    element={<Navigate to="/forgot-password/success" replace />} 
+                  />
+
                   <Route path="barbers" element={<BarbersPage />} />
                   <Route path="services" element={<ServicesPage />} />
                   <Route path="gallery" element={<GalleryPage />} />

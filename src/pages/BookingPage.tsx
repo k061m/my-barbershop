@@ -16,6 +16,12 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
 import { appointmentService } from '../services/appointment.service';
 import { format } from 'date-fns';
+import { 
+  pageVariants, 
+  sectionVariants, 
+  cardVariants,
+  transitions 
+} from '../config/transitions';
 
 type BookingStep = 'branch' | 'service' | 'barber' | 'datetime' | 'confirmation';
 
@@ -34,15 +40,13 @@ export default function BookingPage() {
   const [searchParams] = useSearchParams();
   const { theme } = useTheme();
   const { currentUser } = useAuth();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStep, setCurrentStep] = useState<BookingStep>('branch');
-  
-  // State for each step
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [selectedDateTime, setSelectedDateTime] = useState<Date | null>(null);
+  const [currentStep, setCurrentStep] = useState<BookingStep>('branch');
+  const [direction, setDirection] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch data using custom hooks
   const { branches, isLoading: branchesLoading, error: branchesError } = useBranches();
@@ -109,12 +113,11 @@ export default function BookingPage() {
     // Retrieve booking state from local storage
     const storedBookingState = localStorage.getItem('bookingState');
     if (storedBookingState) {
-      const { selectedBranch, selectedService, selectedBarber, selectedDate, selectedTime } = JSON.parse(storedBookingState);
+      const { selectedBranch, selectedService, selectedBarber, selectedDate } = JSON.parse(storedBookingState);
       setSelectedBranch(selectedBranch);
       setSelectedService(selectedService);
       setSelectedBarber(selectedBarber);
-      setSelectedDate(selectedDate);
-      setSelectedTime(selectedTime);
+      setSelectedDateTime(new Date(selectedDate));
       
       // Clear booking state from local storage
       localStorage.removeItem('bookingState');
@@ -126,24 +129,29 @@ export default function BookingPage() {
     ? branches.filter(branch => branch.services.includes(selectedService.id))
     : branches;
 
-  const handleNext = () => {
+  const handleStepChange = (newStep: BookingStep, dir: number) => {
+    setDirection(dir);
+    setCurrentStep(newStep);
+  };
+
+  const goToNextStep = () => {
     const steps: BookingStep[] = ['branch', 'service', 'barber', 'datetime', 'confirmation'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1]);
+      handleStepChange(steps[currentIndex + 1], 1);
     }
   };
 
-  const handleBack = () => {
+  const goToPreviousStep = () => {
     const steps: BookingStep[] = ['branch', 'service', 'barber', 'datetime', 'confirmation'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1]);
+      handleStepChange(steps[currentIndex - 1], -1);
     }
   };
 
   const handleBookingConfirmation = async () => {
-    if (!selectedBranch || !selectedService || !selectedBarber || !selectedDate || !selectedTime) {
+    if (!selectedBranch || !selectedService || !selectedBarber || !selectedDateTime) {
       throw new Error('Please select all required fields');
     }
 
@@ -157,8 +165,8 @@ export default function BookingPage() {
           selectedBranch,
           selectedService,
           selectedBarber,
-          selectedDate,
-          selectedTime
+          selectedDate: selectedDateTime.toISOString().split('T')[0],
+          selectedTime: selectedDateTime.toISOString().split('T')[1]
         };
         localStorage.setItem('bookingState', JSON.stringify(bookingState));
         navigate('/login?redirect=/booking');
@@ -166,8 +174,8 @@ export default function BookingPage() {
       }
 
       // Format the date and time properly
-      const [hours, minutes] = selectedTime.split(':');
-      const appointmentDate = new Date(selectedDate);
+      const [hours, minutes] = selectedDateTime.toISOString().split('T')[1].split(':');
+      const appointmentDate = new Date(selectedDateTime);
       appointmentDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
       // Validate the date
@@ -235,8 +243,7 @@ export default function BookingPage() {
                 // Reset subsequent selections when branch changes
                 setSelectedService(null);
                 setSelectedBarber(null);
-                setSelectedDate('');
-                setSelectedTime('');
+                setSelectedDateTime(null);
               }
             }}
           />
@@ -253,8 +260,7 @@ export default function BookingPage() {
               setSelectedService(service || null);
               // Reset subsequent selections when service changes
               setSelectedBarber(null);
-              setSelectedDate('');
-              setSelectedTime('');
+              setSelectedDateTime(null);
             }}
           />
         );
@@ -269,21 +275,31 @@ export default function BookingPage() {
               const barber = barbers.find(b => b.id === barberId);
               setSelectedBarber(barber || null);
               // Reset time selections when barber changes
-              setSelectedDate('');
-              setSelectedTime('');
+              setSelectedDateTime(null);
             }}
           />
         );
       case 'datetime':
         return selectedBranch && selectedBarber && selectedService ? (
           <DateTimeSelectionStep
-            selectedDate={selectedDate}
-            selectedTime={selectedTime}
+            selectedDate={selectedDateTime ? format(selectedDateTime, 'yyyy-MM-dd') : ''}
+            selectedTime={selectedDateTime ? format(selectedDateTime, 'HH:mm') : ''}
             branchId={selectedBranch.id}
             barberId={selectedBarber.id}
             serviceDuration={selectedService.baseDuration}
-            onSelectDate={setSelectedDate}
-            onSelectTime={setSelectedTime}
+            onSelectDate={(date) => {
+              const newDateTime = selectedDateTime || new Date();
+              newDateTime.setFullYear(new Date(date).getFullYear());
+              newDateTime.setMonth(new Date(date).getMonth());
+              newDateTime.setDate(new Date(date).getDate());
+              setSelectedDateTime(newDateTime);
+            }}
+            onSelectTime={(time) => {
+              const [hours, minutes] = time.split(':');
+              const newDateTime = selectedDateTime || new Date();
+              newDateTime.setHours(parseInt(hours), parseInt(minutes));
+              setSelectedDateTime(newDateTime);
+            }}
           />
         ) : null;
       case 'confirmation':
@@ -292,8 +308,8 @@ export default function BookingPage() {
             branch={selectedBranch}
             service={selectedService}
             barber={selectedBarber}
-            date={selectedDate}
-            time={selectedTime}
+            date={selectedDateTime ? format(selectedDateTime, 'yyyy-MM-dd') : ''}
+            time={selectedDateTime ? format(selectedDateTime, 'HH:mm') : ''}
           />
         ) : null;
       default:
@@ -310,7 +326,7 @@ export default function BookingPage() {
       case 'barber':
         return !!selectedBarber;
       case 'datetime':
-        return !!selectedDate && !!selectedTime;
+        return !!selectedDateTime;
       case 'confirmation':
         return true;
       default:
@@ -318,99 +334,155 @@ export default function BookingPage() {
     }
   };
 
-  const slideVariants = {
+  // Step transition variants
+  const stepVariants = {
     enter: (direction: number) => ({
       x: direction > 0 ? 1000 : -1000,
-      opacity: 0
+      opacity: 0,
+      transition: {
+        ...transitions.defaultTransition,
+        duration: 1.2
+      }
     }),
     center: {
-      zIndex: 1,
       x: 0,
-      opacity: 1
+      opacity: 1,
+      transition: {
+        ...transitions.defaultTransition,
+        duration: 1.2,
+        ease: [0.43, 0.13, 0.23, 0.96]
+      }
     },
     exit: (direction: number) => ({
-      zIndex: 0,
       x: direction < 0 ? 1000 : -1000,
-      opacity: 0
+      opacity: 0,
+      transition: {
+        ...transitions.defaultTransition,
+        duration: 1.2,
+        ease: [0.43, 0.13, 0.23, 0.96]
+      }
     })
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 min-h-screen">
-        <div className="mb-8">
-        <h1 
-          className="text-2xl font-bold mb-2"
-          style={{ color: theme.colors.text.primary }}
-        >
-          Book an Appointment
-        </h1>
-        <p 
-          className="text-sm"
-          style={{ color: theme.colors.text.secondary }}
-        >
-          select your branch, service, barber, date and time
-        </p>
-                </div>
-
-      <AnimatePresence mode="wait" custom={currentStep}>
+    <motion.div
+      className="min-h-screen py-12 px-4 sm:px-6 lg:px-8"
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      style={{ backgroundColor: theme.colors.background.primary }}
+    >
+      <motion.div
+        className="max-w-3xl mx-auto"
+        variants={sectionVariants}
+        initial="initial"
+        whileInView="whileInView"
+        viewport={{ once: true }}
+      >
+        {/* Header Section */}
         <motion.div
-          key={currentStep}
-          custom={currentStep}
-          variants={slideVariants}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          transition={{
-            x: { type: "spring", stiffness: 300, damping: 30 },
-            opacity: { duration: 0.2 }
-          }}
+          className="text-center mb-12"
+          variants={sectionVariants}
+          initial="initial"
+          whileInView="whileInView"
+          viewport={{ once: true }}
         >
-          {renderStep()}
+          <h1 
+            className="text-4xl font-bold mb-4"
+            style={{ color: theme.colors.text.primary }}
+          >
+            Book Your Appointment
+          </h1>
+          <p 
+            className="text-lg"
+            style={{ color: theme.colors.text.secondary }}
+          >
+            Follow the steps below to schedule your appointment
+          </p>
         </motion.div>
-      </AnimatePresence>
 
-          <div className="mt-8 flex justify-between">
-        {currentStep !== 'branch' && (
-              <button
-            onClick={handleBack}
-            className="px-6 py-2 rounded-lg"
-            style={{ 
-              backgroundColor: theme.colors.background.secondary,
-              color: theme.colors.text.primary
-            }}
-          >
-            Back
-              </button>
-            )}
-        {currentStep !== 'confirmation' && (
-              <button
-            onClick={handleNext}
-            disabled={!canProceed()}
-            className={`px-6 py-2 rounded-lg ml-auto ${
-              !canProceed() ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-            style={{ 
-              backgroundColor: theme.colors.accent.primary,
-              color: theme.colors.background.primary
-            }}
-              >
-                Next
-              </button>
-        )}
-        {currentStep === 'confirmation' && (
-              <button
-            onClick={handleBookingConfirmation}
-            disabled={isSubmitting}
-            className="px-6 py-2 rounded-lg ml-auto"
-            style={{ 
-              backgroundColor: theme.colors.accent.primary,
-              color: theme.colors.background.primary
-            }}
-          >
-            {isSubmitting ? 'Confirming...' : 'Confirm Booking'}
-              </button>
-            )}
-      </div>
-    </div>
+        {/* Progress Steps */}
+        <motion.div
+          className="mb-8"
+          variants={cardVariants}
+          initial="initial"
+          whileInView="whileInView"
+          viewport={{ once: true }}
+        >
+          {/* ... existing progress steps code ... */}
+        </motion.div>
+
+        {/* Step Content */}
+        <motion.div
+          className="relative"
+          style={{ minHeight: '400px' }}
+        >
+          <AnimatePresence initial={false} custom={direction}>
+            <motion.div
+              key={currentStep}
+              custom={direction}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="absolute w-full"
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Navigation Buttons */}
+        <motion.div
+          className="flex justify-between mt-8"
+          variants={cardVariants}
+          initial="initial"
+          whileInView="whileInView"
+          viewport={{ once: true }}
+        >
+          {currentStep !== 'branch' && (
+            <button
+              onClick={goToPreviousStep}
+              className="px-6 py-2 rounded-lg"
+              style={{ 
+                backgroundColor: theme.colors.background.secondary,
+                color: theme.colors.text.primary
+              }}
+            >
+              Back
+            </button>
+          )}
+          {currentStep !== 'confirmation' && (
+            <button
+              onClick={goToNextStep}
+              disabled={!canProceed()}
+              className={`px-6 py-2 rounded-lg ml-auto ${
+                !canProceed() ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              style={{ 
+                backgroundColor: theme.colors.accent.primary,
+                color: theme.colors.background.primary
+              }}
+            >
+              Next
+            </button>
+          )}
+          {currentStep === 'confirmation' && (
+            <button
+              onClick={handleBookingConfirmation}
+              disabled={isSubmitting}
+              className="px-6 py-2 rounded-lg ml-auto"
+              style={{ 
+                backgroundColor: theme.colors.accent.primary,
+                color: theme.colors.background.primary
+              }}
+            >
+              {isSubmitting ? 'Confirming...' : 'Confirm Booking'}
+            </button>
+          )}
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 } 

@@ -1,0 +1,107 @@
+import { useState, FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { FirebaseError } from 'firebase/app';
+import { Logo } from '../components/common/Logo';
+import { motion } from 'framer-motion';
+
+export default function ForgotPasswordEmailPage() {
+  const navigate = useNavigate();
+  const { resetPassword } = useAuth();
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      setError('');
+      setLoading(true);
+      await resetPassword(email);
+      navigate('/forgot-password/code-sent');
+    } catch (err) {
+      setLoading(false);
+      if (err instanceof FirebaseError) {
+        switch (err.code) {
+          case 'auth/user-not-found':
+            setError('No account found with this email');
+            break;
+          case 'auth/invalid-email':
+            setError('Invalid email address');
+            break;
+          default:
+            setError('Failed to send reset link');
+        }
+      } else {
+        setError('Failed to send reset link');
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-background-primary">
+      {/* Back button */}
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="absolute top-4 left-4 text-text-secondary hover:text-text-primary flex items-center gap-2 transition-colors"
+        onClick={() => navigate(-1)}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+      </motion.button>
+
+      {/* Logo */}
+      <div className="mb-12">
+        <Logo width={180} height={60} className="text-text-primary" />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md space-y-8"
+      >
+        {/* Title and subtitle */}
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold text-text-primary">Forgot password</h1>
+          <p className="text-text-secondary text-lg">Please enter your email address to reset your password instruction</p>
+        </div>
+
+        {error && (
+          <div className="p-4 bg-status-error/10 border border-status-error/20 rounded-lg text-status-error">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email input */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full pl-12 pr-4 py-4 bg-background-card text-text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Send link button */}
+          <button
+            type="submit"
+            className="w-full py-4 bg-accent-primary text-text-inverse rounded-lg font-medium hover:bg-accent-hover transition-colors disabled:opacity-50"
+            disabled={loading}
+          >
+            {loading ? 'Sending...' : 'Send link'}
+          </button>
+        </form>
+      </motion.div>
+    </div>
+  );
+} 

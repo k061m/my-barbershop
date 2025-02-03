@@ -18,6 +18,7 @@ export interface Appointment {
   userId: string;
   barberId: string;
   serviceId: string;
+  branchId: string;
   date: Timestamp;
   status: 'pending' | 'confirmed' | 'cancelled';
   notes?: string;
@@ -32,6 +33,7 @@ function convertTimestamp(doc: DocumentSnapshot): Appointment {
     userId: data.userId,
     barberId: data.barberId,
     serviceId: data.serviceId,
+    branchId: data.branchId,
     date: data.date,  // Keep as Timestamp
     status: data.status,
     notes: data.notes

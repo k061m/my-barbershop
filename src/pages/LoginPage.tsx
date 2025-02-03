@@ -1,19 +1,18 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import { FirebaseError } from 'firebase/app';
 import { Logo } from '../components/common/Logo';
-import Card from '../components/common/Card';
+import { motion } from 'framer-motion';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -43,119 +42,138 @@ export default function LoginPage() {
   };
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center px-4 py-8"
-      style={{ backgroundColor: theme.colors.background.primary }}
-    >
-      <Card className="w-full max-w-md">
-        <div className="space-y-6">
-          <div className="flex flex-col items-center">
-            <Logo width={180} height={60} className="mb-4" />
-            <h2 
-              className="text-2xl font-semibold"
-              style={{ color: theme.colors.text.primary }}
-            >
-              Welcome Back
-            </h2>
-          </div>
-          
-          {error && (
-            <div 
-              className="p-4 rounded-lg"
-              style={{ 
-                backgroundColor: theme.colors.status.error,
-                color: theme.colors.text.primary 
-              }}
-            >
-              <div className="flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{error}</span>
-              </div>
-            </div>
-          )}
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-background-primary">
+      {/* Back button */}
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="absolute top-4 left-4 text-text-secondary hover:text-text-primary flex items-center gap-2 transition-colors"
+        onClick={() => navigate(-1)}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+      </motion.button>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label 
-                className="block text-sm font-medium mb-2"
-                style={{ color: theme.colors.text.secondary }}
-              >
-                Email
-              </label>
-              <input 
-                type="email" 
-                placeholder="your@email.com" 
-                className="w-full px-4 py-2 rounded-lg"
-                style={{ 
-                  backgroundColor: theme.colors.background.card,
-                  color: theme.colors.text.primary
-                }}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required 
-              />
-            </div>
-            
-            <div>
-              <label 
-                className="block text-sm font-medium mb-2"
-                style={{ color: theme.colors.text.secondary }}
-              >
-                Password
-              </label>
-              <input 
-                type="password" 
-                placeholder="••••••••" 
-                className="w-full px-4 py-2 rounded-lg"
-                style={{ 
-                  backgroundColor: theme.colors.background.card,
-                  color: theme.colors.text.primary
-                }}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required 
-              />
-              <div className="mt-1 text-right">
-                <Link 
-                  to="/forgot-password" 
-                  className="text-sm hover:opacity-80 transition-opacity"
-                  style={{ color: theme.colors.accent.primary }}
-                >
-                  Forgot password?
-                </Link>
-              </div>
-            </div>
+      {/* Logo */}
+      <div className="mb-12">
+        <Logo width={180} height={60} className="text-text-primary" />
+      </div>
 
-            <button 
-              type="submit" 
-              className="w-full py-2 rounded-lg transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{ 
-                backgroundColor: theme.colors.accent.primary,
-                color: theme.colors.background.primary
-              }}
-              disabled={loading}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-
-            <div 
-              className="text-center"
-              style={{ color: theme.colors.text.secondary }}
-            >
-              <span className="text-sm">Don't have an account? </span>
-              <Link 
-                to="/register" 
-                className="text-sm hover:opacity-80 transition-opacity"
-                style={{ color: theme.colors.accent.primary }}
-              >
-                Sign up
-              </Link>
-            </div>
-          </form>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md space-y-8"
+      >
+        {/* Welcome text */}
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold text-text-primary">Welcome!</h1>
+          <p className="text-text-secondary text-lg">Sign in to continue</p>
         </div>
-      </Card>
+
+        {error && (
+          <div className="p-4 bg-status-error/10 border border-status-error/20 rounded-lg text-status-error">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email input */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full pl-12 pr-4 py-4 bg-background-card text-text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Password input */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full pl-12 pr-4 py-4 bg-background-card text-text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Remember me checkbox */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="remember-me"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 rounded bg-background-card border-text-muted text-accent-primary focus:ring-accent-primary"
+            />
+            <label htmlFor="remember-me" className="ml-2 text-text-secondary">
+              Remember me
+            </label>
+          </div>
+
+          {/* Sign in button */}
+          <button
+            type="submit"
+            className="w-full py-4 bg-accent-primary text-text-inverse rounded-lg font-medium hover:bg-accent-hover transition-colors disabled:opacity-50"
+            disabled={loading}
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </form>
+
+        {/* Or continue with */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-background-hover"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-background-primary text-text-secondary">Or Continue with</span>
+          </div>
+        </div>
+
+        {/* Social login buttons */}
+        <div className="grid grid-cols-3 gap-4">
+          <button className="p-3 bg-background-card hover:bg-background-hover transition-colors rounded-lg">
+            <img src="/facebook-icon.svg" alt="Facebook" className="h-6 w-6 mx-auto" />
+          </button>
+          <button className="p-3 bg-background-card hover:bg-background-hover transition-colors rounded-lg">
+            <img src="/google-icon.svg" alt="Google" className="h-6 w-6 mx-auto" />
+          </button>
+          <button className="p-3 bg-background-card hover:bg-background-hover transition-colors rounded-lg">
+            <img src="/twitter-icon.svg" alt="Twitter" className="h-6 w-6 mx-auto" />
+          </button>
+        </div>
+
+        {/* Forgot password */}
+        <div className="text-center">
+          <Link to="/forgot-password" className="text-text-secondary hover:text-text-primary transition-colors">
+            Forgot your password?
+          </Link>
+        </div>
+
+        {/* Sign up link */}
+        <div className="text-center text-text-secondary">
+          Don't have an account?{' '}
+          <Link to="/register" className="text-accent-primary hover:text-accent-hover transition-colors">
+            Sign up
+          </Link>
+        </div>
+      </motion.div>
     </div>
   );
 } 

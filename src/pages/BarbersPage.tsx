@@ -2,6 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBarbers } from '../hooks/useBarbers';
 import BarberCard from '../components/barbers/BarberCard';
+import { motion } from 'framer-motion';
+import { 
+  pageVariants, 
+  sectionVariants, 
+  cardVariants,
+  transitions 
+} from '../config/transitions';
 
 export default function BarbersPage() {
   const navigate = useNavigate();
@@ -23,12 +30,28 @@ export default function BarbersPage() {
   }
 
   return (
-    <div 
+    <motion.div 
       className="min-h-screen py-12 px-4 sm:px-6 lg:px-8"
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
       style={{ backgroundColor: theme.colors.background.primary }}
     >
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
+      <motion.div 
+        className="max-w-7xl mx-auto"
+        variants={sectionVariants}
+        initial="initial"
+        whileInView="whileInView"
+        viewport={{ once: true }}
+      >
+        <motion.div 
+          className="text-center mb-12"
+          variants={sectionVariants}
+          initial="initial"
+          whileInView="whileInView"
+          viewport={{ once: true }}
+        >
           <h1 
             className="text-4xl font-bold mb-4"
             style={{ color: theme.colors.text.primary }}
@@ -41,18 +64,27 @@ export default function BarbersPage() {
           >
             Meet our team of professional barbers dedicated to providing you with the best grooming experience.
           </p>
-        </div>
+        </motion.div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {barbers?.map(barber => (
-            <BarberCard
+          {barbers?.map((barber, index) => (
+            <motion.div
               key={barber.id}
-              barber={barber}
-              onClick={() => navigate(`/booking?barber=${barber.id}`)}
-            />
+              variants={cardVariants}
+              initial="initial"
+              whileInView="whileInView"
+              viewport={{ once: true }}
+              transition={{ ...transitions.defaultTransition, delay: index * 0.1 }}
+            >
+              <BarberCard
+                key={barber.id}
+                barber={barber}
+                onClick={() => navigate(`/booking?barber=${barber.id}`)}
+              />
+            </motion.div>
           ))}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 } 

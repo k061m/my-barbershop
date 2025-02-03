@@ -1,54 +1,47 @@
 import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { Service } from '../../types';
+import { Service } from '../../types/Service';
 import ServiceDetailsModal from './ServiceDetailsModal';
-import Card from '../common/Card';
-import ServiceBookButton from './ServiceBookButton';
 
 interface ServiceCardProps {
   service: Service;
+  onClick?: () => void;
 }
 
-export default function ServiceCard({ service }: ServiceCardProps) {
-  const { currentLanguage } = useLanguage();
+export default function ServiceCard({ service, onClick }: ServiceCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { currentLanguage } = useLanguage();
 
-  const handleCardClick = () => {
-    setIsModalOpen(true);
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      setIsModalOpen(true);
+    }
   };
-
-  const header = (
-    <div className="relative">
-      <img 
-        src={service.image} 
-        alt={service.name[currentLanguage]}
-        className="w-full h-48 object-cover"
-      />
-      {service.isPopular && (
-        <span className="absolute top-2 right-2 px-2 py-1 rounded text-xs font-semibold bg-accent-primary text-background-primary">
-          Popular
-        </span>
-      )}
-    </div>
-  );
-
-  const footer = (
-    <ServiceBookButton serviceId={service.id} />
-  );
 
   return (
     <>
-      <Card
-        header={header}
-        footer={footer}
-        hover
-        onClick={handleCardClick}
+      <div 
+        onClick={handleClick}
+        className="cursor-pointer"
       >
-        <div className="space-y-4">
-          <div>
-            <h3 
-              className="text-lg font-semibold text-text-primary"
-            >
+        <div className="relative">
+          <img 
+            src={service.image} 
+            alt={service.name[currentLanguage]}
+            className="w-full h-48 object-cover"
+          />
+          {service.isPopular && (
+            <span className="absolute top-2 right-2 px-2 py-1 bg-accent-primary text-text-inverse rounded text-xs font-medium">
+              Popular
+            </span>
+          )}
+        </div>
+
+        <div className="p-4">
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-text-primary">
               {service.name[currentLanguage]}
             </h3>
             <p className="text-sm text-text-secondary mt-2">
@@ -56,7 +49,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
             </p>
           </div>
 
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mt-4">
             <span className="font-bold text-accent-primary">
               ${service.basePrice}
             </span>
@@ -65,7 +58,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
             </span>
           </div>
         </div>
-      </Card>
+      </div>
 
       <ServiceDetailsModal
         service={service}
